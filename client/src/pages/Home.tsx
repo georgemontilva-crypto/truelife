@@ -209,7 +209,11 @@ export default function Home() {
       <CartDrawer />
 
       {/* Hero Banner Slider */}
-      <HeroBannerSlider />
+      <div className="bg-white px-4 md:px-6 pt-4 pb-0">
+        <div className="rounded-3xl overflow-hidden">
+          <HeroBannerSlider />
+        </div>
+      </div>
 
       {/* Categories */}
       <section className="container py-16 md:py-20">
