@@ -4,10 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Package, Upload, X, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Pencil, Trash2, Package, Upload, X, Check, ChevronDown, ChevronUp, ImageIcon } from "lucide-react";
 import ProductVariantsEditor from "@/components/admin/ProductVariantsEditor";
 import ProductAttributesEditor from "@/components/admin/ProductAttributesEditor";
 import LabReportsEditor from "@/components/admin/LabReportsEditor";
+
+type VariantDraft = {
+  draftId: string;
+  name: string;
+  price: string;
+  inventory: number;
+  image: { base64: string; filename: string; contentType: string; previewUrl: string } | null;
+};
 
 type ProductForm = {
   categoryId: number;
@@ -43,27 +51,17 @@ export default function AdminProducts() {
   const [uploading, setUploading] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [variantType, setVariantType] = useState("");
+  const [variantDrafts, setVariantDrafts] = useState<VariantDraft[]>([]);
+  const variantImageRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const utils = trpc.useUtils();
   const categories = trpc.categories.list.useQuery();
   const products = trpc.products.listAdmin.useQuery();
 
-  const createProduct = trpc.products.create.useMutation({
-    onSuccess: (data) => {
-      utils.products.listAdmin.invalidate();
-      // After creating, switch to edit mode so advanced sections are available
-      const newId = (data as any)?.id;
-      if (newId) {
-        setEditId(newId);
-        toast.success("Product created! You can now add variants, characteristics and lab reports.");
-      } else {
-        setShowForm(false);
-        setForm(EMPTY_FORM);
-        toast.success("Product created!");
-      }
-    },
-    onError: (e) => toast.error(e.message),
-  });
+  const createProduct = trpc.products.create.useMutation();
+  const createVariant = trpc.productVariants.create.useMutation();
+  const setAttributes = trpc.productAttributes.set.useMutation();
   const updateProduct = trpc.products.update.useMutation({
     onSuccess: () => { utils.products.listAdmin.invalidate(); setShowForm(false); setEditId(null); setForm(EMPTY_FORM); toast.success("Product updated!"); },
     onError: (e) => toast.error(e.message),
@@ -101,11 +99,25 @@ export default function AdminProducts() {
       thcContent: p.thcContent ?? "", cbdContent: p.cbdContent ?? "", weight: p.weight ?? "",
       imageUrl: p.imageUrl ?? "", imageKey: p.imageKey ?? "",
     });
+    setVariantType("");
+    setVariantDrafts([]);
     setExpandedSection(null);
     setShowForm(true);
   };
 
-  const handleSubmit = () => {
+  const addVariantDraft = () => {
+    setVariantDrafts((d) => [...d, { draftId: crypto.randomUUID(), name: "", price: "", inventory: 0, image: null }]);
+  };
+
+  const updateDraft = (draftId: string, patch: Partial<VariantDraft>) => {
+    setVariantDrafts((d) => d.map((v) => v.draftId === draftId ? { ...v, ...patch } : v));
+  };
+
+  const removeDraft = (draftId: string) => {
+    setVariantDrafts((d) => d.filter((v) => v.draftId !== draftId));
+  };
+
+  const handleSubmit = async () => {
     if (!form.name || !form.price || !form.categoryId) {
       toast.error("Name, price and category are required");
       return;
@@ -123,8 +135,52 @@ export default function AdminProducts() {
     };
     if (editId) {
       updateProduct.mutate({ id: editId, ...payload });
-    } else {
-      createProduct.mutate(payload);
+      return;
+    }
+    try {
+      const data = await createProduct.mutateAsync(payload);
+      const newId = (data as any)?.id as number | undefined;
+      utils.products.listAdmin.invalidate();
+
+      if (newId) {
+        // Save variant type attribute
+        if (variantType.trim()) {
+          await setAttributes.mutateAsync({
+            productId: newId,
+            attrs: [{ key: "variant_type", value: variantType.trim(), sortOrder: 0 }],
+          });
+        }
+        // Create variant drafts
+        for (let i = 0; i < variantDrafts.length; i++) {
+          const d = variantDrafts[i];
+          if (!d.name || !d.price) continue;
+          await createVariant.mutateAsync({
+            productId: newId,
+            name: d.name,
+            price: d.price,
+            inventory: d.inventory,
+            isActive: true,
+            sortOrder: i,
+            ...(d.image ? {
+              imageBase64: d.image.base64,
+              imageFilename: d.image.filename,
+              imageContentType: d.image.contentType,
+            } : {}),
+          });
+        }
+        setEditId(newId);
+        setVariantType("");
+        setVariantDrafts([]);
+        toast.success("Product created! You can now add more variants, characteristics and lab reports.");
+      } else {
+        setShowForm(false);
+        setForm(EMPTY_FORM);
+        setVariantType("");
+        setVariantDrafts([]);
+        toast.success("Product created!");
+      }
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to create product");
     }
   };
 
@@ -138,7 +194,7 @@ export default function AdminProducts() {
           <h1 className="text-2xl font-bold text-gray-900">Products</h1>
           <p className="text-gray-500 text-sm mt-1">{products.data?.length ?? 0} products total</p>
         </div>
-        <Button className="bg-gray-900 hover:bg-black text-white rounded-xl" onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_FORM); setExpandedSection(null); }}>
+        <Button className="bg-gray-900 hover:bg-black text-white rounded-xl" onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_FORM); setVariantType(""); setVariantDrafts([]); setExpandedSection(null); }}>
           <Plus className="w-4 h-4 mr-2" /> Add Product
         </Button>
       </div>
@@ -148,7 +204,7 @@ export default function AdminProducts() {
         <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-8 shadow-sm">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-semibold text-gray-900 text-lg">{editId ? "Edit Product" : "New Product"}</h2>
-            <button onClick={() => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); }} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+            <button onClick={() => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); setVariantType(""); setVariantDrafts([]); }} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -250,12 +306,119 @@ export default function AdminProducts() {
             </div>
           </div>
 
+          {/* Variant Type + inline variants — only during new product creation */}
+          {!editId && (
+            <div className="mb-6 border border-gray-100 rounded-2xl overflow-hidden">
+              <div className="bg-gray-50 px-5 py-4 border-b border-gray-100">
+                <p className="text-sm font-semibold text-gray-800">Variants (Optional)</p>
+                <p className="text-xs text-gray-500 mt-0.5">Add flavors, sizes or weights — each with its own price and stock</p>
+              </div>
+              <div className="p-5 space-y-4">
+                {/* Variant type label */}
+                <div className="max-w-xs">
+                  <Label className="text-xs text-gray-600 mb-1 block">Variant Type</Label>
+                  <Input
+                    value={variantType}
+                    onChange={(e) => setVariantType(e.target.value)}
+                    placeholder="e.g. Flavor, Strain, Size, Type..."
+                    className="rounded-xl text-sm h-8"
+                  />
+                </div>
+
+                {/* Draft variant rows */}
+                {variantDrafts.length > 0 && (
+                  <div className="space-y-2">
+                    {variantDrafts.map((d) => (
+                      <div key={d.draftId} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
+                        {/* Image picker */}
+                        <div className="shrink-0">
+                          {d.image ? (
+                            <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-gray-200 group cursor-pointer"
+                              onClick={() => updateDraft(d.draftId, { image: null })}>
+                              <img src={d.image.previewUrl} alt="" className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <X className="w-3 h-3 text-white" />
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => variantImageRefs.current[d.draftId]?.click()}
+                              className="w-8 h-8 rounded-lg border border-dashed border-gray-300 bg-white flex items-center justify-center hover:border-gray-400 transition-colors"
+                            >
+                              <ImageIcon className="w-3.5 h-3.5 text-gray-300" />
+                            </button>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            ref={(el) => { variantImageRefs.current[d.draftId] = el; }}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onload = (ev) => {
+                                const result = ev.target?.result as string;
+                                updateDraft(d.draftId, { image: { base64: result.split(",")[1], filename: file.name, contentType: file.type, previewUrl: result } });
+                              };
+                              reader.readAsDataURL(file);
+                              e.target.value = "";
+                            }}
+                          />
+                        </div>
+                        <Input
+                          value={d.name}
+                          onChange={(e) => updateDraft(d.draftId, { name: e.target.value })}
+                          placeholder={variantType ? `${variantType} name...` : "Variant name..."}
+                          className="rounded-xl text-xs h-7 flex-1 min-w-0"
+                        />
+                        <div className="relative shrink-0 w-24">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                          <Input
+                            value={d.price}
+                            onChange={(e) => updateDraft(d.draftId, { price: e.target.value })}
+                            placeholder="Price"
+                            className="rounded-xl text-xs h-7 pl-5"
+                          />
+                        </div>
+                        <Input
+                          type="number"
+                          value={d.inventory}
+                          onChange={(e) => updateDraft(d.draftId, { inventory: parseInt(e.target.value) || 0 })}
+                          placeholder="Stock"
+                          className="rounded-xl text-xs h-7 w-16 shrink-0"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeDraft(d.draftId)}
+                          className="p-1 text-gray-300 hover:text-red-500 transition-colors shrink-0"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={addVariantDraft}
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Variant
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Save basic info */}
           <div className="flex gap-3 pb-6 border-b border-gray-100">
-            <Button className="bg-gray-900 hover:bg-black text-white rounded-xl" onClick={handleSubmit} disabled={createProduct.isPending || updateProduct.isPending}>
-              <Check className="w-4 h-4 mr-2" /> {editId ? "Save Changes" : "Create Product"}
+            <Button className="bg-gray-900 hover:bg-black text-white rounded-xl" onClick={handleSubmit} disabled={createProduct.isPending || updateProduct.isPending || createVariant.isPending || setAttributes.isPending}>
+              <Check className="w-4 h-4 mr-2" /> {editId ? "Save Changes" : createProduct.isPending ? "Creating..." : "Create Product"}
             </Button>
-            <Button variant="ghost" className="rounded-xl" onClick={() => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); }}>Cancel</Button>
+            <Button variant="ghost" className="rounded-xl" onClick={() => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); setVariantType(""); setVariantDrafts([]); }}>Cancel</Button>
           </div>
 
           {/* Advanced sections — only shown when editing an existing product */}

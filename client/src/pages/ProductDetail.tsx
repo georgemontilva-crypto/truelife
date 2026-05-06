@@ -218,7 +218,13 @@ export default function ProductDetail() {
             {/* Variants with individual pricing (gramajes, sabores, etc.) */}
             {activeVariants.length > 0 && (
               <div className="mb-5">
-                <p className="text-sm font-semibold text-gray-700 mb-3">Select Option</p>
+                {(() => {
+                  const vt = attributes.data?.find((a: any) => a.key === "variant_type")?.value;
+                  const label = vt
+                    ? `Select ${vt.charAt(0).toUpperCase()}${vt.slice(1)}:`
+                    : "Select Option";
+                  return <p className="text-sm font-semibold text-gray-700 mb-3">{label}</p>;
+                })()}
                 <div className="flex flex-wrap gap-2">
                   {/* Base product option */}
                   <button
