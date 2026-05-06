@@ -770,16 +770,14 @@ export default function AdminProducts() {
                       </div>
                     ))}
 
-                    {/* Add another option (max 2) */}
-                    {options.length < 2 && (
-                      <button
-                        type="button"
-                        onClick={() => setOptions(o => [...o, newOption()])}
-                        className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 transition-colors font-medium py-0.5"
-                      >
-                        <Plus className="w-3.5 h-3.5" /> Add another option
-                      </button>
-                    )}
+                    {/* Add another option */}
+                    <button
+                      type="button"
+                      onClick={() => setOptions(o => [...o, newOption()])}
+                      className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 transition-colors font-medium py-0.5"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Add another option
+                    </button>
 
                     {/* Generated variants table */}
                     {variantRows.length > 0 && (
