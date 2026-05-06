@@ -53,3 +53,19 @@
 - [x] Vitest: products.list and featured tests
 - [x] Vitest: admin procedures (FORBIDDEN for non-admin, allowed for admin)
 - [x] Vitest: cart UNAUTHORIZED test
+
+## Mejoras v2 - Variantes, Características y Lab Reports
+- [x] Esquema DB: tabla product_variants (nombre, precio propio, stock, sku)
+- [x] Esquema DB: tabla product_attributes (clave-valor: sabor, ingrediente activo, etc.)
+- [x] Esquema DB: tabla lab_reports (por variante o por producto, con URL de PDF)
+- [x] Backend: CRUD de variantes con precio individual
+- [x] Backend: CRUD de atributos/características del producto
+- [x] Backend: CRUD de lab reports por variante/producto
+- [x] Admin: formulario de variantes con precio, stock y SKU por variante
+- [x] Admin: sección de características personalizadas (key-value)
+- [x] Admin: sección de lab reports con upload de PDF por variante
+- [x] Fix: diseño móvil - overflow y grid de productos
+- [x] Fix: ProductCard responsive en mobile
+- [x] Fix: Navbar overflow en mobile
+- [x] Tienda: detalle de producto muestra variantes con precio individual
+- [x] Tienda: detalle de producto muestra características y lab reports

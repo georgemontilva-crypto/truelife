@@ -26,28 +26,28 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-white">
-        <div className="container py-20 md:py-28">
+        <div className="container py-12 md:py-28">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6 border border-blue-100">
+            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5 border border-blue-100">
               <Shield className="w-3.5 h-3.5" />
               Lab-Tested · ≤0.3% Δ9THC · FDA Compliant
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight tracking-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 leading-tight tracking-tight mb-5">
               Premium Hemp
               <span className="block text-blue-600">Products</span>
             </h1>
-            <p className="text-lg text-gray-500 leading-relaxed mb-8 max-w-xl">
+            <p className="text-lg text-gray-500 leading-relaxed mb-7 max-w-xl">
               Pharmaceutical-grade hemp-derived products. Every batch lab-tested for purity, potency, and compliance. Expect the best.
             </p>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3">
               <Link href="/catalog">
-                <Button className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-base">
+                <Button className="h-11 md:h-12 px-6 md:px-8 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium">
                   Shop Now
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
               <Link href="/catalog">
-                <Button variant="ghost" className="h-12 px-6 text-gray-600 hover:text-gray-900 font-medium">
+                <Button variant="ghost" className="h-11 md:h-12 px-5 md:px-6 text-gray-600 hover:text-gray-900 font-medium">
                   View Catalog
                 </Button>
               </Link>
@@ -56,7 +56,7 @@ export default function Home() {
         </div>
 
         {/* Decorative element */}
-        <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-blue-50/50 to-transparent hidden lg:block" />
+        <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-blue-50/50 to-transparent hidden lg:block pointer-events-none" />
         <div className="absolute right-16 top-1/2 -translate-y-1/2 hidden lg:flex flex-col gap-4">
           {[
             { icon: FlaskConical, label: "Lab Tested", sub: "Every batch" },
@@ -91,13 +91,13 @@ export default function Home() {
         </div>
 
         {categories.isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="h-28 bg-gray-100 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             {categories.data?.map((cat) => (
               <Link key={cat.id} href={`/catalog/${cat.slug}`}>
                 <div className="group bg-white border border-gray-100 rounded-2xl p-5 text-center hover:border-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer">
@@ -131,13 +131,13 @@ export default function Home() {
           </div>
 
           {featured.isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="h-72 bg-gray-100 rounded-2xl animate-pulse" />
               ))}
             </div>
           ) : featured.data && featured.data.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
               {featured.data.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

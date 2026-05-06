@@ -81,17 +81,17 @@ export default function ProductCard({ product }: { product: Product }) {
         </div>
 
         {/* Info */}
-        <div className="p-4">
+        <div className="p-3 md:p-4">
           <p className="text-xs text-blue-600 font-medium mb-1 uppercase tracking-wide">
             {product.thcContent ? `THC: ${product.thcContent}` : "Hemp Derived"}
           </p>
-          <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-2 group-hover:text-blue-600 transition-colors">
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-2 group-hover:text-blue-600 transition-colors">
             {product.name}
           </h3>
 
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-base font-bold text-gray-900">${parseFloat(product.price).toFixed(2)}</span>
+              <span className="text-sm md:text-base font-bold text-gray-900">${parseFloat(product.price).toFixed(2)}</span>
               {hasDiscount && (
                 <span className="text-xs text-gray-400 line-through ml-2">
                   ${parseFloat(product.compareAtPrice!).toFixed(2)}

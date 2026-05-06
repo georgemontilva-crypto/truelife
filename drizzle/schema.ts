@@ -153,3 +153,49 @@ export const orderItems = mysqlTable("order_items", {
 });
 
 export type OrderItem = typeof orderItems.$inferSelect;
+
+// ─── Product Variants (con precio propio) ─────────────────────────────────────
+// Cada variante es una opción concreta: "Strawberry 3.5g", "Mango 7g", etc.
+export const productVariants = mysqlTable("product_variants", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull(),
+  name: varchar("name", { length: 256 }).notNull(),       // "Strawberry 3.5g"
+  sku: varchar("sku", { length: 128 }),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  compareAtPrice: decimal("compareAtPrice", { precision: 10, scale: 2 }),
+  inventory: int("inventory").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type ProductVariant = typeof productVariants.$inferSelect;
+export type InsertProductVariant = typeof productVariants.$inferInsert;
+
+// ─── Product Attributes (características personalizadas) ──────────────────────
+// key-value: "Ingrediente Activo" => "Delta 8 THC", "Sabor" => "Fresa", etc.
+export const productAttributes = mysqlTable("product_attributes", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull(),
+  key: varchar("key", { length: 128 }).notNull(),
+  value: varchar("value", { length: 512 }).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+});
+export type ProductAttribute = typeof productAttributes.$inferSelect;
+
+// ─── Lab Reports ──────────────────────────────────────────────────────────────
+// Reporte de laboratorio: puede estar vinculado a un producto o a una variante
+export const labReports = mysqlTable("lab_reports", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull(),
+  variantId: int("variantId"),                             // null = aplica al producto completo
+  variantName: varchar("variantName", { length: 256 }),    // etiqueta legible
+  reportName: varchar("reportName", { length: 256 }).notNull(),
+  fileUrl: text("fileUrl").notNull(),
+  fileKey: varchar("fileKey", { length: 512 }),
+  batchNumber: varchar("batchNumber", { length: 128 }),
+  testedAt: timestamp("testedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type LabReport = typeof labReports.$inferSelect;
+export type InsertLabReport = typeof labReports.$inferInsert;

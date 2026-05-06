@@ -30,7 +30,7 @@ export default function Catalog() {
       <Navbar />
       <CartDrawer />
 
-      <div className="container py-10">
+      <div className="container py-6 md:py-10">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
@@ -102,7 +102,7 @@ export default function Catalog() {
           {/* Products grid */}
           <div className="flex-1">
             {products.isLoading ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-5">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="h-72 bg-gray-100 rounded-2xl animate-pulse" />
                 ))}
@@ -110,7 +110,7 @@ export default function Catalog() {
             ) : products.data && products.data.length > 0 ? (
               <>
                 <p className="text-sm text-gray-500 mb-5">{products.data.length} products</p>
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-5">
                   {products.data.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}

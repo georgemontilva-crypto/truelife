@@ -4,7 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Package, Upload, X, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, Package, Upload, X, Check, ChevronDown, ChevronUp } from "lucide-react";
+import ProductVariantsEditor from "@/components/admin/ProductVariantsEditor";
+import ProductAttributesEditor from "@/components/admin/ProductAttributesEditor";
+import LabReportsEditor from "@/components/admin/LabReportsEditor";
 
 type ProductForm = {
   categoryId: number;
@@ -21,13 +24,12 @@ type ProductForm = {
   weight: string;
   imageUrl: string;
   imageKey: string;
-  variants: { label: string; options: string[] }[];
 };
 
 const EMPTY_FORM: ProductForm = {
   categoryId: 0, name: "", slug: "", description: "", price: "", compareAtPrice: "",
   inventory: 0, isActive: true, isFeatured: false, thcContent: "", cbdContent: "",
-  weight: "", imageUrl: "", imageKey: "", variants: [],
+  weight: "", imageUrl: "", imageKey: "",
 };
 
 function slugify(s: string) {
@@ -38,9 +40,8 @@ export default function AdminProducts() {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<ProductForm>(EMPTY_FORM);
-  const [variantLabel, setVariantLabel] = useState("");
-  const [variantOptions, setVariantOptions] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const utils = trpc.useUtils();
@@ -48,7 +49,19 @@ export default function AdminProducts() {
   const products = trpc.products.listAdmin.useQuery();
 
   const createProduct = trpc.products.create.useMutation({
-    onSuccess: () => { utils.products.listAdmin.invalidate(); setShowForm(false); setForm(EMPTY_FORM); toast.success("Product created!"); },
+    onSuccess: (data) => {
+      utils.products.listAdmin.invalidate();
+      // After creating, switch to edit mode so advanced sections are available
+      const newId = (data as any)?.id;
+      if (newId) {
+        setEditId(newId);
+        toast.success("Product created! You can now add variants, characteristics and lab reports.");
+      } else {
+        setShowForm(false);
+        setForm(EMPTY_FORM);
+        toast.success("Product created!");
+      }
+    },
     onError: (e) => toast.error(e.message),
   });
   const updateProduct = trpc.products.update.useMutation({
@@ -87,8 +100,8 @@ export default function AdminProducts() {
       inventory: p.inventory, isActive: p.isActive, isFeatured: p.isFeatured,
       thcContent: p.thcContent ?? "", cbdContent: p.cbdContent ?? "", weight: p.weight ?? "",
       imageUrl: p.imageUrl ?? "", imageKey: p.imageKey ?? "",
-      variants: (p.variants as { label: string; options: string[] }[]) ?? [],
     });
+    setExpandedSection(null);
     setShowForm(true);
   };
 
@@ -115,15 +128,7 @@ export default function AdminProducts() {
     }
   };
 
-  const addVariant = () => {
-    if (!variantLabel || !variantOptions) return;
-    setForm((f) => ({
-      ...f,
-      variants: [...f.variants, { label: variantLabel, options: variantOptions.split(",").map((s) => s.trim()).filter(Boolean) }],
-    }));
-    setVariantLabel(""); setVariantOptions("");
-  };
-
+  const toggleSection = (s: string) => setExpandedSection((p) => p === s ? null : s);
   const catMap = Object.fromEntries(categories.data?.map((c) => [c.id, c.name]) ?? []);
 
   return (
@@ -133,22 +138,23 @@ export default function AdminProducts() {
           <h1 className="text-2xl font-bold text-gray-900">Products</h1>
           <p className="text-gray-500 text-sm mt-1">{products.data?.length ?? 0} products total</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_FORM); }}>
+        <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_FORM); setExpandedSection(null); }}>
           <Plus className="w-4 h-4 mr-2" /> Add Product
         </Button>
       </div>
 
       {/* Form */}
       {showForm && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-8">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-8 shadow-sm">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="font-semibold text-gray-900">{editId ? "Edit Product" : "New Product"}</h2>
-            <button onClick={() => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); }} className="text-gray-400 hover:text-gray-600">
+            <h2 className="font-semibold text-gray-900 text-lg">{editId ? "Edit Product" : "New Product"}</h2>
+            <button onClick={() => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); }} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Basic Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
               <Label className="text-xs text-gray-600 mb-1 block">Category *</Label>
               <select
@@ -165,19 +171,25 @@ export default function AdminProducts() {
               <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value, slug: slugify(e.target.value) }))} placeholder="Product name" className="rounded-xl" />
             </div>
             <div>
-              <Label className="text-xs text-gray-600 mb-1 block">Slug</Label>
-              <Input value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} className="rounded-xl" />
+              <Label className="text-xs text-gray-600 mb-1 block">Slug (URL)</Label>
+              <Input value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} className="rounded-xl font-mono text-sm" />
             </div>
             <div>
-              <Label className="text-xs text-gray-600 mb-1 block">Price *</Label>
-              <Input value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} placeholder="19.99" className="rounded-xl" />
+              <Label className="text-xs text-gray-600 mb-1 block">Base Price *</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                <Input value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} placeholder="19.99" className="rounded-xl pl-7" />
+              </div>
             </div>
             <div>
               <Label className="text-xs text-gray-600 mb-1 block">Compare At Price</Label>
-              <Input value={form.compareAtPrice} onChange={(e) => setForm((f) => ({ ...f, compareAtPrice: e.target.value }))} placeholder="29.99" className="rounded-xl" />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                <Input value={form.compareAtPrice} onChange={(e) => setForm((f) => ({ ...f, compareAtPrice: e.target.value }))} placeholder="29.99" className="rounded-xl pl-7" />
+              </div>
             </div>
             <div>
-              <Label className="text-xs text-gray-600 mb-1 block">Inventory</Label>
+              <Label className="text-xs text-gray-600 mb-1 block">Base Inventory</Label>
               <Input type="number" value={form.inventory} onChange={(e) => setForm((f) => ({ ...f, inventory: parseInt(e.target.value) || 0 }))} className="rounded-xl" />
             </div>
             <div>
@@ -189,8 +201,8 @@ export default function AdminProducts() {
               <Input value={form.cbdContent} onChange={(e) => setForm((f) => ({ ...f, cbdContent: e.target.value }))} placeholder="500mg" className="rounded-xl" />
             </div>
             <div>
-              <Label className="text-xs text-gray-600 mb-1 block">Weight</Label>
-              <Input value={form.weight} onChange={(e) => setForm((f) => ({ ...f, weight: e.target.value }))} placeholder="5g" className="rounded-xl" />
+              <Label className="text-xs text-gray-600 mb-1 block">Weight / Format</Label>
+              <Input value={form.weight} onChange={(e) => setForm((f) => ({ ...f, weight: e.target.value }))} placeholder="3.5g, 1oz, etc." className="rounded-xl" />
             </div>
             <div className="md:col-span-2">
               <Label className="text-xs text-gray-600 mb-1 block">Description</Label>
@@ -208,7 +220,7 @@ export default function AdminProducts() {
               <Label className="text-xs text-gray-600 mb-1 block">Product Image</Label>
               <div className="flex items-center gap-4">
                 {form.imageUrl && (
-                  <div className="w-16 h-16 rounded-xl overflow-hidden border border-gray-200">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden border border-gray-200 shrink-0">
                     <img src={form.imageUrl} alt="Preview" className="w-full h-full object-cover" />
                   </div>
                 )}
@@ -216,33 +228,12 @@ export default function AdminProducts() {
                   type="button"
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading}
-                  className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-xl text-sm text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-xl text-sm text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors disabled:opacity-50"
                 >
                   <Upload className="w-4 h-4" />
                   {uploading ? "Uploading..." : form.imageUrl ? "Change Image" : "Upload Image"}
                 </button>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-              </div>
-            </div>
-
-            {/* Variants */}
-            <div className="md:col-span-2">
-              <Label className="text-xs text-gray-600 mb-2 block">Variants</Label>
-              {form.variants.map((v, i) => (
-                <div key={i} className="flex items-center gap-2 mb-2 bg-gray-50 rounded-xl px-3 py-2">
-                  <span className="text-sm font-medium text-gray-700">{v.label}:</span>
-                  <span className="text-sm text-gray-500">{v.options.join(", ")}</span>
-                  <button onClick={() => setForm((f) => ({ ...f, variants: f.variants.filter((_, j) => j !== i) }))} className="ml-auto text-gray-400 hover:text-red-500">
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-              <div className="flex gap-2">
-                <Input value={variantLabel} onChange={(e) => setVariantLabel(e.target.value)} placeholder="Label (e.g. Flavor)" className="rounded-xl flex-1" />
-                <Input value={variantOptions} onChange={(e) => setVariantOptions(e.target.value)} placeholder="Options (comma separated)" className="rounded-xl flex-1" />
-                <Button type="button" variant="outline" size="sm" onClick={addVariant} className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50">
-                  <Plus className="w-4 h-4" />
-                </Button>
               </div>
             </div>
 
@@ -259,17 +250,91 @@ export default function AdminProducts() {
             </div>
           </div>
 
-          <div className="flex gap-3 mt-5">
+          {/* Save basic info */}
+          <div className="flex gap-3 pb-6 border-b border-gray-100">
             <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={handleSubmit} disabled={createProduct.isPending || updateProduct.isPending}>
               <Check className="w-4 h-4 mr-2" /> {editId ? "Save Changes" : "Create Product"}
             </Button>
-            <Button variant="ghost" onClick={() => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); }}>Cancel</Button>
+            <Button variant="ghost" className="rounded-xl" onClick={() => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); }}>Cancel</Button>
           </div>
+
+          {/* Advanced sections — only shown when editing an existing product */}
+          {editId ? (
+            <div className="mt-6 space-y-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Advanced Product Settings</p>
+
+              {/* Variants with pricing */}
+              <div className="border border-gray-100 rounded-2xl overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggleSection("variants")}
+                  className="w-full flex items-center justify-between px-5 py-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                >
+                  <div>
+                    <span className="text-sm font-semibold text-gray-800">Variants with Individual Pricing</span>
+                    <p className="text-xs text-gray-500 mt-0.5">Add flavors, weights, sizes — each with its own price and stock</p>
+                  </div>
+                  {expandedSection === "variants" ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
+                </button>
+                {expandedSection === "variants" && (
+                  <div className="p-5 border-t border-gray-100">
+                    <ProductVariantsEditor productId={editId} />
+                  </div>
+                )}
+              </div>
+
+              {/* Characteristics / Attributes */}
+              <div className="border border-gray-100 rounded-2xl overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggleSection("attrs")}
+                  className="w-full flex items-center justify-between px-5 py-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                >
+                  <div>
+                    <span className="text-sm font-semibold text-gray-800">Product Characteristics</span>
+                    <p className="text-xs text-gray-500 mt-0.5">Active ingredient, flavor profile, terpenes, extraction method, etc.</p>
+                  </div>
+                  {expandedSection === "attrs" ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
+                </button>
+                {expandedSection === "attrs" && (
+                  <div className="p-5 border-t border-gray-100">
+                    <ProductAttributesEditor productId={editId} />
+                  </div>
+                )}
+              </div>
+
+              {/* Lab Reports */}
+              <div className="border border-gray-100 rounded-2xl overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggleSection("labs")}
+                  className="w-full flex items-center justify-between px-5 py-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                >
+                  <div>
+                    <span className="text-sm font-semibold text-gray-800">Lab Reports / COA</span>
+                    <p className="text-xs text-gray-500 mt-0.5">Upload Certificate of Analysis per variant or for the whole product</p>
+                  </div>
+                  {expandedSection === "labs" ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
+                </button>
+                {expandedSection === "labs" && (
+                  <div className="p-5 border-t border-gray-100">
+                    <LabReportsEditor productId={editId} />
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4">
+              <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+                <strong>Tip:</strong> After creating the product, edit it to add variants with individual pricing, product characteristics and lab reports.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
       {/* Products table */}
-      <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+      <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
         {products.isLoading ? (
           <div className="p-6 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />)}
@@ -289,8 +354,8 @@ export default function AdminProducts() {
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden shrink-0">
-                          {p.imageUrl ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" /> : <Package className="w-5 h-5 text-gray-300 m-auto mt-2.5" />}
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
+                          {p.imageUrl ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" /> : <Package className="w-5 h-5 text-gray-300" />}
                         </div>
                         <div>
                           <p className="font-medium text-gray-900 line-clamp-1">{p.name}</p>
@@ -312,10 +377,10 @@ export default function AdminProducts() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => handleEdit(p)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                        <button onClick={() => handleEdit(p)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
                           <Pencil className="w-4 h-4" />
                         </button>
-                        <button onClick={() => { if (confirm("Delete this product?")) deleteProduct.mutate({ id: p.id }); }} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <button onClick={() => { if (confirm("Delete this product?")) deleteProduct.mutate({ id: p.id }); }} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>

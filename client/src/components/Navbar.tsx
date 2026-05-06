@@ -21,7 +21,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
       {/* Announcement bar */}
-      <div className="bg-blue-600 text-white text-xs text-center py-2 px-4 font-medium tracking-wide">
+      <div className="bg-blue-600 text-white text-xs text-center py-2 px-3 font-medium tracking-wide leading-relaxed">
         FREE SHIPPING on orders over $50 · 30-Day Returns · Secure Checkout
       </div>
 
@@ -32,7 +32,7 @@ export default function Navbar() {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <FlaskConical className="w-4 h-4 text-white" />
             </div>
-            <span className="text-lg font-semibold text-gray-900 tracking-tight">
+            <span className="text-base sm:text-lg font-semibold text-gray-900 tracking-tight">
               Chronic<span className="text-blue-600">Hemp</span>
             </span>
           </Link>

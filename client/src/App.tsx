@@ -54,7 +54,9 @@ function App() {
             <TooltipProvider>
               <Toaster position="top-right" />
               <AgeGate />
-              <Router />
+              <div className="min-h-screen overflow-x-hidden">
+                <Router />
+              </div>
             </TooltipProvider>
           </CartProvider>
         </AgeGateProvider>

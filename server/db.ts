@@ -6,8 +6,11 @@ import {
   cartItems,
   carts,
   categories,
+  labReports,
   orderItems,
   orders,
+  productAttributes,
+  productVariants,
   products,
   users,
 } from "../drizzle/schema";
@@ -456,4 +459,129 @@ export async function getOrderStats() {
     totalUsers: Number(userCount?.count ?? 0),
     totalProducts: Number(productCount?.count ?? 0),
   };
+}
+
+// ─── Product Variants ─────────────────────────────────────────────────────────
+export async function getProductVariants(productId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(productVariants)
+    .where(eq(productVariants.productId, productId))
+    .orderBy(productVariants.sortOrder);
+}
+
+export async function createProductVariant(data: {
+  productId: number;
+  name: string;
+  sku?: string;
+  price: string;
+  compareAtPrice?: string;
+  inventory?: number;
+  isActive?: boolean;
+  sortOrder?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  const [result] = await db.insert(productVariants).values({
+    ...data,
+    inventory: data.inventory ?? 0,
+    isActive: data.isActive ?? true,
+    sortOrder: data.sortOrder ?? 0,
+  });
+  return { id: (result as any).insertId as number };
+}
+
+export async function updateProductVariant(
+  id: number,
+  data: Partial<{
+    name: string;
+    sku: string;
+    price: string;
+    compareAtPrice: string;
+    inventory: number;
+    isActive: boolean;
+    sortOrder: number;
+  }>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.update(productVariants).set(data).where(eq(productVariants.id, id));
+}
+
+export async function deleteProductVariant(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.delete(productVariants).where(eq(productVariants.id, id));
+}
+
+export async function deleteProductVariantsByProduct(productId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.delete(productVariants).where(eq(productVariants.productId, productId));
+}
+
+// ─── Product Attributes ───────────────────────────────────────────────────────
+export async function getProductAttributes(productId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(productAttributes)
+    .where(eq(productAttributes.productId, productId))
+    .orderBy(productAttributes.sortOrder);
+}
+
+export async function setProductAttributes(
+  productId: number,
+  attrs: { key: string; value: string; sortOrder?: number }[]
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  // Replace all attributes for this product
+  await db.delete(productAttributes).where(eq(productAttributes.productId, productId));
+  if (attrs.length > 0) {
+    await db.insert(productAttributes).values(
+      attrs.map((a, i) => ({ productId, key: a.key, value: a.value, sortOrder: a.sortOrder ?? i }))
+    );
+  }
+}
+
+// ─── Lab Reports ─────────────────────────────────────────────────────────────
+export async function getLabReports(productId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(labReports)
+    .where(eq(labReports.productId, productId))
+    .orderBy(labReports.createdAt);
+}
+
+export async function createLabReport(data: {
+  productId: number;
+  variantId?: number;
+  variantName?: string;
+  reportName: string;
+  fileUrl: string;
+  fileKey?: string;
+  batchNumber?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  const [result] = await db.insert(labReports).values(data);
+  return { id: (result as any).insertId as number };
+}
+
+export async function deleteLabReport(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.delete(labReports).where(eq(labReports.id, id));
+}
+
+export async function deleteLabReportsByProduct(productId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.delete(labReports).where(eq(labReports.productId, productId));
 }

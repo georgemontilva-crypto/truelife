@@ -30,6 +30,15 @@ import {
   updateOrderStatus,
   updateProduct,
   updateUserRole,
+  getProductVariants,
+  createProductVariant,
+  updateProductVariant,
+  deleteProductVariant,
+  getProductAttributes,
+  setProductAttributes,
+  getLabReports,
+  createLabReport,
+  deleteLabReport,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -315,6 +324,88 @@ export const appRouter = router({
       .mutation(({ input }) => updateOrderStatus(input.id, input.status)),
   }),
 
+  // ─── Product Variants ────────────────────────────────────────────────────────
+  productVariants: router({
+    list: publicProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(({ input }) => getProductVariants(input.productId)),
+    create: adminProcedure
+      .input(z.object({
+        productId: z.number(),
+        name: z.string().min(1),
+        sku: z.string().optional(),
+        price: z.string(),
+        compareAtPrice: z.string().optional(),
+        inventory: z.number().optional(),
+        isActive: z.boolean().optional(),
+        sortOrder: z.number().optional(),
+      }))
+      .mutation(({ input }) => createProductVariant(input)),
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        sku: z.string().optional(),
+        price: z.string().optional(),
+        compareAtPrice: z.string().optional(),
+        inventory: z.number().optional(),
+        isActive: z.boolean().optional(),
+        sortOrder: z.number().optional(),
+      }))
+      .mutation(({ input }) => {
+        const { id, ...data } = input;
+        return updateProductVariant(id, data);
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => deleteProductVariant(input.id)),
+  }),
+  // ─── Product Attributes ───────────────────────────────────────────────────────
+  productAttributes: router({
+    list: publicProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(({ input }) => getProductAttributes(input.productId)),
+    set: adminProcedure
+      .input(z.object({
+        productId: z.number(),
+        attrs: z.array(z.object({ key: z.string(), value: z.string(), sortOrder: z.number().optional() })),
+      }))
+      .mutation(({ input }) => setProductAttributes(input.productId, input.attrs)),
+  }),
+  // ─── Lab Reports ─────────────────────────────────────────────────────────────
+  labReports: router({
+    list: publicProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(({ input }) => getLabReports(input.productId)),
+    uploadAndCreate: adminProcedure
+      .input(z.object({
+        productId: z.number(),
+        variantId: z.number().optional(),
+        variantName: z.string().optional(),
+        reportName: z.string().min(1),
+        batchNumber: z.string().optional(),
+        filename: z.string(),
+        contentType: z.string(),
+        base64: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.base64, "base64");
+        const key = `lab-reports/${input.productId}/${Date.now()}-${input.filename}`;
+        const { url } = await storagePut(key, buffer, input.contentType);
+        return createLabReport({
+          productId: input.productId,
+          variantId: input.variantId,
+          variantName: input.variantName,
+          reportName: input.reportName,
+          fileUrl: url,
+          fileKey: key,
+          batchNumber: input.batchNumber,
+        });
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => deleteLabReport(input.id)),
+  }),
   // ─── Admin ───────────────────────────────────────────────────────────────────
   admin: router({
     stats: adminProcedure.query(() => getOrderStats()),
