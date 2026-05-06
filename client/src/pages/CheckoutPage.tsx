@@ -81,7 +81,7 @@ export default function CheckoutPage() {
       <div className="container py-10">
         <h1 className="text-2xl font-bold text-gray-900 mb-8">Checkout</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Form */}
           <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-6">
             {/* Saved addresses */}
