@@ -32,11 +32,12 @@ export const categories = mysqlTable("categories", {
   name: varchar("name", { length: 128 }).notNull(),
   slug: varchar("slug", { length: 128 }).notNull().unique(),
   description: text("description"),
+  imageUrl: text("imageUrl"),
+  imageKey: text("imageKey"),
   sortOrder: int("sortOrder").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
-
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = typeof categories.$inferInsert;
 
@@ -199,3 +200,20 @@ export const labReports = mysqlTable("lab_reports", {
 });
 export type LabReport = typeof labReports.$inferSelect;
 export type InsertLabReport = typeof labReports.$inferInsert;
+
+// ─── Banners (Hero Slider) ────────────────────────────────────────────────────
+export const banners = mysqlTable("banners", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 256 }),
+  subtitle: text("subtitle"),
+  imageUrl: text("imageUrl").notNull(),
+  imageKey: text("imageKey"),
+  linkUrl: varchar("linkUrl", { length: 512 }),
+  linkText: varchar("linkText", { length: 128 }),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Banner = typeof banners.$inferSelect;
+export type InsertBanner = typeof banners.$inferInsert;

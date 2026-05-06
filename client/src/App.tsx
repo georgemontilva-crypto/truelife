@@ -21,6 +21,7 @@ import AdminProducts from "./pages/admin/AdminProducts";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminBanners from "./pages/admin/AdminBanners";
 
 function Router() {
   return (
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/admin" component={() => <AdminLayout><AdminDashboard /></AdminLayout>} />
       <Route path="/admin/products" component={() => <AdminLayout><AdminProducts /></AdminLayout>} />
       <Route path="/admin/categories" component={() => <AdminLayout><AdminCategories /></AdminLayout>} />
+      <Route path="/admin/banners" component={() => <AdminLayout><AdminBanners /></AdminLayout>} />
       <Route path="/admin/orders" component={() => <AdminLayout><AdminOrders /></AdminLayout>} />
       <Route path="/admin/users" component={() => <AdminLayout><AdminUsers /></AdminLayout>} />
       <Route path="/404" component={NotFound} />

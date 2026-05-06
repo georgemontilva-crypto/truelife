@@ -39,6 +39,10 @@ import {
   getLabReports,
   createLabReport,
   deleteLabReport,
+  getBanners,
+  createBanner,
+  updateBanner,
+  deleteBanner,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -71,17 +75,37 @@ export const appRouter = router({
   categories: router({
     list: publicProcedure.query(() => getCategories()),
 
-    create: adminProcedure
+     create: adminProcedure
       .input(
         z.object({
           name: z.string().min(1),
           slug: z.string().min(1),
           description: z.string().optional(),
           sortOrder: z.number().optional(),
+          imageBase64: z.string().optional(),
+          imageFilename: z.string().optional(),
+          imageContentType: z.string().optional(),
         })
       )
-      .mutation(({ input }) => createCategory(input)),
-
+      .mutation(async ({ input }) => {
+        let imageUrl: string | undefined;
+        let imageKey: string | undefined;
+        if (input.imageBase64 && input.imageFilename) {
+          const buffer = Buffer.from(input.imageBase64, "base64");
+          const key = `categories/${Date.now()}-${input.imageFilename}`;
+          const result = await storagePut(key, buffer, input.imageContentType || "image/jpeg");
+          imageUrl = result.url;
+          imageKey = key;
+        }
+        return createCategory({
+          name: input.name,
+          slug: input.slug,
+          description: input.description,
+          sortOrder: input.sortOrder,
+          imageUrl,
+          imageKey,
+        });
+      }),
     update: adminProcedure
       .input(
         z.object({
@@ -90,11 +114,23 @@ export const appRouter = router({
           slug: z.string().min(1).optional(),
           description: z.string().optional(),
           sortOrder: z.number().optional(),
+          imageBase64: z.string().optional(),
+          imageFilename: z.string().optional(),
+          imageContentType: z.string().optional(),
         })
       )
-      .mutation(({ input }) => {
-        const { id, ...data } = input;
-        return updateCategory(id, data);
+      .mutation(async ({ input }) => {
+        const { id, imageBase64, imageFilename, imageContentType, ...rest } = input;
+        let imageUrl: string | undefined;
+        let imageKey: string | undefined;
+        if (imageBase64 && imageFilename) {
+          const buffer = Buffer.from(imageBase64, "base64");
+          const key = `categories/${Date.now()}-${imageFilename}`;
+          const result = await storagePut(key, buffer, imageContentType || "image/jpeg");
+          imageUrl = result.url;
+          imageKey = key;
+        }
+        return updateCategory(id, { ...rest, ...(imageUrl ? { imageUrl, imageKey } : {}) });
       }),
 
     delete: adminProcedure
@@ -405,6 +441,71 @@ export const appRouter = router({
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => deleteLabReport(input.id)),
+  }),
+  // ─── Banners ──────────────────────────────────────────────────────────────────
+  banners: router({
+    list: publicProcedure.query(() => getBanners(true)),
+    adminList: adminProcedure.query(() => getBanners(false)),
+    create: adminProcedure
+      .input(
+        z.object({
+          title: z.string().optional(),
+          subtitle: z.string().optional(),
+          linkUrl: z.string().optional(),
+          linkText: z.string().optional(),
+          sortOrder: z.number().optional(),
+          isActive: z.boolean().optional(),
+          imageBase64: z.string(),
+          imageFilename: z.string(),
+          imageContentType: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.imageBase64, "base64");
+        const key = `banners/${Date.now()}-${input.imageFilename}`;
+        const { url } = await storagePut(key, buffer, input.imageContentType || "image/jpeg");
+        return createBanner({
+          title: input.title,
+          subtitle: input.subtitle,
+          linkUrl: input.linkUrl,
+          linkText: input.linkText,
+          sortOrder: input.sortOrder,
+          isActive: input.isActive ?? true,
+          imageUrl: url,
+          imageKey: key,
+        });
+      }),
+    update: adminProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          title: z.string().optional(),
+          subtitle: z.string().optional(),
+          linkUrl: z.string().optional(),
+          linkText: z.string().optional(),
+          sortOrder: z.number().optional(),
+          isActive: z.boolean().optional(),
+          imageBase64: z.string().optional(),
+          imageFilename: z.string().optional(),
+          imageContentType: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, imageBase64, imageFilename, imageContentType, ...rest } = input;
+        let imageUrl: string | undefined;
+        let imageKey: string | undefined;
+        if (imageBase64 && imageFilename) {
+          const buffer = Buffer.from(imageBase64, "base64");
+          const key = `banners/${Date.now()}-${imageFilename}`;
+          const result = await storagePut(key, buffer, imageContentType || "image/jpeg");
+          imageUrl = result.url;
+          imageKey = key;
+        }
+        return updateBanner(id, { ...rest, ...(imageUrl ? { imageUrl, imageKey } : {}) });
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => deleteBanner(input.id)),
   }),
   // ─── Admin ───────────────────────────────────────────────────────────────────
   admin: router({

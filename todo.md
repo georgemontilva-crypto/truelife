@@ -84,3 +84,15 @@
 - [x] Integrar 4 logos SVG en sección trust badges del Home
 - [x] Integrar logos SVG en Footer
 - [x] Integrar logos SVG en ProductDetail
+
+## Mejoras v5 - Slider, Imágenes de Categorías y About Us
+- [x] DB: tabla banners (id, title, subtitle, imageUrl, linkUrl, sortOrder, isActive)
+- [x] DB: campo imageUrl en tabla categories
+- [x] Backend: CRUD de banners (admin)
+- [x] Backend: actualizar upsert de categorías con imageUrl
+- [x] Admin: página de gestión de banners con upload de imagen
+- [x] Admin: campo de upload de imagen en formulario de categorías
+- [x] Home: slider de banners con dots y autoplay
+- [x] Home: categorías con imagen de fondo
+- [x] Home: sección About Us con texto e imagen
+- [x] Página /about - sección About Us integrada en Home (id="about")

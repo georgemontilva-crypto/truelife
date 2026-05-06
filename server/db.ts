@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
   addresses,
+  banners,
   cartItems,
   carts,
   categories,
@@ -102,6 +103,8 @@ export async function createCategory(data: {
   name: string;
   slug: string;
   description?: string;
+  imageUrl?: string;
+  imageKey?: string;
   sortOrder?: number;
 }) {
   const db = await getDb();
@@ -112,7 +115,7 @@ export async function createCategory(data: {
 
 export async function updateCategory(
   id: number,
-  data: Partial<{ name: string; slug: string; description: string; sortOrder: number }>
+  data: Partial<{ name: string; slug: string; description: string; imageUrl: string; imageKey: string; sortOrder: number }>
 ) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
@@ -123,6 +126,50 @@ export async function deleteCategory(id: number) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
   await db.delete(categories).where(eq(categories.id, id));
+}
+
+// ─── Banners ─────────────────────────────────────────────────────────────────────────────
+export async function getBanners(activeOnly = false) {
+  const db = await getDb();
+  if (!db) return [];
+  if (activeOnly) {
+    return db.select().from(banners).where(eq(banners.isActive, true)).orderBy(banners.sortOrder);
+  }
+  return db.select().from(banners).orderBy(banners.sortOrder);
+}
+export async function getBannerById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(banners).where(eq(banners.id, id)).limit(1);
+  return result[0];
+}
+export async function createBanner(data: {
+  imageUrl: string;
+  imageKey?: string;
+  title?: string;
+  subtitle?: string;
+  linkUrl?: string;
+  linkText?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  const result = await db.insert(banners).values(data);
+  return result[0];
+}
+export async function updateBanner(
+  id: number,
+  data: Partial<{ title: string; subtitle: string; imageUrl: string; imageKey: string; linkUrl: string; linkText: string; sortOrder: number; isActive: boolean }>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.update(banners).set(data).where(eq(banners.id, id));
+}
+export async function deleteBanner(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.delete(banners).where(eq(banners.id, id));
 }
 
 // ─── Products ─────────────────────────────────────────────────────────────────
