@@ -64,6 +64,13 @@
       "when": 1746748800000,
       "tag": "0008_drop_products_variants",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1746835200000,
+      "tag": "0009_drop_products_labreporturl",
+      "breakpoints": true
     }
   ]
 }

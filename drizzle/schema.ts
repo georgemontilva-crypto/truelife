@@ -70,7 +70,6 @@ export const products = mysqlTable("products", {
   thcContent: varchar("thcContent", { length: 32 }),
   cbdContent: varchar("cbdContent", { length: 32 }),
   weight: varchar("weight", { length: 32 }),
-  labReportUrl: text("labReportUrl"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
