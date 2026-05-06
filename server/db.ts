@@ -281,7 +281,6 @@ export async function updateProduct(
     thcContent: string;
     cbdContent: string;
     weight: string;
-    labReportUrl: string;
   }>
 ) {
   const db = await getDb();

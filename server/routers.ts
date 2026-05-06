@@ -311,7 +311,6 @@ export const appRouter = router({
           thcContent: z.string().optional(),
           cbdContent: z.string().optional(),
           weight: z.string().optional(),
-          labReportUrl: z.string().optional(),
         })
       )
       .mutation(({ input }) => {
