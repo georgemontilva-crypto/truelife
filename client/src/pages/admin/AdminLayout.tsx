@@ -85,7 +85,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <div className="text-center">
           <p className="text-gray-600 mb-4">Please sign in to access the admin panel</p>
-          <a href={getLoginUrl()}>
+          <a href={getLoginUrl() ?? "/login"}>
             <Button className="bg-gray-900 hover:bg-black text-white rounded-xl">Sign In</Button>
           </a>
         </div>
