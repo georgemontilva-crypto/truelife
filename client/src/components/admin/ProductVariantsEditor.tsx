@@ -445,30 +445,22 @@ export default function ProductVariantsEditor({ productId }: { productId: number
   return (
     <div className="space-y-2">
       {/* Header */}
-      <div className="flex items-center justify-between mb-1">
-        <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-          Variants with Individual Pricing
-        </Label>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() => { setShowBulk(true); setShowAdd(false); setEditingId(null); }}
-            className="rounded-xl border-gray-200 text-gray-900 hover:bg-gray-50 text-xs gap-1"
-          >
-            <Layers className="w-3.5 h-3.5" /> Add Strain
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() => { setShowAdd(true); setShowBulk(false); setEditingId(null); }}
-            className="rounded-xl border-gray-200 text-gray-900 hover:bg-gray-50 text-xs"
-          >
-            <Plus className="w-3.5 h-3.5 mr-1" /> Add Variant
-          </Button>
-        </div>
+      <div className="flex flex-wrap items-center gap-2 mb-1">
+        <p className="text-sm font-semibold text-gray-700 mr-auto">Variants</p>
+        <button
+          type="button"
+          onClick={() => { setShowBulk(true); setShowAdd(false); setEditingId(null); }}
+          className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-2 py-1 hover:bg-gray-50 transition-colors"
+        >
+          <Layers className="w-3 h-3" /> Add Strain
+        </button>
+        <button
+          type="button"
+          onClick={() => { setShowAdd(true); setShowBulk(false); setEditingId(null); }}
+          className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-2 py-1 hover:bg-gray-50 transition-colors"
+        >
+          <Plus className="w-3 h-3" /> Add Variant
+        </button>
       </div>
 
       {/* Variant cards */}
