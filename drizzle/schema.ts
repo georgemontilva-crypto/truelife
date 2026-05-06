@@ -180,6 +180,8 @@ export const productVariants = mysqlTable("product_variants", {
   inventory: int("inventory").default(0).notNull(),
   isActive: boolean("isActive").default(true).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
+  imageUrl: text("imageUrl"),
+  imageKey: text("imageKey"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

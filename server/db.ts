@@ -564,6 +564,8 @@ export async function createProductVariant(data: {
   inventory?: number;
   isActive?: boolean;
   sortOrder?: number;
+  imageUrl?: string;
+  imageKey?: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
@@ -586,6 +588,8 @@ export async function updateProductVariant(
     inventory: number;
     isActive: boolean;
     sortOrder: number;
+    imageUrl: string;
+    imageKey: string;
   }>
 ) {
   const db = await getDb();

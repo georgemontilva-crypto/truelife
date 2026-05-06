@@ -509,8 +509,23 @@ export const appRouter = router({
         inventory: z.number().optional(),
         isActive: z.boolean().optional(),
         sortOrder: z.number().optional(),
+        imageBase64: z.string().optional(),
+        imageFilename: z.string().optional(),
+        imageContentType: z.string().optional(),
       }))
-      .mutation(({ input }) => createProductVariant(input)),
+      .mutation(async ({ input }) => {
+        const { imageBase64, imageFilename, imageContentType, ...rest } = input;
+        let imageUrl: string | undefined;
+        let imageKey: string | undefined;
+        if (imageBase64 && imageFilename) {
+          const buffer = Buffer.from(imageBase64, "base64");
+          const key = `Variants/${Date.now()}-${imageFilename}`;
+          const result = await storagePut(key, buffer, imageContentType || "image/jpeg");
+          imageUrl = result.url;
+          imageKey = key;
+        }
+        return createProductVariant({ ...rest, imageUrl, imageKey });
+      }),
     update: adminProcedure
       .input(z.object({
         id: z.number(),
@@ -521,10 +536,22 @@ export const appRouter = router({
         inventory: z.number().optional(),
         isActive: z.boolean().optional(),
         sortOrder: z.number().optional(),
+        imageBase64: z.string().optional(),
+        imageFilename: z.string().optional(),
+        imageContentType: z.string().optional(),
       }))
-      .mutation(({ input }) => {
-        const { id, ...data } = input;
-        return updateProductVariant(id, data);
+      .mutation(async ({ input }) => {
+        const { id, imageBase64, imageFilename, imageContentType, ...rest } = input;
+        let imageUrl: string | undefined;
+        let imageKey: string | undefined;
+        if (imageBase64 && imageFilename) {
+          const buffer = Buffer.from(imageBase64, "base64");
+          const key = `Variants/${Date.now()}-${imageFilename}`;
+          const result = await storagePut(key, buffer, imageContentType || "image/jpeg");
+          imageUrl = result.url;
+          imageKey = key;
+        }
+        return updateProductVariant(id, { ...rest, ...(imageUrl ? { imageUrl, imageKey } : {}) });
       }),
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
