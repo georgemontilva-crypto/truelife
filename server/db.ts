@@ -247,8 +247,8 @@ export async function createProduct(data: {
   name: string;
   slug: string;
   description?: string;
-  price: string;
-  compareAtPrice?: string;
+  price: number | string;
+  compareAtPrice?: number | string;
   imageUrl?: string;
   imageKey?: string;
   inventory?: number;

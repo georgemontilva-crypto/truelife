@@ -251,7 +251,8 @@ export default function AdminProducts() {
     }
     const payload = {
       ...form,
-      compareAtPrice: form.compareAtPrice || undefined,
+      price: parseFloat(String(form.price).replace(',', '.')),
+      compareAtPrice: form.compareAtPrice ? parseFloat(String(form.compareAtPrice).replace(',', '.')) : undefined,
       imageUrl: form.imageUrl || undefined, imageKey: form.imageKey || undefined,
       thcContent: form.thcContent || undefined, cbdContent: form.cbdContent || undefined,
       weight: form.weight || undefined, description: form.description || undefined,
