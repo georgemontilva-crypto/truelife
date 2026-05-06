@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Plus, Trash2, Check, Pencil, X, Package2, ImageIcon, Upload, Layers } from "lucide-react";
+import { Plus, Trash2, Check, Pencil, X, Package2, ImageIcon, Upload } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,17 +32,6 @@ const EMPTY_NEW = {
   name: "", sku: "", price: "", compareAtPrice: "", inventory: 0, isActive: true,
   image: null as ImageDraft | null,
 };
-
-type WeightRow = { _id: string; weight: string; price: string; inStock: boolean };
-type BulkState = { strainName: string; image: ImageDraft | null; weights: WeightRow[] };
-
-function emptyRow(): WeightRow {
-  return { _id: Math.random().toString(36).slice(2), weight: "", price: "", inStock: true };
-}
-
-function defaultBulk(): BulkState {
-  return { strainName: "", image: null, weights: [emptyRow()] };
-}
 
 // ─── Image picker ─────────────────────────────────────────────────────────────
 
@@ -233,174 +222,6 @@ function VariantCard({
   );
 }
 
-// ─── Bulk strain panel ────────────────────────────────────────────────────────
-
-function BulkStrainPanel({
-  productId, sortOffset, onDone, onCancel,
-}: {
-  productId: number;
-  sortOffset: number;
-  onDone: () => void;
-  onCancel: () => void;
-}) {
-  const [bulk, setBulk] = useState<BulkState>(defaultBulk());
-  const [saving, setSaving] = useState(false);
-
-  const createMut = trpc.productVariants.create.useMutation({
-    onError: (e) => toast.error(e.message),
-  });
-
-  const updateWeight = (_id: string, patch: Partial<WeightRow>) =>
-    setBulk((b) => ({ ...b, weights: b.weights.map((r) => (r._id === _id ? { ...r, ...patch } : r)) }));
-
-  const removeWeight = (_id: string) =>
-    setBulk((b) => ({ ...b, weights: b.weights.filter((r) => r._id !== _id) }));
-
-  const validRows = bulk.weights.filter((r) => r.weight.trim() && r.price.trim());
-
-  const handleAddAll = async () => {
-    if (!bulk.strainName.trim()) { toast.error("Enter a strain name"); return; }
-    if (!validRows.length) { toast.error("Add at least one weight with a price"); return; }
-
-    setSaving(true);
-    try {
-      for (let i = 0; i < validRows.length; i++) {
-        const w = validRows[i];
-        await createMut.mutateAsync({
-          productId,
-          name: `${bulk.strainName.trim()} - ${w.weight.trim()}`,
-          price: w.price,
-          inventory: w.inStock ? 999 : 0,
-          isActive: true,
-          sortOrder: sortOffset + i,
-          ...(bulk.image ? {
-            imageBase64: bulk.image.base64,
-            imageFilename: bulk.image.filename,
-            imageContentType: bulk.image.contentType,
-          } : {}),
-        });
-      }
-      toast.success(`${validRows.length} variant${validRows.length !== 1 ? "s" : ""} added`);
-      onDone();
-    } catch {
-      toast.error("Some variants failed to save");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2.5 bg-white border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-gray-500" />
-          <p className="text-sm font-medium text-gray-900">Add Strain + Weights</p>
-        </div>
-        <button type="button" onClick={onCancel} className="p-1 text-gray-400 hover:text-gray-700 rounded">
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div className="px-4 py-4 space-y-4 bg-gray-50/50">
-        {/* Strain name */}
-        <div>
-          <Label className="text-xs text-gray-500 mb-1 block">Strain Name *</Label>
-          <Input
-            value={bulk.strainName}
-            onChange={(e) => setBulk((b) => ({ ...b, strainName: e.target.value }))}
-            placeholder="e.g. Blue Dream"
-            className="h-8 text-sm rounded-lg max-w-xs"
-            autoFocus
-          />
-        </div>
-
-        {/* Strain image */}
-        <div>
-          <Label className="text-xs text-gray-500 mb-2 block">
-            Strain Image <span className="text-gray-400 font-normal">(shared across all weights)</span>
-          </Label>
-          <ImagePicker
-            currentUrl={null}
-            draft={bulk.image}
-            onPick={(d) => setBulk((b) => ({ ...b, image: d }))}
-            onClear={() => setBulk((b) => ({ ...b, image: null }))}
-          />
-        </div>
-
-        {/* Dynamic weight rows */}
-        <div>
-          <Label className="text-xs text-gray-500 mb-2 block">Weights & Prices *</Label>
-          <div className="space-y-2">
-            {bulk.weights.map((row) => (
-              <div key={row._id} className="flex items-center gap-2">
-                <Input
-                  value={row.weight}
-                  onChange={(e) => updateWeight(row._id, { weight: e.target.value })}
-                  placeholder="3.5g, Quarter…"
-                  className="h-7 text-xs rounded-lg w-24 shrink-0"
-                />
-                <div className="relative flex-1">
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
-                  <Input
-                    value={row.price}
-                    onChange={(e) => updateWeight(row._id, { price: e.target.value })}
-                    placeholder="0.00"
-                    className="h-7 pl-5 text-xs rounded-lg"
-                  />
-                </div>
-                <label className="flex items-center gap-1.5 cursor-pointer select-none shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={row.inStock}
-                    onChange={(e) => updateWeight(row._id, { inStock: e.target.checked })}
-                    className="w-3.5 h-3.5 accent-gray-900 rounded"
-                  />
-                  <span className={`text-xs font-medium ${row.inStock ? "text-green-600" : "text-gray-400"}`}>
-                    {row.inStock ? "In Stock" : "Out"}
-                  </span>
-                </label>
-                {bulk.weights.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeWeight(row._id)}
-                    className="p-1 text-gray-400 hover:text-red-500 rounded shrink-0 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={() => setBulk((b) => ({ ...b, weights: [...b.weights, emptyRow()] }))}
-            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 transition-colors mt-2"
-          >
-            <Plus className="w-3 h-3" /> Add weight
-          </button>
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-2 pt-1">
-          <Button type="button" size="sm" variant="ghost" className="rounded-xl text-sm" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleAddAll}
-            disabled={saving || !validRows.length}
-            className="bg-gray-900 hover:bg-black text-white rounded-xl text-sm"
-          >
-            <Check className="w-3.5 h-3.5 mr-1.5" />
-            {saving ? "Adding…" : `Add ${validRows.length > 0 ? validRows.length : ""} Variant${validRows.length !== 1 ? "s" : ""}`}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function ProductVariantsEditor({ productId }: { productId: number }) {
@@ -408,7 +229,6 @@ export default function ProductVariantsEditor({ productId }: { productId: number
   const { data: variants = [], isLoading } = trpc.productVariants.list.useQuery({ productId });
 
   const [showAdd, setShowAdd] = useState(false);
-  const [showBulk, setShowBulk] = useState(false);
   const [newRow, setNewRow] = useState({ ...EMPTY_NEW });
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -455,14 +275,7 @@ export default function ProductVariantsEditor({ productId }: { productId: number
         <p className="text-sm font-semibold text-gray-700 mr-auto">Variants</p>
         <button
           type="button"
-          onClick={() => { setShowBulk(true); setShowAdd(false); setEditingId(null); }}
-          className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-2 py-1 hover:bg-gray-50 transition-colors"
-        >
-          <Layers className="w-3 h-3" /> Add Strain
-        </button>
-        <button
-          type="button"
-          onClick={() => { setShowAdd(true); setShowBulk(false); setEditingId(null); }}
+          onClick={() => { setShowAdd(true); setEditingId(null); }}
           className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-2 py-1 hover:bg-gray-50 transition-colors"
         >
           <Plus className="w-3 h-3" /> Add Variant
@@ -487,18 +300,8 @@ export default function ProductVariantsEditor({ productId }: { productId: number
       ) : (
         <div className="flex items-center gap-2 py-4 px-3 bg-gray-50 rounded-xl text-gray-400 text-xs">
           <Package2 className="w-4 h-4" />
-          No variants yet. Use "Add Strain" for strain+weight combos, or "Add Variant" for a single variant.
+          No variants yet. Click "Add Variant" to get started.
         </div>
-      )}
-
-      {/* Bulk strain panel */}
-      {showBulk && (
-        <BulkStrainPanel
-          productId={productId}
-          sortOffset={variants.length}
-          onDone={() => { invalidate(); setShowBulk(false); }}
-          onCancel={() => setShowBulk(false)}
-        />
       )}
 
       {/* Single variant form */}

@@ -134,6 +134,8 @@ export default function ProductDetail() {
   const strainFirstVariant = selectedStrain
     ? activeVariants.find((v) => v.name.match(STRAIN_WEIGHT_RE)?.[1]?.trim() === selectedStrain) ?? null
     : null;
+  const opt1Label = attributes.data?.find((a: any) => a.key === "variant_option_1")?.value as string | undefined;
+  const opt2Label = attributes.data?.find((a: any) => a.key === "variant_option_2")?.value as string | undefined;
 
   return (
     <div className="min-h-screen bg-white">
@@ -248,7 +250,7 @@ export default function ProductDetail() {
               <div className="mb-5 space-y-4">
                 {/* Level 1: Strain */}
                 <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Select Strain:</p>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">{opt1Label ? `Select ${opt1Label.charAt(0).toUpperCase()}${opt1Label.slice(1)}:` : "Select Strain:"}</p>
                   <div className="flex flex-wrap gap-2">
                     {strains.map((strain) => {
                       const strainVariants = activeVariants.filter(
@@ -293,7 +295,7 @@ export default function ProductDetail() {
                 {/* Level 2: Weight (only shown after strain selected) */}
                 {selectedStrain && (
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Select Weight:</p>
+                    <p className="text-sm font-semibold text-gray-700 mb-2">{opt2Label ? `Select ${opt2Label.charAt(0).toUpperCase()}${opt2Label.slice(1)}:` : "Select Weight:"}</p>
                     <div className="flex flex-wrap gap-2">
                       {activeVariants
                         .filter((v) => v.name.match(STRAIN_WEIGHT_RE)?.[1]?.trim() === selectedStrain)
@@ -329,7 +331,7 @@ export default function ProductDetail() {
             ) : activeVariants.length > 0 ? (
               <div className="mb-5">
                 {(() => {
-                  const vt = attributes.data?.find((a: any) => a.key === "variant_type")?.value;
+                  const vt = attributes.data?.find((a: any) => a.key === "variant_option_1")?.value;
                   const label = vt
                     ? `Select ${vt.charAt(0).toUpperCase()}${vt.slice(1)}:`
                     : "Select Option";
@@ -415,9 +417,9 @@ export default function ProductDetail() {
                 {isOutOfStock
                   ? "Out of Stock"
                   : isLayered && !selectedStrain
-                  ? "Select a Strain"
+                  ? `Select a ${opt1Label ?? "Strain"}`
                   : isLayered && !selectedVariantId
-                  ? "Select a Weight"
+                  ? `Select a ${opt2Label ?? "Weight"}`
                   : "Add to Cart"}
               </Button>
             </div>
@@ -439,7 +441,7 @@ export default function ProductDetail() {
 
             {/* Product Characteristics accordion */}
             {(() => {
-              const SYSTEM_KEY = /^(gallery_\d+|variant_type|sku)$/;
+              const SYSTEM_KEY = /^(gallery_\d+|variant_type|variant_option_\d+|sku)$/;
               const publicAttrs = (attributes.data ?? []).filter((a: any) => !SYSTEM_KEY.test(a.key));
               if (publicAttrs.length === 0) return null;
               return (

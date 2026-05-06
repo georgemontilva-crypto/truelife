@@ -45,7 +45,7 @@ type OptionDraft = {
 type VariantRow = {
   name: string;
   price: string;
-  inventory: number;
+  inStock: boolean;
   image: ImageDraft | null;
 };
 
@@ -64,7 +64,7 @@ function cartesian(arrays: string[][]): string[] {
   if (!arrays.length) return [];
   return arrays
     .reduce<string[][]>((acc, arr) => acc.flatMap(c => arr.map(v => [...c, v])), [[]])
-    .map(c => c.join(" / "));
+    .map(c => c.join(" - "));
 }
 
 // ─── Variant image cell ───────────────────────────────────────────────────────
@@ -130,6 +130,7 @@ export default function AdminProducts() {
   const [uploadingGallery, setUploadingGallery] = useState(false);
 
   // Variants (create mode)
+  const [hasVariants, setHasVariants] = useState(false);
   const [options, setOptions] = useState<OptionDraft[]>([]);
   const [variantRows, setVariantRows] = useState<VariantRow[]>([]);
 
@@ -172,7 +173,7 @@ export default function AdminProducts() {
   useEffect(() => {
     setVariantRows(prev => {
       const prevMap = new Map(prev.map(r => [r.name, r]));
-      return variantNames.map(name => prevMap.get(name) ?? { name, price: "", inventory: 0, image: null });
+      return variantNames.map(name => prevMap.get(name) ?? { name, price: "", inStock: true, image: null });
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [variantNamesStr]);
@@ -194,7 +195,7 @@ export default function AdminProducts() {
 
   const resetForm = () => {
     setForm(EMPTY); setSku(""); setGallery([]);
-    setOptions([]); setVariantRows([]);
+    setHasVariants(false); setOptions([]); setVariantRows([]);
     setEditId(null); skuInit.current = false;
   };
 
@@ -331,8 +332,10 @@ export default function AdminProducts() {
       // Build attrs
       const attrs: { key: string; value: string; sortOrder: number }[] = [];
       if (sku.trim()) attrs.push({ key: "sku", value: sku.trim(), sortOrder: attrs.length });
-      const vtName = options[0]?.name.trim();
-      if (vtName) attrs.push({ key: "variant_type", value: vtName, sortOrder: attrs.length });
+      options.forEach((opt, i) => {
+        const optName = opt.name.trim();
+        if (optName) attrs.push({ key: `variant_option_${i + 1}`, value: optName, sortOrder: attrs.length });
+      });
       gallery.forEach((img, i) => attrs.push({ key: `gallery_${i + 2}`, value: img.url, sortOrder: attrs.length }));
       if (attrs.length) await setAttrs.mutateAsync({ productId: newId, attrs });
 
@@ -342,7 +345,7 @@ export default function AdminProducts() {
         if (!row.name) continue;
         await createVariant.mutateAsync({
           productId: newId, name: row.name,
-          price: row.price || form.price, inventory: row.inventory,
+          price: row.price || form.price, inventory: row.inStock ? 999 : 0,
           isActive: true, sortOrder: i,
           ...(row.image ? {
             imageBase64: row.image.base64,
@@ -645,103 +648,127 @@ export default function AdminProducts() {
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Variants</p>
 
             {!editId ? (
-              /* Create mode: Options UI */
+              /* Create mode */
               <div className="space-y-4">
-                {options.map((opt, optIdx) => (
-                  <div key={opt.id} className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1">
-                        <Label className="text-xs text-gray-500 mb-1 block">Option {optIdx + 1} name</Label>
-                        <Input
-                          value={opt.name}
-                          onChange={e => updateOpt(opt.id, { name: e.target.value })}
-                          placeholder="e.g. Flavor, Size, Strain…"
-                          className="rounded-xl h-8 text-sm"
-                        />
-                      </div>
-                      <button type="button" onClick={() => removeOpt(opt.id)} className="mt-5 p-1.5 text-gray-400 hover:text-red-500 rounded-lg transition-colors">
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
+                <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={hasVariants}
+                    onChange={e => { setHasVariants(e.target.checked); if (!e.target.checked) { setOptions([]); setVariantRows([]); } }}
+                    className="w-4 h-4 accent-gray-900 rounded"
+                  />
+                  <span className="text-sm text-gray-700 font-medium">This product has variants</span>
+                </label>
 
-                    {/* Value chips */}
-                    <div className="flex flex-wrap gap-1.5">
-                      {opt.values.map(v => (
-                        <span key={v} className="flex items-center gap-1 text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full">
-                          {v}
-                          <button type="button" onClick={() => setOptions(os => os.map(o => o.id === opt.id ? { ...o, values: o.values.filter(x => x !== v) } : o))} className="text-gray-400 hover:text-gray-700 ml-0.5">
-                            <X className="w-2.5 h-2.5" />
+                {hasVariants && (
+                  <div className="space-y-4">
+                    {options.map((opt, optIdx) => (
+                      <div key={opt.id} className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1">
+                            <Label className="text-xs text-gray-500 mb-1 block">Option {optIdx + 1} name</Label>
+                            <Input
+                              value={opt.name}
+                              onChange={e => updateOpt(opt.id, { name: e.target.value })}
+                              placeholder="e.g. Flavor, Size, Strain…"
+                              className="rounded-xl h-8 text-sm"
+                            />
+                          </div>
+                          <button type="button" onClick={() => removeOpt(opt.id)} className="mt-5 p-1.5 text-gray-400 hover:text-red-500 rounded-lg transition-colors">
+                            <X className="w-4 h-4" />
                           </button>
-                        </span>
-                      ))}
-                    </div>
+                        </div>
 
-                    {/* Add value input */}
-                    <div className="flex gap-2">
-                      <Input
-                        value={opt.inputVal}
-                        onChange={e => updateOpt(opt.id, { inputVal: e.target.value })}
-                        onKeyDown={e => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addValue(opt.id); } }}
-                        placeholder="Add value, press Enter…"
-                        className="rounded-xl h-7 text-xs flex-1"
-                      />
-                      <button type="button" onClick={() => addValue(opt.id)} className="px-3 h-7 text-xs bg-gray-100 hover:bg-gray-200 rounded-xl font-medium text-gray-600 transition-colors">
-                        Add
-                      </button>
-                    </div>
-
-                    {optIdx < options.length - 1 && <div className="border-b border-gray-100 pt-1" />}
-                  </div>
-                ))}
-
-                <button type="button" onClick={addOption} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 transition-colors font-medium">
-                  <Plus className="w-3.5 h-3.5" /> Add option
-                </button>
-
-                {/* Generated variants table */}
-                {variantRows.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-500 mb-2 font-medium">{variantRows.length} variant{variantRows.length !== 1 ? "s" : ""} will be created</p>
-                    <div className="border border-gray-100 rounded-xl overflow-hidden">
-                      <table className="w-full text-xs">
-                        <thead className="bg-gray-50 border-b border-gray-100">
-                          <tr>
-                            <th className="px-3 py-2 text-left font-semibold text-gray-500">Variant</th>
-                            <th className="px-2 py-2 text-left font-semibold text-gray-500 w-10">Img</th>
-                            <th className="px-2 py-2 text-left font-semibold text-gray-500 w-24">Price</th>
-                            <th className="px-2 py-2 text-left font-semibold text-gray-500 w-20">Stock</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                          {variantRows.map(row => (
-                            <tr key={row.name} className="hover:bg-gray-50/50">
-                              <td className="px-3 py-2 font-medium text-gray-800">{row.name}</td>
-                              <td className="px-2 py-2">
-                                <VariantImageCell
-                                  image={row.image}
-                                  onPick={(d) => updateRow(row.name, { image: d })}
-                                  onClear={() => updateRow(row.name, { image: null })}
-                                />
-                              </td>
-                              <td className="px-2 py-2">
-                                <div className="relative">
-                                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
-                                  <Input value={row.price} onChange={e => updateRow(row.name, { price: e.target.value })} placeholder={form.price || "0.00"} className="h-7 pl-5 text-xs rounded-lg" />
-                                </div>
-                              </td>
-                              <td className="px-2 py-2">
-                                <Input type="number" value={row.inventory} onChange={e => updateRow(row.name, { inventory: parseInt(e.target.value) || 0 })} className="h-7 text-xs rounded-lg" />
-                              </td>
-                            </tr>
+                        {/* Value chips */}
+                        <div className="flex flex-wrap gap-1.5">
+                          {opt.values.map(v => (
+                            <span key={v} className="flex items-center gap-1 text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full">
+                              {v}
+                              <button type="button" onClick={() => setOptions(os => os.map(o => o.id === opt.id ? { ...o, values: o.values.filter(x => x !== v) } : o))} className="text-gray-400 hover:text-gray-700 ml-0.5">
+                                <X className="w-2.5 h-2.5" />
+                              </button>
+                            </span>
                           ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
+                        </div>
 
-                {options.length === 0 && (
-                  <p className="text-xs text-gray-400">Add options to create variants with individual pricing (e.g. Flavor, Size, Strain).</p>
+                        {/* Add value input */}
+                        <div className="flex gap-2">
+                          <Input
+                            value={opt.inputVal}
+                            onChange={e => updateOpt(opt.id, { inputVal: e.target.value })}
+                            onKeyDown={e => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addValue(opt.id); } }}
+                            placeholder="Add value, press Enter…"
+                            className="rounded-xl h-7 text-xs flex-1"
+                          />
+                          <button type="button" onClick={() => addValue(opt.id)} className="px-3 h-7 text-xs bg-gray-100 hover:bg-gray-200 rounded-xl font-medium text-gray-600 transition-colors">
+                            Add
+                          </button>
+                        </div>
+
+                        {optIdx < options.length - 1 && <div className="border-b border-gray-100 pt-1" />}
+                      </div>
+                    ))}
+
+                    <button type="button" onClick={addOption} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 transition-colors font-medium">
+                      <Plus className="w-3.5 h-3.5" /> Add option
+                    </button>
+
+                    {/* Generated variants table */}
+                    {variantRows.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-500 mb-2 font-medium">{variantRows.length} variant{variantRows.length !== 1 ? "s" : ""} will be created</p>
+                        <div className="border border-gray-100 rounded-xl overflow-hidden">
+                          <table className="w-full text-xs">
+                            <thead className="bg-gray-50 border-b border-gray-100">
+                              <tr>
+                                <th className="px-3 py-2 text-left font-semibold text-gray-500">Variant</th>
+                                <th className="px-2 py-2 text-left font-semibold text-gray-500 w-10">Img</th>
+                                <th className="px-2 py-2 text-left font-semibold text-gray-500 w-24">Price</th>
+                                <th className="px-2 py-2 text-left font-semibold text-gray-500 w-20">In Stock</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                              {variantRows.map(row => (
+                                <tr key={row.name} className="hover:bg-gray-50/50">
+                                  <td className="px-3 py-2 font-medium text-gray-800">{row.name}</td>
+                                  <td className="px-2 py-2">
+                                    <VariantImageCell
+                                      image={row.image}
+                                      onPick={(d) => updateRow(row.name, { image: d })}
+                                      onClear={() => updateRow(row.name, { image: null })}
+                                    />
+                                  </td>
+                                  <td className="px-2 py-2">
+                                    <div className="relative">
+                                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                                      <Input value={row.price} onChange={e => updateRow(row.name, { price: e.target.value })} placeholder={form.price || "0.00"} className="h-7 pl-5 text-xs rounded-lg" />
+                                    </div>
+                                  </td>
+                                  <td className="px-2 py-2">
+                                    <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                                      <input
+                                        type="checkbox"
+                                        checked={row.inStock}
+                                        onChange={e => updateRow(row.name, { inStock: e.target.checked })}
+                                        className="w-3.5 h-3.5 accent-gray-900 rounded"
+                                      />
+                                      <span className={`text-xs font-medium ${row.inStock ? "text-green-600" : "text-gray-400"}`}>
+                                        {row.inStock ? "In Stock" : "Out"}
+                                      </span>
+                                    </label>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {options.length === 0 && (
+                      <p className="text-xs text-gray-400">Add options to create variants (e.g. Flavor, Size, Strain).</p>
+                    )}
+                  </div>
                 )}
               </div>
             ) : (
