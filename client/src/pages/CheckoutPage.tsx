@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -20,6 +20,40 @@ export default function CheckoutPage() {
   const [form, setForm] = useState({
     fullName: "", line1: "", line2: "", city: "", state: "", zip: "", country: "US", notes: "",
   });
+
+  // Sticky summary: track footer position to stop before it
+  const summaryRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
+  const [summaryStyle, setSummaryStyle] = useState<React.CSSProperties>({ position: "sticky", top: "7rem" });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const summary = summaryRef.current;
+      const footer = footerRef.current;
+      if (!summary || !footer) return;
+
+      const footerTop = footer.getBoundingClientRect().top;
+      const summaryHeight = summary.offsetHeight;
+      const NAVBAR_HEIGHT = 112; // ~7rem
+      const GAP = 24;
+
+      if (footerTop < summaryHeight + NAVBAR_HEIGHT + GAP) {
+        // Footer is approaching — switch to absolute positioning to stop before footer
+        const scrollY = window.scrollY;
+        const summaryParent = summary.parentElement;
+        if (!summaryParent) return;
+        const parentTop = summaryParent.getBoundingClientRect().top + scrollY;
+        const stopAt = footer.getBoundingClientRect().top + scrollY - summaryHeight - GAP - parentTop;
+        setSummaryStyle({ position: "absolute", top: `${stopAt}px`, width: "100%" });
+      } else {
+        setSummaryStyle({ position: "sticky", top: "7rem" });
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const savedAddresses = trpc.addresses.list.useQuery(undefined, { enabled: isAuthenticated });
 
@@ -155,9 +189,50 @@ export default function CheckoutPage() {
             </Button>
           </form>
 
-          {/* Order summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-gray-50 rounded-2xl p-6 sticky top-24">
+          {/* Order summary — sticky column */}
+          <div className="lg:col-span-1 relative hidden lg:block" style={{ alignSelf: "stretch" }}>
+            <div ref={summaryRef} style={summaryStyle} className="bg-gray-50 rounded-2xl p-6">
+              <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-gray-900" /> Order Summary
+              </h2>
+              <div className="space-y-3 mb-4">
+                {items.map((item) => (
+                  <div key={item.id} className="flex gap-3">
+                    <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden shrink-0">
+                      {item.productImageUrl ? (
+                        <img src={item.productImageUrl} alt={item.productName} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="w-5 h-5 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-gray-800 truncate">{item.productName}</p>
+                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                    </div>
+                    <p className="text-xs font-semibold text-gray-800 shrink-0">
+                      ${(parseFloat(item.productPrice) * item.quantity).toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-gray-200 pt-4 space-y-2">
+                <div className="flex justify-between text-sm text-gray-600"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Shipping</span>
+                  <span>{shippingCost === 0 ? <span className="text-green-600 font-medium">Free</span> : `$${shippingCost.toFixed(2)}`}</span>
+                </div>
+                <div className="flex justify-between font-bold text-gray-900 pt-2 border-t border-gray-200">
+                  <span>Total</span><span>${total.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile: Order summary below form */}
+          <div className="lg:hidden lg:col-span-1">
+            <div className="bg-gray-50 rounded-2xl p-6">
               <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4 text-gray-900" /> Order Summary
               </h2>
@@ -197,7 +272,9 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-      <Footer />
+      <div ref={footerRef}>
+        <Footer />
+      </div>
     </div>
   );
 }
