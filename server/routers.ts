@@ -38,6 +38,7 @@ import {
   getProductAttributes,
   setProductAttributes,
   getLabReports,
+  getAllLabReports,
   createLabReport,
   deleteLabReport,
   getBanners,
@@ -556,6 +557,7 @@ export const appRouter = router({
     list: publicProcedure
       .input(z.object({ productId: z.number() }))
       .query(({ input }) => getLabReports(input.productId)),
+    listAll: publicProcedure.query(() => getAllLabReports()),
     uploadAndCreate: adminProcedure
       .input(z.object({
         productId: z.number(),
@@ -563,6 +565,7 @@ export const appRouter = router({
         variantName: z.string().optional(),
         reportName: z.string().min(1),
         batchNumber: z.string().optional(),
+        testedAt: z.string().optional(),
         filename: z.string(),
         contentType: z.string(),
         base64: z.string(),
@@ -579,8 +582,28 @@ export const appRouter = router({
           fileUrl: url,
           fileKey: key,
           batchNumber: input.batchNumber,
+          testedAt: input.testedAt ? new Date(input.testedAt) : undefined,
         });
       }),
+    createWithUrl: adminProcedure
+      .input(z.object({
+        productId: z.number(),
+        variantId: z.number().optional(),
+        variantName: z.string().optional(),
+        reportName: z.string().min(1),
+        externalUrl: z.string().min(1),
+        batchNumber: z.string().optional(),
+        testedAt: z.string().optional(),
+      }))
+      .mutation(({ input }) => createLabReport({
+        productId: input.productId,
+        variantId: input.variantId,
+        variantName: input.variantName,
+        reportName: input.reportName,
+        externalUrl: input.externalUrl,
+        batchNumber: input.batchNumber,
+        testedAt: input.testedAt ? new Date(input.testedAt) : undefined,
+      })),
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => deleteLabReport(input.id)),

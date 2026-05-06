@@ -204,8 +204,9 @@ export const labReports = mysqlTable("lab_reports", {
   variantId: int("variantId"),                             // null = aplica al producto completo
   variantName: varchar("variantName", { length: 256 }),    // etiqueta legible
   reportName: varchar("reportName", { length: 256 }).notNull(),
-  fileUrl: text("fileUrl").notNull(),
+  fileUrl: text("fileUrl"),
   fileKey: varchar("fileKey", { length: 512 }),
+  externalUrl: text("externalUrl"),
   batchNumber: varchar("batchNumber", { length: 128 }),
   testedAt: timestamp("testedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

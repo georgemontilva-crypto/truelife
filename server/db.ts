@@ -677,18 +677,56 @@ export async function getLabReports(productId: number) {
     .orderBy(labReports.createdAt);
 }
 
+export async function getAllLabReports() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      id: labReports.id,
+      productId: labReports.productId,
+      productName: products.name,
+      productSlug: products.slug,
+      productImageUrl: products.imageUrl,
+      productCategoryId: products.categoryId,
+      variantId: labReports.variantId,
+      variantName: labReports.variantName,
+      reportName: labReports.reportName,
+      fileUrl: labReports.fileUrl,
+      fileKey: labReports.fileKey,
+      externalUrl: labReports.externalUrl,
+      batchNumber: labReports.batchNumber,
+      testedAt: labReports.testedAt,
+      createdAt: labReports.createdAt,
+    })
+    .from(labReports)
+    .leftJoin(products, eq(labReports.productId, products.id))
+    .orderBy(desc(labReports.createdAt));
+}
+
 export async function createLabReport(data: {
   productId: number;
   variantId?: number;
   variantName?: string;
   reportName: string;
-  fileUrl: string;
+  fileUrl?: string;
   fileKey?: string;
+  externalUrl?: string;
+  testedAt?: Date;
   batchNumber?: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
-  const [result] = await db.insert(labReports).values(data);
+  const [result] = await db.insert(labReports).values({
+    productId: data.productId,
+    variantId: data.variantId,
+    variantName: data.variantName,
+    reportName: data.reportName,
+    fileUrl: data.fileUrl,
+    fileKey: data.fileKey,
+    externalUrl: data.externalUrl,
+    batchNumber: data.batchNumber,
+    testedAt: data.testedAt,
+  });
   return { id: (result as any).insertId as number };
 }
 

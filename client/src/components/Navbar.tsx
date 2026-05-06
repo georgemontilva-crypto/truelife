@@ -53,7 +53,7 @@ export default function Navbar() {
             >
               All Products
             </Link>
-            {categories.data?.slice(0, 5).map((cat) => (
+            {categories.data?.slice(0, 4).map((cat) => (
               <Link
                 key={cat.id}
                 href={`/catalog/${cat.slug}`}
@@ -62,6 +62,12 @@ export default function Navbar() {
                 {cat.name}
               </Link>
             ))}
+            <Link
+              href="/lab-results"
+              className={`text-sm font-medium transition-colors no-underline ${location === "/lab-results" ? "text-gray-900" : "text-gray-600 hover:text-gray-900"}`}
+            >
+              Lab Results
+            </Link>
           </nav>
 
           {/* Actions */}
@@ -139,6 +145,9 @@ export default function Navbar() {
                 {cat.name}
               </Link>
             ))}
+            <Link href="/lab-results" className="block text-sm font-medium text-gray-700 py-2 no-underline" onClick={() => setMobileOpen(false)}>
+              Lab Results
+            </Link>
             {isAdmin && (
               <Link href="/admin" className="block text-sm font-medium text-gray-900 py-2 no-underline" onClick={() => setMobileOpen(false)}>
                 Admin Panel

@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "/admin/banners", label: "Banners", icon: ImagePlay },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/lab-reports", label: "Lab Reports", icon: FlaskConical },
 ];
 
 function SidebarContent({ location, logout, onNavClick }: {

@@ -27,6 +27,8 @@ import AdminCategories from "./pages/admin/AdminCategories";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminBanners from "./pages/admin/AdminBanners";
+import AdminLabReports from "./pages/admin/AdminLabReports";
+import LabResultsPage from "./pages/LabResultsPage";
 
 function Router() {
   return (
@@ -45,12 +47,14 @@ function Router() {
       <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/account" component={AccountPage} />
+      <Route path="/lab-results" component={LabResultsPage} />
       <Route path="/admin" component={() => <AdminLayout><AdminDashboard /></AdminLayout>} />
       <Route path="/admin/products" component={() => <AdminLayout><AdminProducts /></AdminLayout>} />
       <Route path="/admin/categories" component={() => <AdminLayout><AdminCategories /></AdminLayout>} />
       <Route path="/admin/banners" component={() => <AdminLayout><AdminBanners /></AdminLayout>} />
       <Route path="/admin/orders" component={() => <AdminLayout><AdminOrders /></AdminLayout>} />
       <Route path="/admin/users" component={() => <AdminLayout><AdminUsers /></AdminLayout>} />
+      <Route path="/admin/lab-reports" component={() => <AdminLayout><AdminLabReports /></AdminLayout>} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
