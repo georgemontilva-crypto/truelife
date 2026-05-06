@@ -6,7 +6,7 @@ import CartDrawer from "@/components/CartDrawer";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import {
-  ShoppingCart, Package, ArrowLeft, Shield, Truck, RotateCcw,
+  ShoppingCart, Package, ArrowLeft, Shield, Truck, RotateCcw, Leaf,
   FlaskConical, FileText, ChevronDown, ChevronUp, ExternalLink, Heart,
 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
@@ -287,13 +287,13 @@ export default function ProductDetail() {
             {/* Trust badges */}
             <div className="grid grid-cols-4 gap-2 mb-5">
               {[
-                { img: "/manus-storage/labtested-1_7cf4af18.svg", label: "Lab Tested" },
-                { img: "/manus-storage/free-shipping_df5d544c.svg", label: "Free Ship. $50+" },
-                { img: "/manus-storage/risk-money-1_4186a7dd.svg", label: "30-Day Returns" },
-                { img: "/manus-storage/natural-1_162ff9c5.svg", label: "100% Natural" },
-              ].map(({ img, label }) => (
+                { icon: FlaskConical, label: "Lab Tested" },
+                { icon: Truck, label: "Free Ship. $50+" },
+                { icon: RotateCcw, label: "30-Day Returns" },
+                { icon: Leaf, label: "100% Natural" },
+              ].map(({ icon: Icon, label }) => (
                 <div key={label} className="flex flex-col items-center gap-1.5 bg-gray-50 rounded-xl p-2.5 text-center">
-                  <img src={img} alt={label} className="w-8 h-8 object-contain" />
+                  <Icon className="w-8 h-8 text-gray-700" />
                   <span className="text-xs text-gray-600 font-medium leading-tight">{label}</span>
                 </div>
               ))}

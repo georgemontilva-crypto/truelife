@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { ShoppingCart, User, Menu, X } from "lucide-react";
+import { ShoppingCart, User, Menu, X, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -27,12 +27,11 @@ export default function Navbar() {
       <div className="container">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center no-underline">
-            <img
-              src="/manus-storage/chronic-logo_75b545c4.png"
-              alt="Chronic - Expect the Best"
-              className="h-9 w-auto object-contain"
-            />
+          <Link href="/" className="flex items-center gap-2 no-underline">
+            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
+              <Leaf className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-bold text-lg tracking-tight text-gray-900">CHRONIC</span>
           </Link>
 
           {/* Desktop nav */}

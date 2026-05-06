@@ -7,7 +7,7 @@ import CartDrawer from "@/components/CartDrawer";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, FlaskConical, Leaf, Star, Shield, Award, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, FlaskConical, Leaf, Star, Shield, Award, Users, ChevronLeft, ChevronRight, Truck, RotateCcw } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -52,10 +52,7 @@ function HeroBannerSlider() {
   if (!banners || banners.length === 0) {
     return (
       <section className="relative overflow-hidden bg-gray-950 min-h-[480px] md:min-h-[600px] flex items-center">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-30"
-          style={{ backgroundImage: "url('/manus-storage/banner1-cannabis-bud_b82f9e57.jpg')" }}
-        />
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-950" />
         <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/80 to-gray-950/30" />
         <div className="relative container py-16 md:py-28">
           <div className="max-w-2xl">
@@ -311,12 +308,16 @@ export default function Home() {
             {/* Image */}
             <div className="relative order-2 lg:order-1">
               <div className="relative rounded-3xl overflow-hidden aspect-[4/3]">
-                <img
-                  src="/manus-storage/banner2-cannabis-dark_1f0b32b8.jpg"
-                  alt="About Chronic Hemp"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-950 flex items-center justify-center">
+                  <Leaf className="w-32 h-32 text-white/10" />
+                </div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-8">
+                  <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20">
+                    <Leaf className="w-8 h-8 text-white" />
+                  </div>
+                  <p className="text-white font-bold text-2xl tracking-tight">CHRONIC</p>
+                  <p className="text-white/60 text-sm text-center">Premium Hemp Co.</p>
+                </div>
               </div>
               {/* Floating stat card */}
               <div className="absolute -bottom-6 -right-4 md:-right-8 bg-white rounded-2xl shadow-xl border border-gray-100 px-6 py-4 flex items-center gap-4">
@@ -423,13 +424,15 @@ export default function Home() {
         <div className="container">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
             {[
-              { img: "/manus-storage/free-shipping_df5d544c.svg", title: "Free Shipping", sub: "On all orders over $50" },
-              { img: "/manus-storage/risk-money-1_4186a7dd.svg", title: "Easy Returns", sub: "30-day return policy" },
-              { img: "/manus-storage/natural-1_162ff9c5.svg", title: "100% Natural", sub: "Hemp-derived ingredients" },
-              { img: "/manus-storage/labtested-1_7cf4af18.svg", title: "Lab Tested", sub: "Every batch verified" },
-            ].map(({ img, title, sub }) => (
+              { icon: Truck, title: "Free Shipping", sub: "On all orders over $50" },
+              { icon: RotateCcw, title: "Easy Returns", sub: "30-day return policy" },
+              { icon: Leaf, title: "100% Natural", sub: "Hemp-derived ingredients" },
+              { icon: FlaskConical, title: "Lab Tested", sub: "Every batch verified" },
+            ].map(({ icon: Icon, title, sub }) => (
               <div key={title} className="flex flex-col items-center text-center gap-3">
-                <img src={img} alt={title} className="w-16 h-16 md:w-20 md:h-20 object-contain" />
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-2xl flex items-center justify-center">
+                  <Icon className="w-8 h-8 md:w-10 md:h-10 text-gray-700" />
+                </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{title}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{sub}</p>

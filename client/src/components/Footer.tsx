@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { Leaf } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -8,19 +9,13 @@ export default function Footer() {
         <div className="container py-8">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest text-center mb-6">As Seen In</p>
           <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-            {[
-              { src: "/manus-storage/leafly-logo_8a286c57.png", alt: "Leafly" },
-              { src: "/manus-storage/mjbizdaily-logo_94eacd30.png", alt: "Marijuana Business Daily" },
-              { src: "/manus-storage/herb-logo_11211b3d.png", alt: "Herb" },
-              { src: "/manus-storage/ocweekly-logo_96b0f9b3.png", alt: "OC Weekly" },
-              { src: "/manus-storage/forbes-logo_e0f6bba3.png", alt: "Forbes" },
-            ].map(({ src, alt }) => (
-              <img
-                key={alt}
-                src={src}
-                alt={alt}
-                className="h-7 w-auto object-contain opacity-50 grayscale hover:opacity-80 hover:grayscale-0 transition-all duration-300"
-              />
+            {["Leafly", "MJBizDaily", "Herb", "OC Weekly", "Forbes"].map((name) => (
+              <span
+                key={name}
+                className="text-sm font-bold text-gray-300 tracking-wider hover:text-gray-500 transition-colors cursor-default"
+              >
+                {name}
+              </span>
             ))}
           </div>
         </div>
@@ -30,12 +25,11 @@ export default function Footer() {
       <div className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
-            <div className="mb-4">
-              <img
-                src="/manus-storage/chronic-logo_75b545c4.png"
-                alt="Chronic - Expect the Best"
-                className="h-8 w-auto object-contain"
-              />
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
+                <Leaf className="w-3.5 h-3.5 text-white" />
+              </div>
+              <span className="font-bold text-base tracking-tight text-gray-900">CHRONIC</span>
             </div>
             <p className="text-xs text-gray-500 leading-relaxed">
               Premium hemp-derived products. Quality you can trust, formulated with care.
