@@ -182,7 +182,8 @@ export default function ProductVariantsEditor({ productId }: { productId: number
       {/* Existing variants table */}
       {variants.length > 0 ? (
         <div className="border border-gray-100 rounded-xl overflow-hidden">
-          <table className="w-full text-xs">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-xs">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
                 {["Image", "Name", "SKU", "Price", "Cmp At", "Stock", "On", ""].map((h) => (
@@ -192,7 +193,7 @@ export default function ProductVariantsEditor({ productId }: { productId: number
             </thead>
             <tbody className="divide-y divide-gray-50">
               {(variants as VariantRow[]).map((v) => (
-                <tr key={v.id} className="hover:bg-gray-50/50">
+                <tr key={v.id} className="hover:bg-gray-50/50 group">
                   {editingId === v.id ? (
                     <>
                       {/* Image picker */}
@@ -214,10 +215,10 @@ export default function ProductVariantsEditor({ productId }: { productId: number
                       </td>
                       <td className="px-2 py-2">
                         <div className="flex gap-1">
-                          <button onClick={() => handleSaveEdit(v)} disabled={updateMut.isPending} className="p-1 text-green-600 hover:bg-green-50 rounded">
+                          <button type="button" onClick={() => handleSaveEdit(v)} disabled={updateMut.isPending} className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors">
                             <Check className="w-3.5 h-3.5" />
                           </button>
-                          <button onClick={() => { setEditingId(null); setEditRow({}); }} className="p-1 text-gray-400 hover:bg-gray-100 rounded">
+                          <button type="button" onClick={() => { setEditingId(null); setEditRow({}); }} className="p-1 text-gray-500 hover:bg-gray-100 rounded transition-colors">
                             <X className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -247,11 +248,11 @@ export default function ProductVariantsEditor({ productId }: { productId: number
                         <span className={`w-2 h-2 rounded-full inline-block ${v.isActive ? "bg-green-500" : "bg-gray-300"}`} />
                       </td>
                       <td className="px-3 py-2.5">
-                        <div className="flex gap-1">
-                          <button onClick={() => { setEditingId(v.id); setEditRow({}); }} className="p-1 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded">
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button type="button" onClick={() => { setEditingId(v.id); setEditRow({}); }} className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors">
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
-                          <button onClick={() => { if (confirm("Delete variant?")) deleteMut.mutate({ id: v.id }); }} className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded">
+                          <button type="button" onClick={() => { if (confirm("Delete variant?")) deleteMut.mutate({ id: v.id }); }} className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-100 rounded-lg transition-colors">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -262,6 +263,7 @@ export default function ProductVariantsEditor({ productId }: { productId: number
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       ) : (
         <div className="flex items-center gap-2 py-4 px-3 bg-gray-50 rounded-xl text-gray-400 text-xs">
