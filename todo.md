@@ -104,20 +104,20 @@
 - [x] Tienda: botón prominente "View Lab Reports / COA" en página de detalle del producto
 
 ## Auth Propia (Email + Código de Verificación)
-- [ ] DB: campos emailVerified, emailVerifyToken, emailVerifyExpiry, passwordHash en tabla users
-- [ ] DB: tabla wishlist (userId, productId)
-- [ ] Backend: procedure register (email, password, nombre) — genera código y envía email
-- [ ] Backend: procedure verifyEmail (email, code) — activa cuenta
-- [ ] Backend: procedure login (email, password) — retorna sesión
-- [ ] Backend: procedure logout
-- [ ] Backend: procedure me — retorna usuario actual
-- [ ] Backend: procedure resendVerification
-- [ ] Backend: procedure wishlist.add / wishlist.remove / wishlist.list
-- [ ] Backend: envío de email con código usando Resend o notificaciones integradas
-- [ ] Frontend: página /register con formulario email/password/nombre
-- [ ] Frontend: página /login con formulario email/password
-- [ ] Frontend: página /verify-email con campo de código de 6 dígitos
-- [ ] Frontend: página /account con tabs: Pedidos, Favoritos, Datos personales
-- [ ] Frontend: botón de favorito (corazón) en tarjetas de producto y detalle
-- [ ] Frontend: actualizar Navbar con links Login/Register o menú de usuario
-- [ ] Frontend: remover Manus OAuth de toda la app
+- [x] DB: campos emailVerified, emailVerifyToken, emailVerifyExpiry, passwordHash en tabla users
+- [x] DB: tabla wishlist (userId, productId)
+- [x] Backend: procedure register (email, password, nombre) — genera código y envía email
+- [x] Backend: procedure verifyEmail (email, code) — activa cuenta
+- [x] Backend: procedure login (email, password) — retorna sesión
+- [x] Backend: procedure logout
+- [x] Backend: procedure me — retorna usuario actual
+- [x] Backend: procedure resendVerification
+- [x] Backend: procedure wishlist.add / wishlist.remove / wishlist.list
+- [x] Backend: envío de email con código usando Resend (fallback a logs en dev)
+- [x] Frontend: página /register con formulario email/password/nombre
+- [x] Frontend: página /login con formulario email/password
+- [x] Frontend: página /verify-email con campo de código de 6 dígitos
+- [x] Frontend: página /account con tabs: Pedidos, Favoritos, Datos personales, Seguridad
+- [x] Frontend: botón de favorito (corazón) en tarjetas de producto y detalle
+- [x] Frontend: actualizar Navbar con links Login/Register o menú de usuario
+- [x] Frontend: Manus OAuth mantenido para admin, auth propia para clientes

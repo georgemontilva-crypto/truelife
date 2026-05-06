@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
-import { getLoginUrl } from "@/const";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 
@@ -73,11 +72,18 @@ export default function Navbar() {
                 </Link>
               </>
             ) : (
-              <Link href="/login">
-                <Button variant="ghost" size="sm" className="text-sm text-gray-600 hover:text-gray-900">
-                  Sign In
-                </Button>
-              </Link>
+              <div className="flex items-center gap-1">
+                <Link href="/login">
+                  <Button variant="ghost" size="sm" className="text-sm text-gray-600 hover:text-gray-900">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button size="sm" className="text-sm bg-gray-900 hover:bg-black text-white rounded-lg hidden md:flex">
+                    Register
+                  </Button>
+                </Link>
+              </div>
             )}
 
             <Button

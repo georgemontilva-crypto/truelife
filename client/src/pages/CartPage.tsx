@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, Package } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+
 
 export default function CartPage() {
   const { isAuthenticated } = useAuth();
@@ -23,7 +23,7 @@ export default function CartPage() {
         <div className="container py-20 text-center">
           <ShoppingCart className="w-12 h-12 text-gray-200 mx-auto mb-4" />
           <p className="text-gray-600 font-medium mb-4">Sign in to view your cart</p>
-          <a href={getLoginUrl()}>
+          <a href="/login">
             <Button className="bg-gray-900 hover:bg-black text-white rounded-xl">Sign In</Button>
           </a>
         </div>

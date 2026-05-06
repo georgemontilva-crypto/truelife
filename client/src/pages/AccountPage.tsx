@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -50,7 +50,14 @@ export default function AccountPage() {
     onSuccess: () => utils.wishlist.list.invalidate(),
   });
 
-  const [profileForm, setProfileForm] = useState({ name: user?.name || "", phone: (user as any)?.phone || "" });
+  const [profileForm, setProfileForm] = useState({ name: "", phone: "" });
+
+  // Sync form when user data loads
+  useEffect(() => {
+    if (user) {
+      setProfileForm({ name: user.name || "", phone: (user as any)?.phone || "" });
+    }
+  }, [user?.name, (user as any)?.phone]);
   const [passForm, setPassForm] = useState({ currentPassword: "", newPassword: "", confirm: "" });
   const [showPass, setShowPass] = useState(false);
 
@@ -82,10 +89,13 @@ export default function AccountPage() {
     );
   }
 
-  if (!user) {
-    navigate("/login?returnTo=/account");
-    return null;
-  }
+  useEffect(() => {
+    if (!userLoading && !user) {
+      navigate("/login?returnTo=/account");
+    }
+  }, [userLoading, user]);
+
+  if (!userLoading && !user) return null;
 
   const tabs = [
     { id: "orders" as Tab, label: "My Orders", icon: ShoppingBag },
@@ -102,11 +112,11 @@ export default function AccountPage() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-gray-900 rounded-full flex items-center justify-center text-white text-xl font-bold">
-              {user.name?.charAt(0).toUpperCase() || "U"}
+              {user?.name?.charAt(0).toUpperCase() || "U"}
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">{user.name}</h1>
-              <p className="text-sm text-gray-500">{user.email}</p>
+              <h1 className="text-xl font-bold text-gray-900">{user?.name}</h1>
+              <p className="text-sm text-gray-500">{user?.email}</p>
             </div>
           </div>
           <Button
@@ -276,7 +286,7 @@ export default function AccountPage() {
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-700 mb-1.5 block">Email Address</Label>
-                    <Input value={user.email || ""} disabled className="h-11 rounded-xl bg-gray-50 text-gray-400" />
+                    <Input value={user?.email || ""} disabled className="h-11 rounded-xl bg-gray-50 text-gray-400" />
                     <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
                   </div>
                   <div>

@@ -8,7 +8,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useState } from "react";
 import { toast } from "sonner";
 import { User, MapPin, Plus, Trash2 } from "lucide-react";
-import { getLoginUrl } from "@/const";
+
 
 export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -37,7 +37,7 @@ export default function ProfilePage() {
         <Navbar />
         <div className="container py-20 text-center">
           <p className="text-gray-600 mb-4">Sign in to view your profile</p>
-          <a href={getLoginUrl()}><Button className="bg-gray-900 hover:bg-black text-white rounded-xl">Sign In</Button></a>
+          <a href="/login"><Button className="bg-gray-900 hover:bg-black text-white rounded-xl">Sign In</Button></a>
         </div>
       </div>
     );

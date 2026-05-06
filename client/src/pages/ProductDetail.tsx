@@ -7,12 +7,12 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import {
   ShoppingCart, Package, ArrowLeft, Shield, Truck, RotateCcw,
-  FlaskConical, FileText, ChevronDown, ChevronUp, ExternalLink,
+  FlaskConical, FileText, ChevronDown, ChevronUp, ExternalLink, Heart,
 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
-import { getLoginUrl } from "@/const";
+
 
 export default function ProductDetail() {
   const params = useParams<{ id: string }>();
@@ -25,6 +25,15 @@ export default function ProductDetail() {
   const [showLabs, setShowLabs] = useState(false);
 
   const productId = parseInt(params.id ?? "0");
+  const utils = trpc.useUtils();
+  const { data: wishlistData } = trpc.wishlist.list.useQuery(undefined, { enabled: isAuthenticated });
+  const isWishlisted = wishlistData?.some((w: any) => w.productId === productId) ?? false;
+  const addWishlist = trpc.wishlist.add.useMutation({ onSuccess: () => { utils.wishlist.list.invalidate(); toast.success("Added to wishlist!"); } });
+  const removeWishlist = trpc.wishlist.remove.useMutation({ onSuccess: () => { utils.wishlist.list.invalidate(); toast.success("Removed from wishlist"); } });
+  const handleWishlist = () => {
+    if (!isAuthenticated) { window.location.href = "/login"; return; }
+    if (isWishlisted) removeWishlist.mutate({ productId }); else addWishlist.mutate({ productId });
+  };
   const product = trpc.products.byId.useQuery({ id: productId }, { enabled: !!productId });
   const variants = trpc.productVariants.list.useQuery({ productId }, { enabled: !!productId });
   const attributes = trpc.productAttributes.list.useQuery({ productId }, { enabled: !!productId });
@@ -40,7 +49,7 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
-      window.location.href = getLoginUrl();
+      window.location.href = "/login";
       return;
     }
     addToCart.mutate({
@@ -254,6 +263,17 @@ export default function ProductDetail() {
                   +
                 </button>
               </div>
+              <Button
+                variant="outline"
+                size="icon"
+                className={`h-11 w-11 rounded-xl border-gray-200 shrink-0 ${
+                  isWishlisted ? "bg-red-50 border-red-200 text-red-500" : "text-gray-400 hover:text-red-500 hover:border-red-200"
+                }`}
+                onClick={handleWishlist}
+                disabled={addWishlist.isPending || removeWishlist.isPending}
+              >
+                <Heart className={`w-5 h-5 ${isWishlisted ? "fill-current" : ""}`} />
+              </Button>
               <Button
                 className="flex-1 h-11 bg-gray-900 hover:bg-black text-white rounded-xl font-medium"
                 onClick={handleAddToCart}

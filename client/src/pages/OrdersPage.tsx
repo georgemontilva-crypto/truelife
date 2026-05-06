@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Package, ChevronRight } from "lucide-react";
-import { getLoginUrl } from "@/const";
+
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
@@ -27,7 +27,7 @@ export default function OrdersPage() {
         <Navbar />
         <div className="container py-20 text-center">
           <p className="text-gray-600 mb-4">Sign in to view your orders</p>
-          <a href={getLoginUrl()}><Button className="bg-gray-900 hover:bg-black text-white rounded-xl">Sign In</Button></a>
+          <a href="/login"><Button className="bg-gray-900 hover:bg-black text-white rounded-xl">Sign In</Button></a>
         </div>
       </div>
     );
