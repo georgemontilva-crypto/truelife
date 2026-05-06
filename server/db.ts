@@ -578,8 +578,8 @@ export async function createProductVariant(data: {
   productId: number;
   name: string;
   sku?: string;
-  price: string;
-  compareAtPrice?: string;
+  price: number | string;
+  compareAtPrice?: number | string;
   inventory?: number;
   isActive?: boolean;
   sortOrder?: number;
@@ -589,10 +589,16 @@ export async function createProductVariant(data: {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
   const [result] = await db.insert(productVariants).values({
-    ...data,
+    productId: data.productId,
+    name: data.name,
+    sku: data.sku,
+    price: String(data.price),
+    compareAtPrice: data.compareAtPrice != null ? String(data.compareAtPrice) : undefined,
     inventory: data.inventory ?? 0,
     isActive: data.isActive ?? true,
     sortOrder: data.sortOrder ?? 0,
+    imageUrl: data.imageUrl,
+    imageKey: data.imageKey,
   });
   return { id: (result as any).insertId as number };
 }
@@ -602,8 +608,8 @@ export async function updateProductVariant(
   data: Partial<{
     name: string;
     sku: string;
-    price: string;
-    compareAtPrice: string;
+    price: number | string;
+    compareAtPrice: number | string;
     inventory: number;
     isActive: boolean;
     sortOrder: number;
@@ -613,7 +619,10 @@ export async function updateProductVariant(
 ) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
-  await db.update(productVariants).set(data).where(eq(productVariants.id, id));
+  const toSet: any = { ...data };
+  if (data.price !== undefined) toSet.price = String(data.price);
+  if (data.compareAtPrice !== undefined) toSet.compareAtPrice = String(data.compareAtPrice);
+  await db.update(productVariants).set(toSet).where(eq(productVariants.id, id));
 }
 
 export async function deleteProductVariant(id: number) {
