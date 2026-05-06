@@ -24,11 +24,15 @@ type ProductForm = {
   inventory: number;
   isActive: boolean;
   isFeatured: boolean;
-  thcContent: string;
-  cbdContent: string;
-  weight: string;
   imageUrl: string;
   imageKey: string;
+};
+
+type ImageDraft = {
+  base64: string;
+  filename: string;
+  contentType: string;
+  previewUrl: string;
 };
 
 type OptionDraft = {
@@ -42,14 +46,14 @@ type VariantRow = {
   name: string;
   price: string;
   inventory: number;
+  image: ImageDraft | null;
 };
 
 type GalleryImg = { url: string; key: string };
 
 const EMPTY: ProductForm = {
   categoryId: 0, name: "", slug: "", description: "", price: "", compareAtPrice: "",
-  inventory: 0, isActive: true, isFeatured: false, thcContent: "", cbdContent: "",
-  weight: "", imageUrl: "", imageKey: "",
+  inventory: 0, isActive: true, isFeatured: false, imageUrl: "", imageKey: "",
 };
 
 function slugify(s: string) {
@@ -61,6 +65,55 @@ function cartesian(arrays: string[][]): string[] {
   return arrays
     .reduce<string[][]>((acc, arr) => acc.flatMap(c => arr.map(v => [...c, v])), [[]])
     .map(c => c.join(" / "));
+}
+
+// ─── Variant image cell ───────────────────────────────────────────────────────
+
+function VariantImageCell({ image, onPick, onClear }: {
+  image: ImageDraft | null;
+  onPick: (d: ImageDraft) => void;
+  onClear: () => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div className="relative w-8 h-8 group shrink-0">
+      <button
+        type="button"
+        onClick={() => ref.current?.click()}
+        className="w-8 h-8 rounded-lg border border-dashed border-gray-300 overflow-hidden flex items-center justify-center hover:border-gray-500 transition-colors bg-gray-50"
+      >
+        {image
+          ? <img src={image.previewUrl} alt="" className="w-full h-full object-cover" />
+          : <ImageIcon className="w-3.5 h-3.5 text-gray-300" />}
+      </button>
+      {image && (
+        <button
+          type="button"
+          onClick={onClear}
+          className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gray-900 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <X className="w-2 h-2 text-white" />
+        </button>
+      )}
+      <input
+        ref={ref}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const result = ev.target?.result as string;
+            onPick({ base64: result.split(",")[1]!, filename: file.name, contentType: file.type, previewUrl: result });
+          };
+          reader.readAsDataURL(file);
+          e.target.value = "";
+        }}
+      />
+    </div>
+  );
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -119,7 +172,7 @@ export default function AdminProducts() {
   useEffect(() => {
     setVariantRows(prev => {
       const prevMap = new Map(prev.map(r => [r.name, r]));
-      return variantNames.map(name => prevMap.get(name) ?? { name, price: "", inventory: 0 });
+      return variantNames.map(name => prevMap.get(name) ?? { name, price: "", inventory: 0, image: null });
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [variantNamesStr]);
@@ -152,8 +205,7 @@ export default function AdminProducts() {
       description: p.description ?? "", price: p.price,
       compareAtPrice: p.compareAtPrice ?? "", inventory: p.inventory,
       isActive: p.isActive, isFeatured: p.isFeatured,
-      thcContent: p.thcContent ?? "", cbdContent: p.cbdContent ?? "",
-      weight: p.weight ?? "", imageUrl: p.imageUrl ?? "", imageKey: p.imageKey ?? "",
+      imageUrl: p.imageUrl ?? "", imageKey: p.imageKey ?? "",
     });
     setSku(""); setGallery([]);
     setOptions([]); setVariantRows([]);
@@ -246,16 +298,15 @@ export default function AdminProducts() {
   const isBusy = createProduct.isPending || updateProduct.isPending || createVariant.isPending || setAttrs.isPending;
 
   const handleSubmit = async () => {
-    if (!form.name || !form.price || !form.categoryId) {
-      toast.error("Name, price and category are required"); return;
+    if (!form.name || !form.categoryId) {
+      toast.error("Name and category are required"); return;
     }
     const payload = {
       ...form,
-      price: parseFloat(String(form.price).replace(',', '.')),
+      price: parseFloat(String(form.price).replace(',', '.')) || 0,
       compareAtPrice: form.compareAtPrice ? parseFloat(String(form.compareAtPrice).replace(',', '.')) : undefined,
       imageUrl: form.imageUrl || undefined, imageKey: form.imageKey || undefined,
-      thcContent: form.thcContent || undefined, cbdContent: form.cbdContent || undefined,
-      weight: form.weight || undefined, description: form.description || undefined,
+      description: form.description || undefined,
     };
 
     if (editId) {
@@ -293,6 +344,11 @@ export default function AdminProducts() {
           productId: newId, name: row.name,
           price: row.price || form.price, inventory: row.inventory,
           isActive: true, sortOrder: i,
+          ...(row.image ? {
+            imageBase64: row.image.base64,
+            imageFilename: row.image.filename,
+            imageContentType: row.image.contentType,
+          } : {}),
         });
       }
 
@@ -535,10 +591,10 @@ export default function AdminProducts() {
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Pricing</p>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs text-gray-500 mb-1 block">Price *</Label>
+                <Label className="text-xs text-gray-500 mb-1 block">Price</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                  <Input value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} placeholder="0.00" className="rounded-xl pl-7" />
+                  <Input value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} placeholder="0.00 (optional if using variants)" className="rounded-xl pl-7" />
                 </div>
               </div>
               <div>
@@ -559,15 +615,9 @@ export default function AdminProducts() {
                 <Label className="text-xs text-gray-500 mb-1 block">SKU</Label>
                 <Input value={sku} onChange={e => setSku(e.target.value)} placeholder="PROD-001" className="rounded-xl" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs text-gray-500 mb-1 block">Base Stock</Label>
-                  <Input type="number" value={form.inventory} onChange={e => setForm(f => ({ ...f, inventory: parseInt(e.target.value) || 0 }))} className="rounded-xl" />
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-500 mb-1 block">Weight / Format</Label>
-                  <Input value={form.weight} onChange={e => setForm(f => ({ ...f, weight: e.target.value }))} placeholder="3.5g, 1oz…" className="rounded-xl" />
-                </div>
+              <div>
+                <Label className="text-xs text-gray-500 mb-1 block">Base Stock</Label>
+                <Input type="number" value={form.inventory} onChange={e => setForm(f => ({ ...f, inventory: parseInt(e.target.value) || 0 }))} className="rounded-xl" />
               </div>
             </div>
           </div>
@@ -586,16 +636,6 @@ export default function AdminProducts() {
                   <option value={0}>Select category…</option>
                   {categories.data?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs text-gray-500 mb-1 block">THC Content</Label>
-                  <Input value={form.thcContent} onChange={e => setForm(f => ({ ...f, thcContent: e.target.value }))} placeholder="≤0.3%" className="rounded-xl" />
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-500 mb-1 block">CBD Content</Label>
-                  <Input value={form.cbdContent} onChange={e => setForm(f => ({ ...f, cbdContent: e.target.value }))} placeholder="500mg" className="rounded-xl" />
-                </div>
               </div>
             </div>
           </div>
@@ -667,6 +707,7 @@ export default function AdminProducts() {
                         <thead className="bg-gray-50 border-b border-gray-100">
                           <tr>
                             <th className="px-3 py-2 text-left font-semibold text-gray-500">Variant</th>
+                            <th className="px-2 py-2 text-left font-semibold text-gray-500 w-10">Img</th>
                             <th className="px-2 py-2 text-left font-semibold text-gray-500 w-24">Price</th>
                             <th className="px-2 py-2 text-left font-semibold text-gray-500 w-20">Stock</th>
                           </tr>
@@ -675,6 +716,13 @@ export default function AdminProducts() {
                           {variantRows.map(row => (
                             <tr key={row.name} className="hover:bg-gray-50/50">
                               <td className="px-3 py-2 font-medium text-gray-800">{row.name}</td>
+                              <td className="px-2 py-2">
+                                <VariantImageCell
+                                  image={row.image}
+                                  onPick={(d) => updateRow(row.name, { image: d })}
+                                  onClear={() => updateRow(row.name, { image: null })}
+                                />
+                              </td>
                               <td className="px-2 py-2">
                                 <div className="relative">
                                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
