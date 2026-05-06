@@ -223,7 +223,7 @@ export default function ProductDetail() {
               <div className="flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full shrink-0 ${isOutOfStock ? "bg-red-400" : "bg-green-400"}`} />
                 <span className={`text-sm font-medium ${isOutOfStock ? "text-red-600" : "text-green-600"}`}>
-                  {isOutOfStock ? "Out of Stock" : `In Stock (${displayInventory} available)`}
+                  {isOutOfStock ? "Out of Stock" : displayInventory >= 999 ? "In Stock" : `In Stock (${displayInventory} available)`}
                 </span>
               </div>
             </div>

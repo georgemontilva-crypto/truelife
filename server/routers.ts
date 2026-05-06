@@ -31,6 +31,7 @@ import {
   updateOrderStatus,
   updateProduct,
   updateUserRole,
+  getProductVariantById,
   getProductVariants,
   createProductVariant,
   updateProductVariant,
@@ -355,9 +356,23 @@ export const appRouter = router({
           selectedVariants: z.record(z.string(), z.string()).optional(),
         })
       )
-      .mutation(({ ctx, input }) =>
-        addToCart(ctx.user.id, input.productId, input.quantity, input.selectedVariants)
-      ),
+      .mutation(async ({ ctx, input }) => {
+        let enrichedVariants = input.selectedVariants;
+
+        if (input.selectedVariants?.variantId) {
+          const variantId = parseInt(input.selectedVariants.variantId);
+          const variant = await getProductVariantById(variantId);
+          if (!variant) throw new TRPCError({ code: "NOT_FOUND", message: "Variant not found" });
+          if (variant.inventory === 0) throw new TRPCError({ code: "BAD_REQUEST", message: "Out of stock" });
+          enrichedVariants = {
+            ...input.selectedVariants,
+            variantName: variant.name,
+            variantPrice: String(variant.price),
+          };
+        }
+
+        return addToCart(ctx.user.id, input.productId, input.quantity, enrichedVariants);
+      }),
 
     update: protectedProcedure
       .input(z.object({ cartItemId: z.number(), quantity: z.number().min(0) }))

@@ -336,7 +336,7 @@ export async function getCartWithItems(userId: number) {
   if (!db) return null;
   const cart = (await db.select().from(carts).where(eq(carts.userId, userId)).limit(1))[0];
   if (!cart) return null;
-  const items = await db
+  const rawItems = await db
     .select({
       id: cartItems.id,
       cartId: cartItems.cartId,
@@ -352,6 +352,15 @@ export async function getCartWithItems(userId: number) {
     .from(cartItems)
     .innerJoin(products, eq(cartItems.productId, products.id))
     .where(eq(cartItems.cartId, cart.id));
+
+  // Surface variant name and price as top-level fields (stored in selectedVariants JSON)
+  const items = rawItems.map((item) => ({
+    ...item,
+    variantName: item.selectedVariants?.variantName ?? null,
+    variantPrice: item.selectedVariants?.variantPrice ?? null,
+    effectivePrice: item.selectedVariants?.variantPrice ?? item.productPrice,
+  }));
+
   return { ...cart, items };
 }
 
@@ -363,23 +372,6 @@ export async function addToCart(
 ) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
-
-  // Enrich selectedVariants with variant name and price when a variantId is provided
-  let enrichedVariants: Record<string, string> | undefined = selectedVariants;
-  if (selectedVariants?.variantId) {
-    const variantId = parseInt(selectedVariants.variantId);
-    const variant = (
-      await db.select().from(productVariants).where(eq(productVariants.id, variantId)).limit(1)
-    )[0];
-    if (variant) {
-      enrichedVariants = {
-        ...selectedVariants,
-        variantName: variant.name,
-        variantPrice: String(variant.price),
-      };
-    }
-  }
-
   const cart = await getOrCreateCart(userId);
   const existing = (
     await db
@@ -391,10 +383,10 @@ export async function addToCart(
   if (existing) {
     await db
       .update(cartItems)
-      .set({ quantity: existing.quantity + quantity, selectedVariants: enrichedVariants ?? existing.selectedVariants })
+      .set({ quantity: existing.quantity + quantity, selectedVariants: selectedVariants ?? existing.selectedVariants })
       .where(eq(cartItems.id, existing.id));
   } else {
-    await db.insert(cartItems).values({ cartId: cart.id, productId, quantity, selectedVariants: enrichedVariants });
+    await db.insert(cartItems).values({ cartId: cart.id, productId, quantity, selectedVariants });
   }
 }
 
@@ -584,6 +576,12 @@ export async function getOrderStats() {
 }
 
 // ─── Product Variants ─────────────────────────────────────────────────────────
+export async function getProductVariantById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  return (await db.select().from(productVariants).where(eq(productVariants.id, id)).limit(1))[0] ?? null;
+}
+
 export async function getProductVariants(productId: number) {
   const db = await getDb();
   if (!db) return [];
