@@ -96,3 +96,9 @@
 - [x] Home: categorías con imagen de fondo
 - [x] Home: sección About Us con texto e imagen
 - [x] Página /about - sección About Us integrada en Home (id="about")
+
+## Lab Reports por Producto
+- [x] DB: columna labReportUrl en tabla products
+- [x] Backend: incluir labReportUrl en upsert y queries de productos
+- [x] Admin: sección "Lab Reports / COA" con upload de PDF por variante en panel de producto
+- [x] Tienda: botón prominente "View Lab Reports / COA" en página de detalle del producto

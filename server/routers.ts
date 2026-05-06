@@ -174,6 +174,7 @@ export const appRouter = router({
           thcContent: z.string().optional(),
           cbdContent: z.string().optional(),
           weight: z.string().optional(),
+          labReportUrl: z.string().optional(),
         })
       )
       .mutation(({ input }) => createProduct(input)),
@@ -199,6 +200,7 @@ export const appRouter = router({
           thcContent: z.string().optional(),
           cbdContent: z.string().optional(),
           weight: z.string().optional(),
+          labReportUrl: z.string().optional(),
         })
       )
       .mutation(({ input }) => {
@@ -221,6 +223,20 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64, "base64");
         const key = `products/${Date.now()}-${input.filename}`;
+        const { url } = await storagePut(key, buffer, input.contentType);
+        return { url, key };
+      }),
+    uploadLabReport: adminProcedure
+      .input(
+        z.object({
+          filename: z.string(),
+          contentType: z.string(),
+          base64: z.string(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.base64, "base64");
+        const key = `lab-reports/${Date.now()}-${input.filename}`;
         const { url } = await storagePut(key, buffer, input.contentType);
         return { url, key };
       }),

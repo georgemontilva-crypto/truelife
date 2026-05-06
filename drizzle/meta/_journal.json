@@ -29,6 +29,13 @@
       "when": 1778033414340,
       "tag": "0003_hot_gladiator",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1778034806968,
+      "tag": "0004_lonely_greymalkin",
+      "breakpoints": true
     }
   ]
 }

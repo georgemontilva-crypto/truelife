@@ -309,23 +309,23 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {/* Lab Reports / COA accordion */}
-            {filteredLabReports.length > 0 && (
-              <div className="border border-gray-100 rounded-2xl overflow-hidden">
+            {/* Lab Reports / COA */}
+            {filteredLabReports.length > 0 ? (
+              <div className="border border-gray-200 rounded-2xl overflow-hidden">
                 <button
                   onClick={() => setShowLabs(!showLabs)}
-                  className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-900 hover:bg-black transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-gray-900 shrink-0" />
-                    <span className="text-sm font-semibold text-gray-800">Lab Reports / COA</span>
-                    <span className="text-xs bg-gray-100 text-gray-900 font-semibold px-2 py-0.5 rounded-full">
+                    <FileText className="w-4 h-4 text-white shrink-0" />
+                    <span className="text-sm font-semibold text-white">View Lab Reports / COA</span>
+                    <span className="text-xs bg-white/20 text-white font-semibold px-2 py-0.5 rounded-full">
                       {filteredLabReports.length}
                     </span>
                   </div>
                   {showLabs
-                    ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
-                    : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
+                    ? <ChevronUp className="w-4 h-4 text-white/60 shrink-0" />
+                    : <ChevronDown className="w-4 h-4 text-white/60 shrink-0" />}
                 </button>
                 {showLabs && (
                   <div className="px-4 py-3 border-t border-gray-100 space-y-2">
@@ -335,24 +335,39 @@ export default function ProductDetail() {
                         href={report.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-50 transition-colors group"
+                        className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors group"
                       >
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900 truncate">
-                            {report.reportName}
-                          </p>
-                          {report.variantName && (
-                            <p className="text-xs text-gray-500 mt-0.5">Variant: {report.variantName}</p>
-                          )}
-                          {report.batchNumber && (
-                            <p className="text-xs text-gray-400">Batch: {report.batchNumber}</p>
-                          )}
+                        <div className="min-w-0 flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center shrink-0">
+                            <FileText className="w-4 h-4 text-gray-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900 truncate">
+                              {report.reportName}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {report.variantName && (
+                                <span className="text-xs text-gray-500">Variant: {report.variantName}</span>
+                              )}
+                              {report.batchNumber && (
+                                <span className="text-xs text-gray-400">· Batch: {report.batchNumber}</span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-900 shrink-0 ml-2" />
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 group-hover:text-gray-900 shrink-0 ml-2">
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Open PDF</span>
+                        </div>
                       </a>
                     ))}
                   </div>
                 )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-2xl border border-gray-100">
+                <FlaskConical className="w-4 h-4 text-gray-400 shrink-0" />
+                <p className="text-xs text-gray-500">Lab reports coming soon for this product.</p>
               </div>
             )}
           </div>

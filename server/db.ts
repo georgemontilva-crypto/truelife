@@ -226,6 +226,7 @@ export async function createProduct(data: {
   thcContent?: string;
   cbdContent?: string;
   weight?: string;
+  labReportUrl?: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
@@ -250,6 +251,7 @@ export async function updateProduct(
     thcContent: string;
     cbdContent: string;
     weight: string;
+    labReportUrl: string;
   }>
 ) {
   const db = await getDb();
