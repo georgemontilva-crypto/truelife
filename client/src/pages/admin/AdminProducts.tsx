@@ -35,11 +35,13 @@ type ImageDraft = {
   previewUrl: string;
 };
 
+type ValueInput = { id: string; text: string };
+
 type OptionDraft = {
   id: string;
   name: string;
-  values: string[];
-  inputVal: string;
+  valueInputs: ValueInput[];
+  collapsed: boolean;
 };
 
 type VariantRow = {
@@ -65,6 +67,10 @@ function cartesian(arrays: string[][]): string[] {
   return arrays
     .reduce<string[][]>((acc, arr) => acc.flatMap(c => arr.map(v => [...c, v])), [[]])
     .map(c => c.join(" - "));
+}
+
+function newOption(): OptionDraft {
+  return { id: crypto.randomUUID(), name: "", valueInputs: [{ id: crypto.randomUUID(), text: "" }], collapsed: false };
 }
 
 // ─── Variant image cell ───────────────────────────────────────────────────────
@@ -164,11 +170,13 @@ export default function AdminProducts() {
 
   // Derived variant names from options
   const variantNames = useMemo(() => {
-    const filled = options.filter(o => o.values.length > 0);
-    return filled.length ? cartesian(filled.map(o => o.values)) : [];
+    const filled = options
+      .map(o => o.valueInputs.filter(v => v.text.trim()).map(v => v.text.trim()))
+      .filter(vals => vals.length > 0);
+    return filled.length ? cartesian(filled) : [];
   }, [options]);
 
-  // Sync variantRows when names change
+  // Sync variantRows when names change — preserve prices/stock for existing rows
   const variantNamesStr = variantNames.join("|");
   useEffect(() => {
     setVariantRows(prev => {
@@ -250,7 +258,6 @@ export default function AdminProducts() {
         uploadImage.mutate({ filename: file.name, contentType: file.type, base64: (reader.result as string).split(",")[1]! }, {
           onSuccess: async d => {
             if (editId) {
-              // Immediately persist to attrs
               const existingNums = allAttrs.filter(a => /^gallery_\d+$/.test(a.key)).map(a => parseInt(a.key.slice(8)));
               const next = existingNums.length ? Math.max(...existingNums) + 1 : 2;
               const newAttrs = [...allAttrs, { id: 0, productId: editId, key: `gallery_${next}`, value: d.url, sortOrder: allAttrs.length, createdAt: new Date() }];
@@ -281,15 +288,25 @@ export default function AdminProducts() {
 
   // ── Options ────────────────────────────────────────────────────────────────
 
-  const addOption = () => setOptions(o => [...o, { id: crypto.randomUUID(), name: "", values: [], inputVal: "" }]);
-  const updateOpt = (id: string, p: Partial<OptionDraft>) => setOptions(o => o.map(x => x.id === id ? { ...x, ...p } : x));
+  const updateOpt = (id: string, p: Partial<OptionDraft>) =>
+    setOptions(o => o.map(x => x.id === id ? { ...x, ...p } : x));
+
   const removeOpt = (id: string) => setOptions(o => o.filter(x => x.id !== id));
 
-  const addValue = (id: string) => {
-    const opt = options.find(o => o.id === id);
-    if (!opt?.inputVal.trim() || opt.values.includes(opt.inputVal.trim())) return;
-    updateOpt(id, { values: [...opt.values, opt.inputVal.trim()], inputVal: "" });
-  };
+  const addValueInput = (optId: string) =>
+    setOptions(o => o.map(x => x.id === optId
+      ? { ...x, valueInputs: [...x.valueInputs, { id: crypto.randomUUID(), text: "" }] }
+      : x));
+
+  const updateValueInput = (optId: string, viId: string, text: string) =>
+    setOptions(o => o.map(x => x.id === optId
+      ? { ...x, valueInputs: x.valueInputs.map(v => v.id === viId ? { ...v, text } : v) }
+      : x));
+
+  const removeValueInput = (optId: string, viId: string) =>
+    setOptions(o => o.map(x => x.id === optId
+      ? { ...x, valueInputs: x.valueInputs.filter(v => v.id !== viId) }
+      : x));
 
   const updateRow = (name: string, p: Partial<VariantRow>) =>
     setVariantRows(rows => rows.map(r => r.name === name ? { ...r, ...p } : r));
@@ -312,7 +329,6 @@ export default function AdminProducts() {
 
     if (editId) {
       updateProduct.mutate({ id: editId, ...payload });
-      // Save SKU if changed (preserve all other attrs)
       const currentSku = allAttrs.find(a => a.key === "sku")?.value ?? "";
       if (sku.trim() !== currentSku) {
         const base = allAttrs.filter(a => a.key !== "sku");
@@ -366,7 +382,6 @@ export default function AdminProducts() {
 
   const catMap = Object.fromEntries(categories.data?.map(c => [c.id, c.name]) ?? []);
 
-  // ── Gallery derived in edit mode ───────────────────────────────────────────
   const editGallery: GalleryImg[] = editId
     ? allAttrs.filter(a => /^gallery_\d+$/.test(a.key)).sort((a, b) => a.key.localeCompare(b.key)).map(a => ({ url: a.value, key: a.key }))
     : gallery;
@@ -512,7 +527,6 @@ export default function AdminProducts() {
           <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
             <Label className="text-xs text-gray-500 mb-3 block">Media</Label>
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-              {/* Main image slot */}
               <button type="button" onClick={() => mainImgRef.current?.click()}
                 className="aspect-square rounded-xl border-2 border-dashed border-gray-300 overflow-hidden relative group hover:border-gray-400 transition-colors">
                 {form.imageUrl ? (
@@ -531,7 +545,6 @@ export default function AdminProducts() {
                 )}
               </button>
 
-              {/* Gallery images */}
               {editGallery.map(img => (
                 <div key={img.key} className="aspect-square rounded-xl overflow-hidden border border-gray-200 relative group">
                   <img src={img.url} alt="" className="w-full h-full object-cover" />
@@ -542,7 +555,6 @@ export default function AdminProducts() {
                 </div>
               ))}
 
-              {/* Add gallery */}
               <button type="button" onClick={() => galleryRef.current?.click()}
                 className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-400 hover:border-gray-400 hover:text-gray-600 transition-colors">
                 {uploadingGallery ? <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" /> : <Plus className="w-5 h-5" />}
@@ -561,7 +573,7 @@ export default function AdminProducts() {
             </div>
           )}
 
-          {/* Lab Reports (edit mode only — needs a saved productId) */}
+          {/* Lab Reports (edit mode only) */}
           {editId && (
             <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
               <LabReportsEditor productId={editId} />
@@ -597,7 +609,7 @@ export default function AdminProducts() {
                 <Label className="text-xs text-gray-500 mb-1 block">Price</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                  <Input value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} placeholder="0.00 (optional if using variants)" className="rounded-xl pl-7" />
+                  <Input value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} placeholder="0.00" className="rounded-xl pl-7" />
                 </div>
               </div>
               <div>
@@ -628,18 +640,16 @@ export default function AdminProducts() {
           {/* Product Details */}
           <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Product Details</p>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-xs text-gray-500 mb-1 block">Category *</Label>
-                <select
-                  value={form.categoryId}
-                  onChange={e => setForm(f => ({ ...f, categoryId: parseInt(e.target.value) }))}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                >
-                  <option value={0}>Select category…</option>
-                  {categories.data?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
+            <div>
+              <Label className="text-xs text-gray-500 mb-1 block">Category *</Label>
+              <select
+                value={form.categoryId}
+                onChange={e => setForm(f => ({ ...f, categoryId: parseInt(e.target.value) }))}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              >
+                <option value={0}>Select category…</option>
+                {categories.data?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
             </div>
           </div>
 
@@ -648,125 +658,196 @@ export default function AdminProducts() {
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Variants</p>
 
             {!editId ? (
-              /* Create mode */
+              /* Create mode — Shopify-style */
               <div className="space-y-4">
                 <label className="flex items-center gap-2.5 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={hasVariants}
-                    onChange={e => { setHasVariants(e.target.checked); if (!e.target.checked) { setOptions([]); setVariantRows([]); } }}
+                    onChange={e => {
+                      setHasVariants(e.target.checked);
+                      if (e.target.checked) {
+                        setOptions([newOption()]);
+                      } else {
+                        setOptions([]); setVariantRows([]);
+                      }
+                    }}
                     className="w-4 h-4 accent-gray-900 rounded"
                   />
                   <span className="text-sm text-gray-700 font-medium">This product has variants</span>
                 </label>
 
                 {hasVariants && (
-                  <div className="space-y-4">
-                    {options.map((opt, optIdx) => (
-                      <div key={opt.id} className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1">
-                            <Label className="text-xs text-gray-500 mb-1 block">Option {optIdx + 1} name</Label>
-                            <Input
-                              value={opt.name}
-                              onChange={e => updateOpt(opt.id, { name: e.target.value })}
-                              placeholder="e.g. Flavor, Size, Strain…"
-                              className="rounded-xl h-8 text-sm"
-                            />
+                  <div className="space-y-3">
+                    {/* Option list */}
+                    {options.map((opt) => (
+                      <div key={opt.id}>
+                        {opt.collapsed ? (
+                          /* ── Collapsed option ── */
+                          <div
+                            onClick={() => updateOpt(opt.id, { collapsed: false })}
+                            className="flex items-center gap-3 px-3 py-2.5 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                          >
+                            <span className="text-gray-300 text-base leading-none shrink-0">⠿</span>
+                            <span className="text-sm font-medium text-gray-700 w-20 shrink-0 truncate">{opt.name || "Option"}</span>
+                            <div className="flex flex-wrap gap-1 flex-1 min-w-0">
+                              {opt.valueInputs.filter(v => v.text.trim()).map(v => (
+                                <span key={v.id} className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full whitespace-nowrap">{v.text}</span>
+                              ))}
+                            </div>
                           </div>
-                          <button type="button" onClick={() => removeOpt(opt.id)} className="mt-5 p-1.5 text-gray-400 hover:text-red-500 rounded-lg transition-colors">
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
+                        ) : (
+                          /* ── Expanded option ── */
+                          <div className="border border-gray-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-4 space-y-4 bg-white">
+                              <div>
+                                <Label className="text-xs text-gray-500 mb-1.5 block">Option name</Label>
+                                <Input
+                                  value={opt.name}
+                                  onChange={e => updateOpt(opt.id, { name: e.target.value })}
+                                  placeholder="e.g. Size, Strain, Flavor"
+                                  className="rounded-xl h-9 text-sm"
+                                />
+                              </div>
 
-                        {/* Value chips */}
-                        <div className="flex flex-wrap gap-1.5">
-                          {opt.values.map(v => (
-                            <span key={v} className="flex items-center gap-1 text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full">
-                              {v}
-                              <button type="button" onClick={() => setOptions(os => os.map(o => o.id === opt.id ? { ...o, values: o.values.filter(x => x !== v) } : o))} className="text-gray-400 hover:text-gray-700 ml-0.5">
-                                <X className="w-2.5 h-2.5" />
-                              </button>
-                            </span>
-                          ))}
-                        </div>
+                              <div>
+                                <Label className="text-xs text-gray-500 mb-2 block">Option values</Label>
+                                <div className="space-y-2">
+                                  {opt.valueInputs.map((vi, viIdx) => (
+                                    <div key={vi.id} className="flex items-center gap-2">
+                                      <Input
+                                        value={vi.text}
+                                        onChange={e => updateValueInput(opt.id, vi.id, e.target.value)}
+                                        onKeyDown={e => {
+                                          if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            if (viIdx === opt.valueInputs.length - 1 && vi.text.trim()) addValueInput(opt.id);
+                                          }
+                                        }}
+                                        placeholder={`Value ${viIdx + 1}`}
+                                        className="rounded-xl h-8 text-sm flex-1"
+                                      />
+                                      {opt.valueInputs.length > 1 && (
+                                        <button
+                                          type="button"
+                                          onClick={() => removeValueInput(opt.id, vi.id)}
+                                          className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors shrink-0"
+                                        >
+                                          <X className="w-3.5 h-3.5" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => addValueInput(opt.id)}
+                                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-2.5 transition-colors font-medium"
+                                >
+                                  <Plus className="w-3 h-3" /> Add another value
+                                </button>
+                              </div>
 
-                        {/* Add value input */}
-                        <div className="flex gap-2">
-                          <Input
-                            value={opt.inputVal}
-                            onChange={e => updateOpt(opt.id, { inputVal: e.target.value })}
-                            onKeyDown={e => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addValue(opt.id); } }}
-                            placeholder="Add value, press Enter…"
-                            className="rounded-xl h-7 text-xs flex-1"
-                          />
-                          <button type="button" onClick={() => addValue(opt.id)} className="px-3 h-7 text-xs bg-gray-100 hover:bg-gray-200 rounded-xl font-medium text-gray-600 transition-colors">
-                            Add
-                          </button>
-                        </div>
-
-                        {optIdx < options.length - 1 && <div className="border-b border-gray-100 pt-1" />}
+                              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                                <button
+                                  type="button"
+                                  onClick={() => removeOpt(opt.id)}
+                                  className="text-xs text-red-500 hover:text-red-700 transition-colors"
+                                >
+                                  Delete option
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateOpt(opt.id, { collapsed: true })}
+                                  className="text-xs font-medium text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
+                                >
+                                  Done
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
 
-                    <button type="button" onClick={addOption} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 transition-colors font-medium">
-                      <Plus className="w-3.5 h-3.5" /> Add option
-                    </button>
+                    {/* Add another option (max 2) */}
+                    {options.length < 2 && (
+                      <button
+                        type="button"
+                        onClick={() => setOptions(o => [...o, newOption()])}
+                        className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 transition-colors font-medium py-0.5"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Add another option
+                      </button>
+                    )}
 
                     {/* Generated variants table */}
                     {variantRows.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-xs text-gray-500 mb-2 font-medium">{variantRows.length} variant{variantRows.length !== 1 ? "s" : ""} will be created</p>
-                        <div className="border border-gray-100 rounded-xl overflow-hidden">
-                          <table className="w-full text-xs">
-                            <thead className="bg-gray-50 border-b border-gray-100">
-                              <tr>
-                                <th className="px-3 py-2 text-left font-semibold text-gray-500">Variant</th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-500 w-10">Img</th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-500 w-24">Price</th>
-                                <th className="px-2 py-2 text-left font-semibold text-gray-500 w-20">In Stock</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                              {variantRows.map(row => (
-                                <tr key={row.name} className="hover:bg-gray-50/50">
-                                  <td className="px-3 py-2 font-medium text-gray-800">{row.name}</td>
-                                  <td className="px-2 py-2">
-                                    <VariantImageCell
-                                      image={row.image}
-                                      onPick={(d) => updateRow(row.name, { image: d })}
-                                      onClear={() => updateRow(row.name, { image: null })}
+                      <div className="border border-gray-100 rounded-xl overflow-hidden mt-2">
+                        <table className="w-full text-xs">
+                          <thead className="bg-gray-50 border-b border-gray-100">
+                            <tr>
+                              <th className="w-9 px-3 py-2.5"></th>
+                              <th className="w-9 px-2 py-2.5"></th>
+                              <th className="px-3 py-2.5 text-left font-semibold text-gray-500">Variant</th>
+                              <th className="px-2 py-2.5 text-left font-semibold text-gray-500 w-28">Price</th>
+                              <th className="px-2 py-2.5 text-left font-semibold text-gray-500 w-24">In Stock</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-50">
+                            {variantRows.map(row => (
+                              <tr key={row.name} className="hover:bg-gray-50/50">
+                                <td className="px-3 py-2">
+                                  <input type="checkbox" className="w-3.5 h-3.5 accent-gray-900 rounded" />
+                                </td>
+                                <td className="px-2 py-2">
+                                  <VariantImageCell
+                                    image={row.image}
+                                    onPick={(d) => updateRow(row.name, { image: d })}
+                                    onClear={() => updateRow(row.name, { image: null })}
+                                  />
+                                </td>
+                                <td className="px-3 py-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-medium text-gray-800">{row.name}</span>
+                                    <span className="text-[10px] font-semibold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100">New</span>
+                                  </div>
+                                </td>
+                                <td className="px-2 py-2">
+                                  <div className="relative">
+                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                                    <Input
+                                      value={row.price}
+                                      onChange={e => updateRow(row.name, { price: e.target.value })}
+                                      placeholder={form.price || "0.00"}
+                                      className="h-7 pl-5 text-xs rounded-lg"
                                     />
-                                  </td>
-                                  <td className="px-2 py-2">
-                                    <div className="relative">
-                                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
-                                      <Input value={row.price} onChange={e => updateRow(row.name, { price: e.target.value })} placeholder={form.price || "0.00"} className="h-7 pl-5 text-xs rounded-lg" />
-                                    </div>
-                                  </td>
-                                  <td className="px-2 py-2">
-                                    <label className="flex items-center gap-1.5 cursor-pointer select-none">
-                                      <input
-                                        type="checkbox"
-                                        checked={row.inStock}
-                                        onChange={e => updateRow(row.name, { inStock: e.target.checked })}
-                                        className="w-3.5 h-3.5 accent-gray-900 rounded"
-                                      />
-                                      <span className={`text-xs font-medium ${row.inStock ? "text-green-600" : "text-gray-400"}`}>
-                                        {row.inStock ? "In Stock" : "Out"}
-                                      </span>
-                                    </label>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                                  </div>
+                                </td>
+                                <td className="px-2 py-2">
+                                  <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                                    <input
+                                      type="checkbox"
+                                      checked={row.inStock}
+                                      onChange={e => updateRow(row.name, { inStock: e.target.checked })}
+                                      className="w-3.5 h-3.5 accent-gray-900 rounded"
+                                    />
+                                    <span className={`text-xs font-medium ${row.inStock ? "text-green-600" : "text-gray-400"}`}>
+                                      {row.inStock ? "In Stock" : "Out"}
+                                    </span>
+                                  </label>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                          <span className="text-xs text-gray-500">
+                            Total inventory: <span className="font-semibold text-gray-700">{variantRows.filter(r => r.inStock).length} available</span>
+                          </span>
+                          <span className="text-xs text-gray-400">{variantRows.length} variant{variantRows.length !== 1 ? "s" : ""}</span>
                         </div>
                       </div>
-                    )}
-
-                    {options.length === 0 && (
-                      <p className="text-xs text-gray-400">Add options to create variants (e.g. Flavor, Size, Strain).</p>
                     )}
                   </div>
                 )}
