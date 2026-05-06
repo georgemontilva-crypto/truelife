@@ -33,7 +33,7 @@ const EMPTY_NEW = {
   image: null as ImageDraft | null,
 };
 
-// ─── Small reusable image picker ──────────────────────────────────────────────
+// ─── Image picker ─────────────────────────────────────────────────────────────
 
 function ImagePicker({
   currentUrl,
@@ -50,31 +50,32 @@ function ImagePicker({
   const preview = draft?.previewUrl ?? currentUrl;
 
   return (
-    <div className="flex items-center gap-2">
-      {preview ? (
-        <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-gray-200 shrink-0 group">
-          <img src={preview} alt="" className="w-full h-full object-cover" />
+    <div className="flex items-center gap-3">
+      <div className="w-14 h-14 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 shrink-0 flex items-center justify-center">
+        {preview
+          ? <img src={preview} alt="" className="w-full h-full object-cover" />
+          : <ImageIcon className="w-5 h-5 text-gray-300" />
+        }
+      </div>
+      <div className="flex flex-col gap-1">
+        <button
+          type="button"
+          onClick={() => ref.current?.click()}
+          className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-2.5 py-1.5 hover:bg-gray-50 transition-colors"
+        >
+          <Upload className="w-3 h-3" />
+          {preview ? "Change image" : "Upload image"}
+        </button>
+        {preview && (
           <button
             type="button"
             onClick={onClear}
-            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            className="text-xs text-gray-400 hover:text-red-500 transition-colors text-left"
           >
-            <X className="w-3 h-3 text-white" />
+            Remove
           </button>
-        </div>
-      ) : (
-        <div className="w-10 h-10 rounded-lg border border-dashed border-gray-200 bg-gray-50 flex items-center justify-center shrink-0">
-          <ImageIcon className="w-4 h-4 text-gray-300" />
-        </div>
-      )}
-      <button
-        type="button"
-        onClick={() => ref.current?.click()}
-        className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 transition-colors"
-      >
-        <Upload className="w-3 h-3" />
-        {preview ? "Change" : "Image"}
-      </button>
+        )}
+      </div>
       <input
         ref={ref}
         type="file"
@@ -96,6 +97,223 @@ function ImagePicker({
   );
 }
 
+// ─── Single variant card ──────────────────────────────────────────────────────
+
+function VariantCard({
+  v,
+  isEditing,
+  onEdit,
+  onCancelEdit,
+  updateMut,
+  deleteMut,
+}: {
+  v: VariantRow;
+  isEditing: boolean;
+  onEdit: () => void;
+  onCancelEdit: () => void;
+  updateMut: ReturnType<typeof trpc.productVariants.update.useMutation>;
+  deleteMut: ReturnType<typeof trpc.productVariants.delete.useMutation>;
+}) {
+  const [editRow, setEditRow] = useState<Partial<VariantRow & { imageDraft: ImageDraft | null }>>({});
+
+  const handleEdit = () => {
+    setEditRow({});
+    onEdit();
+  };
+
+  const handleCancel = () => {
+    setEditRow({});
+    onCancelEdit();
+  };
+
+  const handleSave = () => {
+    const payload: Parameters<typeof updateMut.mutate>[0] = {
+      id: v.id,
+      name: editRow.name ?? v.name,
+      sku: editRow.sku !== undefined ? (editRow.sku || undefined) : (v.sku ?? undefined),
+      price: editRow.price ?? v.price,
+      compareAtPrice: editRow.compareAtPrice !== undefined
+        ? (editRow.compareAtPrice || undefined)
+        : (v.compareAtPrice ?? undefined),
+      inventory: editRow.inventory !== undefined ? editRow.inventory : v.inventory,
+      isActive: editRow.isActive !== undefined ? editRow.isActive : v.isActive,
+    };
+    if (editRow.imageDraft) {
+      payload.imageBase64 = editRow.imageDraft.base64;
+      payload.imageFilename = editRow.imageDraft.filename;
+      payload.imageContentType = editRow.imageDraft.contentType;
+    }
+    updateMut.mutate(payload);
+  };
+
+  const displayPrice = `$${parseFloat(v.price).toFixed(2)}`;
+
+  return (
+    <div className="border border-gray-200 rounded-xl overflow-hidden">
+      {/* Summary row — always visible */}
+      <div className="flex items-center gap-3 px-3 py-2.5 bg-white">
+        {/* Thumbnail */}
+        <div className="w-9 h-9 rounded-lg overflow-hidden bg-gray-100 border border-gray-100 shrink-0 flex items-center justify-center">
+          {v.imageUrl
+            ? <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" />
+            : <ImageIcon className="w-4 h-4 text-gray-300" />
+          }
+        </div>
+
+        {/* Name + badges */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 truncate">{v.name}</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-xs font-semibold text-gray-700">{displayPrice}</span>
+            {v.compareAtPrice && (
+              <span className="text-xs text-gray-400 line-through">${parseFloat(v.compareAtPrice).toFixed(2)}</span>
+            )}
+            <span className="text-xs text-gray-500">Stock: <span className={`font-medium ${v.inventory === 0 ? "text-red-500" : v.inventory < 5 ? "text-yellow-500" : "text-green-600"}`}>{v.inventory}</span></span>
+            {!v.isActive && (
+              <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md">Draft</span>
+            )}
+          </div>
+        </div>
+
+        {/* Action buttons — always visible */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={handleEdit}
+            className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Edit variant"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => { if (confirm(`Delete "${v.name}"?`)) deleteMut.mutate({ id: v.id }); }}
+            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Delete variant"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Edit panel — expanded when isEditing */}
+      {isEditing && (
+        <div className="border-t border-gray-100 bg-gray-50/50 px-4 py-4 space-y-4">
+          {/* Image */}
+          <div>
+            <Label className="text-xs text-gray-500 mb-2 block">Image</Label>
+            <ImagePicker
+              currentUrl={v.imageUrl}
+              draft={editRow.imageDraft ?? null}
+              onPick={(d) => setEditRow((r) => ({ ...r, imageDraft: d }))}
+              onClear={() => setEditRow((r) => ({ ...r, imageDraft: null }))}
+            />
+          </div>
+
+          {/* Name + SKU */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs text-gray-500 mb-1 block">Name *</Label>
+              <Input
+                value={editRow.name ?? v.name}
+                onChange={(e) => setEditRow((r) => ({ ...r, name: e.target.value }))}
+                className="h-8 text-sm rounded-lg"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-gray-500 mb-1 block">SKU</Label>
+              <Input
+                value={editRow.sku ?? v.sku ?? ""}
+                onChange={(e) => setEditRow((r) => ({ ...r, sku: e.target.value }))}
+                placeholder="SKU-001"
+                className="h-8 text-sm rounded-lg"
+              />
+            </div>
+          </div>
+
+          {/* Price + Compare At */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs text-gray-500 mb-1 block">Price *</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                <Input
+                  value={editRow.price ?? v.price}
+                  onChange={(e) => setEditRow((r) => ({ ...r, price: e.target.value }))}
+                  className="h-8 text-sm rounded-lg pl-6"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-gray-500 mb-1 block">Compare At</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                <Input
+                  value={editRow.compareAtPrice ?? v.compareAtPrice ?? ""}
+                  onChange={(e) => setEditRow((r) => ({ ...r, compareAtPrice: e.target.value }))}
+                  placeholder="0.00"
+                  className="h-8 text-sm rounded-lg pl-6"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Stock + Active */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs text-gray-500 mb-1 block">Stock</Label>
+              <Input
+                type="number"
+                value={editRow.inventory ?? v.inventory}
+                onChange={(e) => setEditRow((r) => ({ ...r, inventory: parseInt(e.target.value) || 0 }))}
+                className="h-8 text-sm rounded-lg"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-gray-500 mb-1 block">Active</Label>
+              <div className="flex items-center gap-2 h-8">
+                <input
+                  type="checkbox"
+                  id={`active-${v.id}`}
+                  checked={editRow.isActive ?? v.isActive}
+                  onChange={(e) => setEditRow((r) => ({ ...r, isActive: e.target.checked }))}
+                  className="w-4 h-4 accent-gray-900 rounded"
+                />
+                <label htmlFor={`active-${v.id}`} className="text-sm text-gray-700 cursor-pointer">
+                  {(editRow.isActive ?? v.isActive) ? "Active" : "Draft"}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer buttons */}
+          <div className="flex justify-end gap-2 pt-1">
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={handleCancel}
+              className="rounded-xl text-sm"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleSave}
+              disabled={updateMut.isPending}
+              className="bg-gray-900 hover:bg-black text-white rounded-xl text-sm min-w-[110px]"
+            >
+              <Check className="w-3.5 h-3.5 mr-1.5" />
+              {updateMut.isPending ? "Saving…" : "Save Changes"}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function ProductVariantsEditor({ productId }: { productId: number }) {
@@ -104,9 +322,7 @@ export default function ProductVariantsEditor({ productId }: { productId: number
 
   const [showAdd, setShowAdd] = useState(false);
   const [newRow, setNewRow] = useState({ ...EMPTY_NEW });
-
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editRow, setEditRow] = useState<Partial<VariantRow & { imageDraft: ImageDraft | null }>>({});
 
   const invalidate = () => utils.productVariants.list.invalidate({ productId });
 
@@ -115,7 +331,7 @@ export default function ProductVariantsEditor({ productId }: { productId: number
     onError: (e) => toast.error(e.message),
   });
   const updateMut = trpc.productVariants.update.useMutation({
-    onSuccess: () => { invalidate(); setEditingId(null); setEditRow({}); toast.success("Variant updated"); },
+    onSuccess: () => { invalidate(); setEditingId(null); toast.success("Variant updated"); },
     onError: (e) => toast.error(e.message),
   });
   const deleteMut = trpc.productVariants.delete.useMutation({
@@ -142,128 +358,40 @@ export default function ProductVariantsEditor({ productId }: { productId: number
     });
   };
 
-  const handleSaveEdit = (v: VariantRow) => {
-    const payload: Parameters<typeof updateMut.mutate>[0] = {
-      id: v.id,
-      name: editRow.name ?? v.name,
-      sku: editRow.sku !== undefined ? (editRow.sku ?? undefined) : (v.sku ?? undefined),
-      price: editRow.price ?? v.price,
-      compareAtPrice: editRow.compareAtPrice !== undefined
-        ? (editRow.compareAtPrice ?? undefined)
-        : (v.compareAtPrice ?? undefined),
-      inventory: editRow.inventory !== undefined ? editRow.inventory : v.inventory,
-      isActive: editRow.isActive !== undefined ? editRow.isActive : v.isActive,
-    };
-    if (editRow.imageDraft) {
-      payload.imageBase64 = editRow.imageDraft.base64;
-      payload.imageFilename = editRow.imageDraft.filename;
-      payload.imageContentType = editRow.imageDraft.contentType;
-    }
-    updateMut.mutate(payload);
-  };
-
   if (isLoading) return <div className="h-20 bg-gray-100 rounded-xl animate-pulse" />;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
+    <div className="space-y-2">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-1">
         <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
           Variants with Individual Pricing
         </Label>
         <Button
-          type="button" size="sm" variant="outline"
-          onClick={() => setShowAdd(true)}
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => { setShowAdd(true); setEditingId(null); }}
           className="rounded-xl border-gray-200 text-gray-900 hover:bg-gray-50 text-xs"
         >
           <Plus className="w-3.5 h-3.5 mr-1" /> Add Variant
         </Button>
       </div>
 
-      {/* Existing variants table */}
+      {/* Variant cards */}
       {variants.length > 0 ? (
-        <div className="border border-gray-100 rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-xs">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                {["Image", "Name", "SKU", "Price", "Cmp At", "Stock", "On", ""].map((h) => (
-                  <th key={h} className="px-3 py-2.5 text-left font-semibold text-gray-500">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {(variants as VariantRow[]).map((v) => (
-                <tr key={v.id} className="hover:bg-gray-50/50 group">
-                  {editingId === v.id ? (
-                    <>
-                      {/* Image picker */}
-                      <td className="px-2 py-2">
-                        <ImagePicker
-                          currentUrl={v.imageUrl}
-                          draft={editRow.imageDraft ?? null}
-                          onPick={(d) => setEditRow((r) => ({ ...r, imageDraft: d }))}
-                          onClear={() => setEditRow((r) => ({ ...r, imageDraft: null }))}
-                        />
-                      </td>
-                      <td className="px-2 py-2"><Input value={editRow.name ?? v.name} onChange={(e) => setEditRow((r) => ({ ...r, name: e.target.value }))} className="h-7 text-xs rounded-lg min-w-[100px]" /></td>
-                      <td className="px-2 py-2"><Input value={editRow.sku ?? v.sku ?? ""} onChange={(e) => setEditRow((r) => ({ ...r, sku: e.target.value }))} className="h-7 text-xs rounded-lg w-20" placeholder="SKU" /></td>
-                      <td className="px-2 py-2"><Input value={editRow.price ?? v.price} onChange={(e) => setEditRow((r) => ({ ...r, price: e.target.value }))} className="h-7 text-xs rounded-lg w-20" /></td>
-                      <td className="px-2 py-2"><Input value={editRow.compareAtPrice ?? v.compareAtPrice ?? ""} onChange={(e) => setEditRow((r) => ({ ...r, compareAtPrice: e.target.value }))} className="h-7 text-xs rounded-lg w-20" /></td>
-                      <td className="px-2 py-2"><Input type="number" value={editRow.inventory ?? v.inventory} onChange={(e) => setEditRow((r) => ({ ...r, inventory: parseInt(e.target.value) || 0 }))} className="h-7 text-xs rounded-lg w-16" /></td>
-                      <td className="px-2 py-2">
-                        <input type="checkbox" checked={editRow.isActive ?? v.isActive} onChange={(e) => setEditRow((r) => ({ ...r, isActive: e.target.checked }))} className="w-3.5 h-3.5 accent-gray-900" />
-                      </td>
-                      <td className="px-2 py-2">
-                        <div className="flex gap-1">
-                          <button type="button" onClick={() => handleSaveEdit(v)} disabled={updateMut.isPending} className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors">
-                            <Check className="w-3.5 h-3.5" />
-                          </button>
-                          <button type="button" onClick={() => { setEditingId(null); setEditRow({}); }} className="p-1 text-gray-500 hover:bg-gray-100 rounded transition-colors">
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      {/* Image thumbnail */}
-                      <td className="px-2 py-2">
-                        <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 shrink-0 flex items-center justify-center">
-                          {v.imageUrl
-                            ? <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" />
-                            : <ImageIcon className="w-3.5 h-3.5 text-gray-300" />
-                          }
-                        </div>
-                      </td>
-                      <td className="px-3 py-2.5 font-medium text-gray-800 max-w-[140px] truncate">{v.name}</td>
-                      <td className="px-3 py-2.5 text-gray-500 font-mono">{v.sku ?? "—"}</td>
-                      <td className="px-3 py-2.5 font-semibold text-gray-900">${parseFloat(v.price).toFixed(2)}</td>
-                      <td className="px-3 py-2.5 text-gray-400">{v.compareAtPrice ? `$${parseFloat(v.compareAtPrice).toFixed(2)}` : "—"}</td>
-                      <td className="px-3 py-2.5">
-                        <span className={`font-medium ${v.inventory === 0 ? "text-red-500" : v.inventory < 5 ? "text-yellow-500" : "text-green-600"}`}>
-                          {v.inventory}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <span className={`w-2 h-2 rounded-full inline-block ${v.isActive ? "bg-green-500" : "bg-gray-300"}`} />
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button type="button" onClick={() => { setEditingId(v.id); setEditRow({}); }} className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors">
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                          <button type="button" onClick={() => { if (confirm("Delete variant?")) deleteMut.mutate({ id: v.id }); }} className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-100 rounded-lg transition-colors">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          </div>
+        <div className="space-y-2">
+          {(variants as VariantRow[]).map((v) => (
+            <VariantCard
+              key={v.id}
+              v={v}
+              isEditing={editingId === v.id}
+              onEdit={() => setEditingId(v.id)}
+              onCancelEdit={() => setEditingId(null)}
+              updateMut={updateMut}
+              deleteMut={deleteMut}
+            />
+          ))}
         </div>
       ) : (
         <div className="flex items-center gap-2 py-4 px-3 bg-gray-50 rounded-xl text-gray-400 text-xs">
@@ -274,11 +402,21 @@ export default function ProductVariantsEditor({ productId }: { productId: number
 
       {/* Add new variant form */}
       {showAdd && (
-        <div className="border border-gray-200 bg-gray-50/30 rounded-xl p-4 space-y-3">
-          <p className="text-xs font-semibold text-gray-900">New Variant</p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div className="col-span-2 md:col-span-3">
-              <Label className="text-xs text-gray-600 mb-1.5 block">Variant Image</Label>
+        <div className="border border-gray-200 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-3 py-2.5 bg-white border-b border-gray-100">
+            <p className="text-sm font-medium text-gray-900">New Variant</p>
+            <button
+              type="button"
+              onClick={() => { setShowAdd(false); setNewRow({ ...EMPTY_NEW }); }}
+              className="p-1 text-gray-400 hover:text-gray-700 rounded"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="px-4 py-4 space-y-4 bg-gray-50/50">
+            {/* Image */}
+            <div>
+              <Label className="text-xs text-gray-500 mb-2 block">Image</Label>
               <ImagePicker
                 currentUrl={null}
                 draft={newRow.image}
@@ -286,34 +424,53 @@ export default function ProductVariantsEditor({ productId }: { productId: number
                 onClear={() => setNewRow((r) => ({ ...r, image: null }))}
               />
             </div>
-            <div className="md:col-span-2">
-              <Label className="text-xs text-gray-600 mb-1 block">Name *</Label>
-              <Input value={newRow.name} onChange={(e) => setNewRow((r) => ({ ...r, name: e.target.value }))} placeholder="e.g. Strawberry 3.5g" className="rounded-xl text-sm h-8" />
+
+            {/* Name + SKU */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-gray-500 mb-1 block">Name *</Label>
+                <Input value={newRow.name} onChange={(e) => setNewRow((r) => ({ ...r, name: e.target.value }))} placeholder="e.g. Strawberry 3.5g" className="h-8 text-sm rounded-lg" />
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500 mb-1 block">SKU</Label>
+                <Input value={newRow.sku} onChange={(e) => setNewRow((r) => ({ ...r, sku: e.target.value }))} placeholder="SKU-001" className="h-8 text-sm rounded-lg" />
+              </div>
             </div>
-            <div>
-              <Label className="text-xs text-gray-600 mb-1 block">SKU</Label>
-              <Input value={newRow.sku} onChange={(e) => setNewRow((r) => ({ ...r, sku: e.target.value }))} placeholder="SKU-001" className="rounded-xl text-sm h-8" />
+
+            {/* Price + Compare At */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-gray-500 mb-1 block">Price *</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                  <Input value={newRow.price} onChange={(e) => setNewRow((r) => ({ ...r, price: e.target.value }))} placeholder="29.99" className="h-8 text-sm rounded-lg pl-6" />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500 mb-1 block">Compare At</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                  <Input value={newRow.compareAtPrice} onChange={(e) => setNewRow((r) => ({ ...r, compareAtPrice: e.target.value }))} placeholder="39.99" className="h-8 text-sm rounded-lg pl-6" />
+                </div>
+              </div>
             </div>
-            <div>
-              <Label className="text-xs text-gray-600 mb-1 block">Price *</Label>
-              <Input value={newRow.price} onChange={(e) => setNewRow((r) => ({ ...r, price: e.target.value }))} placeholder="29.99" className="rounded-xl text-sm h-8" />
+
+            {/* Stock */}
+            <div className="w-1/2 pr-1.5">
+              <Label className="text-xs text-gray-500 mb-1 block">Stock</Label>
+              <Input type="number" value={newRow.inventory} onChange={(e) => setNewRow((r) => ({ ...r, inventory: parseInt(e.target.value) || 0 }))} className="h-8 text-sm rounded-lg" />
             </div>
-            <div>
-              <Label className="text-xs text-gray-600 mb-1 block">Compare At</Label>
-              <Input value={newRow.compareAtPrice} onChange={(e) => setNewRow((r) => ({ ...r, compareAtPrice: e.target.value }))} placeholder="39.99" className="rounded-xl text-sm h-8" />
+
+            {/* Footer */}
+            <div className="flex justify-end gap-2 pt-1">
+              <Button type="button" size="sm" variant="ghost" className="rounded-xl text-sm" onClick={() => { setShowAdd(false); setNewRow({ ...EMPTY_NEW }); }}>
+                Cancel
+              </Button>
+              <Button type="button" size="sm" onClick={handleAdd} disabled={createMut.isPending} className="bg-gray-900 hover:bg-black text-white rounded-xl text-sm min-w-[110px]">
+                <Check className="w-3.5 h-3.5 mr-1.5" />
+                {createMut.isPending ? "Adding…" : "Add Variant"}
+              </Button>
             </div>
-            <div>
-              <Label className="text-xs text-gray-600 mb-1 block">Stock</Label>
-              <Input type="number" value={newRow.inventory} onChange={(e) => setNewRow((r) => ({ ...r, inventory: parseInt(e.target.value) || 0 }))} className="rounded-xl text-sm h-8" />
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button size="sm" className="bg-gray-900 hover:bg-black text-white rounded-xl text-xs" onClick={handleAdd} disabled={createMut.isPending}>
-              <Check className="w-3.5 h-3.5 mr-1" /> {createMut.isPending ? "Adding..." : "Add Variant"}
-            </Button>
-            <Button size="sm" variant="ghost" className="rounded-xl text-xs" onClick={() => { setShowAdd(false); setNewRow({ ...EMPTY_NEW }); }}>
-              Cancel
-            </Button>
           </div>
         </div>
       )}
