@@ -260,7 +260,26 @@ export async function createProduct(data: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
-  const [result] = await db.insert(products).values(data);
+  // Build the insert object explicitly to avoid passing keys with `undefined` values.
+  // Drizzle ORM 0.44 + MySQL2 misaligns the params array when the data object contains
+  // optional keys whose value is `undefined` (Zod preserves those keys in parsed output).
+  const values: typeof products.$inferInsert = {
+    categoryId: data.categoryId,
+    name: data.name,
+    slug: data.slug,
+    price: data.price,
+  };
+  if (data.description !== undefined) values.description = data.description;
+  if (data.compareAtPrice !== undefined) values.compareAtPrice = data.compareAtPrice;
+  if (data.imageUrl !== undefined) values.imageUrl = data.imageUrl;
+  if (data.imageKey !== undefined) values.imageKey = data.imageKey;
+  if (data.inventory !== undefined) values.inventory = data.inventory;
+  if (data.isActive !== undefined) values.isActive = data.isActive;
+  if (data.isFeatured !== undefined) values.isFeatured = data.isFeatured;
+  if (data.thcContent !== undefined) values.thcContent = data.thcContent;
+  if (data.cbdContent !== undefined) values.cbdContent = data.cbdContent;
+  if (data.weight !== undefined) values.weight = data.weight;
+  const [result] = await db.insert(products).values(values);
   return { id: result.insertId };
 }
 
