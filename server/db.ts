@@ -696,6 +696,7 @@ export async function getAllLabReports() {
       fileKey: labReports.fileKey,
       externalUrl: labReports.externalUrl,
       batchNumber: labReports.batchNumber,
+      title: labReports.title,
       testedAt: labReports.testedAt,
       createdAt: labReports.createdAt,
     })
@@ -715,6 +716,7 @@ export async function createLabReport(data: {
   externalUrl?: string;
   testedAt?: Date;
   batchNumber?: string;
+  title?: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
@@ -728,6 +730,7 @@ export async function createLabReport(data: {
     fileKey: data.fileKey,
     externalUrl: data.externalUrl,
     batchNumber: data.batchNumber,
+    title: data.title,
     testedAt: data.testedAt,
   });
   return { id: (result as any).insertId as number };

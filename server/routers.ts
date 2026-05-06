@@ -566,6 +566,7 @@ export const appRouter = router({
         variantName: z.string().optional(),
         reportName: z.string().min(1),
         batchNumber: z.string().optional(),
+        title: z.string().optional(),
         testedAt: z.string().optional(),
         filename: z.string(),
         contentType: z.string(),
@@ -584,6 +585,7 @@ export const appRouter = router({
           fileUrl: url,
           fileKey: key,
           batchNumber: input.batchNumber,
+          title: input.title,
           testedAt: input.testedAt ? new Date(input.testedAt) : undefined,
         });
       }),
@@ -596,6 +598,7 @@ export const appRouter = router({
         reportName: z.string().min(1),
         externalUrl: z.string().min(1),
         batchNumber: z.string().optional(),
+        title: z.string().optional(),
         testedAt: z.string().optional(),
       }))
       .mutation(({ input }) => createLabReport({
@@ -606,6 +609,7 @@ export const appRouter = router({
         reportName: input.reportName,
         externalUrl: input.externalUrl,
         batchNumber: input.batchNumber,
+        title: input.title,
         testedAt: input.testedAt ? new Date(input.testedAt) : undefined,
       })),
     delete: adminProcedure

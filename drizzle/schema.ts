@@ -209,6 +209,7 @@ export const labReports = mysqlTable("lab_reports", {
   fileKey: varchar("fileKey", { length: 512 }),
   externalUrl: text("externalUrl"),
   batchNumber: varchar("batchNumber", { length: 128 }),
+  title: varchar("title", { length: 255 }),
   testedAt: timestamp("testedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
