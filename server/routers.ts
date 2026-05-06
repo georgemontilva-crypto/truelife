@@ -291,7 +291,10 @@ export const appRouter = router({
           weight: z.string().optional(),
         })
       )
-      .mutation(({ input }) => createProduct(input)),
+      .mutation(({ input }) => {
+        console.log("products.create input:", JSON.stringify(input, null, 2));
+        return createProduct(input);
+      }),
 
     update: adminProcedure
       .input(
