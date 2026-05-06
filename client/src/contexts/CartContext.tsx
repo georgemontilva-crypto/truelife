@@ -10,7 +10,7 @@ interface CartItem {
   productImageUrl: string | null;
   productSlug: string;
   quantity: number;
-  selectedVariants: Record<string, unknown> | null;
+  selectedVariants: Record<string, string> | null;
 }
 
 interface CartContextType {
@@ -45,10 +45,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const items = (cart?.items as CartItem[]) ?? [];
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = items.reduce(
-    (sum, item) => sum + parseFloat(item.productPrice) * item.quantity,
-    0
-  );
+  const subtotal = items.reduce((sum, item) => {
+    const price = item.selectedVariants?.variantPrice
+      ? parseFloat(item.selectedVariants.variantPrice)
+      : parseFloat(item.productPrice);
+    return sum + price * item.quantity;
+  }, 0);
 
   return (
     <CartContext.Provider

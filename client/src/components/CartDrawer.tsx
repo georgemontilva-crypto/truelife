@@ -70,13 +70,16 @@ export default function CartDrawer() {
 
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{item.productName}</p>
-                    {item.selectedVariants && Object.keys(item.selectedVariants).length > 0 && (
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {Object.entries(item.selectedVariants).map(([k, v]) => `${k}: ${v}`).join(", ")}
-                      </p>
+                    {item.selectedVariants?.variantName && (
+                      <p className="text-xs text-gray-500 mt-0.5">{item.selectedVariants.variantName}</p>
                     )}
                     <p className="text-sm font-semibold text-gray-900 mt-1">
-                      ${(parseFloat(item.productPrice) * item.quantity).toFixed(2)}
+                      {(() => {
+                        const price = item.selectedVariants?.variantPrice
+                          ? parseFloat(item.selectedVariants.variantPrice)
+                          : parseFloat(item.productPrice);
+                        return `$${(price * item.quantity).toFixed(2)}`;
+                      })()}
                     </p>
 
                     {/* Qty controls */}

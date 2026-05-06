@@ -363,6 +363,23 @@ export async function addToCart(
 ) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
+
+  // Enrich selectedVariants with variant name and price when a variantId is provided
+  let enrichedVariants: Record<string, string> | undefined = selectedVariants;
+  if (selectedVariants?.variantId) {
+    const variantId = parseInt(selectedVariants.variantId);
+    const variant = (
+      await db.select().from(productVariants).where(eq(productVariants.id, variantId)).limit(1)
+    )[0];
+    if (variant) {
+      enrichedVariants = {
+        ...selectedVariants,
+        variantName: variant.name,
+        variantPrice: String(variant.price),
+      };
+    }
+  }
+
   const cart = await getOrCreateCart(userId);
   const existing = (
     await db
@@ -374,10 +391,10 @@ export async function addToCart(
   if (existing) {
     await db
       .update(cartItems)
-      .set({ quantity: existing.quantity + quantity, selectedVariants: selectedVariants ?? existing.selectedVariants })
+      .set({ quantity: existing.quantity + quantity, selectedVariants: enrichedVariants ?? existing.selectedVariants })
       .where(eq(cartItems.id, existing.id));
   } else {
-    await db.insert(cartItems).values({ cartId: cart.id, productId, quantity, selectedVariants });
+    await db.insert(cartItems).values({ cartId: cart.id, productId, quantity, selectedVariants: enrichedVariants });
   }
 }
 
