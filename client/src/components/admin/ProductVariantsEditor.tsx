@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Plus, Trash2, Check, Pencil, X, Package2, ImageIcon, Upload } from "lucide-react";
+import { Plus, Trash2, Check, Pencil, X, Package2, ImageIcon, Upload, Layers } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,13 +33,23 @@ const EMPTY_NEW = {
   image: null as ImageDraft | null,
 };
 
+const DEFAULT_WEIGHTS = ["1g", "3.5g", "7g", "14g", "28g"];
+
+type WeightRow = { weight: string; checked: boolean; price: string; inventory: number };
+type BulkState = { strainName: string; image: ImageDraft | null; weights: WeightRow[] };
+
+function defaultBulk(): BulkState {
+  return {
+    strainName: "",
+    image: null,
+    weights: DEFAULT_WEIGHTS.map((w) => ({ weight: w, checked: false, price: "", inventory: 0 })),
+  };
+}
+
 // ─── Image picker ─────────────────────────────────────────────────────────────
 
 function ImagePicker({
-  currentUrl,
-  draft,
-  onPick,
-  onClear,
+  currentUrl, draft, onPick, onClear,
 }: {
   currentUrl?: string | null;
   draft: ImageDraft | null;
@@ -54,8 +64,7 @@ function ImagePicker({
       <div className="w-14 h-14 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 shrink-0 flex items-center justify-center">
         {preview
           ? <img src={preview} alt="" className="w-full h-full object-cover" />
-          : <ImageIcon className="w-5 h-5 text-gray-300" />
-        }
+          : <ImageIcon className="w-5 h-5 text-gray-300" />}
       </div>
       <div className="flex flex-col gap-1">
         <button
@@ -67,11 +76,7 @@ function ImagePicker({
           {preview ? "Change image" : "Upload image"}
         </button>
         {preview && (
-          <button
-            type="button"
-            onClick={onClear}
-            className="text-xs text-gray-400 hover:text-red-500 transition-colors text-left"
-          >
+          <button type="button" onClick={onClear} className="text-xs text-gray-400 hover:text-red-500 transition-colors text-left">
             Remove
           </button>
         )}
@@ -87,7 +92,7 @@ function ImagePicker({
           const reader = new FileReader();
           reader.onload = (ev) => {
             const result = ev.target?.result as string;
-            onPick({ base64: result.split(",")[1], filename: file.name, contentType: file.type, previewUrl: result });
+            onPick({ base64: result.split(",")[1]!, filename: file.name, contentType: file.type, previewUrl: result });
           };
           reader.readAsDataURL(file);
           e.target.value = "";
@@ -100,12 +105,7 @@ function ImagePicker({
 // ─── Single variant card ──────────────────────────────────────────────────────
 
 function VariantCard({
-  v,
-  isEditing,
-  onEdit,
-  onCancelEdit,
-  updateMut,
-  deleteMut,
+  v, isEditing, onEdit, onCancelEdit, updateMut, deleteMut,
 }: {
   v: VariantRow;
   isEditing: boolean;
@@ -116,15 +116,8 @@ function VariantCard({
 }) {
   const [editRow, setEditRow] = useState<Partial<VariantRow & { imageDraft: ImageDraft | null }>>({});
 
-  const handleEdit = () => {
-    setEditRow({});
-    onEdit();
-  };
-
-  const handleCancel = () => {
-    setEditRow({});
-    onCancelEdit();
-  };
+  const handleEdit = () => { setEditRow({}); onEdit(); };
+  const handleCancel = () => { setEditRow({}); onCancelEdit(); };
 
   const handleSave = () => {
     const payload: Parameters<typeof updateMut.mutate>[0] = {
@@ -150,17 +143,12 @@ function VariantCard({
 
   return (
     <div className="border border-gray-200 rounded-xl overflow-hidden">
-      {/* Summary row — always visible */}
       <div className="flex items-center gap-3 px-3 py-2.5 bg-white">
-        {/* Thumbnail */}
         <div className="w-9 h-9 rounded-lg overflow-hidden bg-gray-100 border border-gray-100 shrink-0 flex items-center justify-center">
           {v.imageUrl
             ? <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" />
-            : <ImageIcon className="w-4 h-4 text-gray-300" />
-          }
+            : <ImageIcon className="w-4 h-4 text-gray-300" />}
         </div>
-
-        {/* Name + badges */}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-gray-900 truncate">{v.name}</p>
           <div className="flex items-center gap-2 mt-0.5">
@@ -169,37 +157,21 @@ function VariantCard({
               <span className="text-xs text-gray-400 line-through">${parseFloat(v.compareAtPrice).toFixed(2)}</span>
             )}
             <span className="text-xs text-gray-500">Stock: <span className={`font-medium ${v.inventory === 0 ? "text-red-500" : v.inventory < 5 ? "text-yellow-500" : "text-green-600"}`}>{v.inventory}</span></span>
-            {!v.isActive && (
-              <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md">Draft</span>
-            )}
+            {!v.isActive && <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md">Draft</span>}
           </div>
         </div>
-
-        {/* Action buttons — always visible */}
         <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={handleEdit}
-            className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Edit variant"
-          >
+          <button type="button" onClick={handleEdit} className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Edit variant">
             <Pencil className="w-3.5 h-3.5" />
           </button>
-          <button
-            type="button"
-            onClick={() => { if (confirm(`Delete "${v.name}"?`)) deleteMut.mutate({ id: v.id }); }}
-            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title="Delete variant"
-          >
+          <button type="button" onClick={() => { if (confirm(`Delete "${v.name}"?`)) deleteMut.mutate({ id: v.id }); }} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete variant">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Edit panel — expanded when isEditing */}
       {isEditing && (
         <div className="border-t border-gray-100 bg-gray-50/50 px-4 py-4 space-y-4">
-          {/* Image */}
           <div>
             <Label className="text-xs text-gray-500 mb-2 block">Image</Label>
             <ImagePicker
@@ -209,107 +181,215 @@ function VariantCard({
               onClear={() => setEditRow((r) => ({ ...r, imageDraft: null }))}
             />
           </div>
-
-          {/* Name + SKU */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs text-gray-500 mb-1 block">Name *</Label>
-              <Input
-                value={editRow.name ?? v.name}
-                onChange={(e) => setEditRow((r) => ({ ...r, name: e.target.value }))}
-                className="h-8 text-sm rounded-lg"
-              />
+              <Input value={editRow.name ?? v.name} onChange={(e) => setEditRow((r) => ({ ...r, name: e.target.value }))} className="h-8 text-sm rounded-lg" />
             </div>
             <div>
               <Label className="text-xs text-gray-500 mb-1 block">SKU</Label>
-              <Input
-                value={editRow.sku ?? v.sku ?? ""}
-                onChange={(e) => setEditRow((r) => ({ ...r, sku: e.target.value }))}
-                placeholder="SKU-001"
-                className="h-8 text-sm rounded-lg"
-              />
+              <Input value={editRow.sku ?? v.sku ?? ""} onChange={(e) => setEditRow((r) => ({ ...r, sku: e.target.value }))} placeholder="SKU-001" className="h-8 text-sm rounded-lg" />
             </div>
           </div>
-
-          {/* Price + Compare At */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs text-gray-500 mb-1 block">Price *</Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
-                <Input
-                  value={editRow.price ?? v.price}
-                  onChange={(e) => setEditRow((r) => ({ ...r, price: e.target.value }))}
-                  className="h-8 text-sm rounded-lg pl-6"
-                />
+                <Input value={editRow.price ?? v.price} onChange={(e) => setEditRow((r) => ({ ...r, price: e.target.value }))} className="h-8 text-sm rounded-lg pl-6" />
               </div>
             </div>
             <div>
               <Label className="text-xs text-gray-500 mb-1 block">Compare At</Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
-                <Input
-                  value={editRow.compareAtPrice ?? v.compareAtPrice ?? ""}
-                  onChange={(e) => setEditRow((r) => ({ ...r, compareAtPrice: e.target.value }))}
-                  placeholder="0.00"
-                  className="h-8 text-sm rounded-lg pl-6"
-                />
+                <Input value={editRow.compareAtPrice ?? v.compareAtPrice ?? ""} onChange={(e) => setEditRow((r) => ({ ...r, compareAtPrice: e.target.value }))} placeholder="0.00" className="h-8 text-sm rounded-lg pl-6" />
               </div>
             </div>
           </div>
-
-          {/* Stock + Active */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs text-gray-500 mb-1 block">Stock</Label>
-              <Input
-                type="number"
-                value={editRow.inventory ?? v.inventory}
-                onChange={(e) => setEditRow((r) => ({ ...r, inventory: parseInt(e.target.value) || 0 }))}
-                className="h-8 text-sm rounded-lg"
-              />
+              <Input type="number" value={editRow.inventory ?? v.inventory} onChange={(e) => setEditRow((r) => ({ ...r, inventory: parseInt(e.target.value) || 0 }))} className="h-8 text-sm rounded-lg" />
             </div>
             <div>
               <Label className="text-xs text-gray-500 mb-1 block">Active</Label>
               <div className="flex items-center gap-2 h-8">
-                <input
-                  type="checkbox"
-                  id={`active-${v.id}`}
-                  checked={editRow.isActive ?? v.isActive}
-                  onChange={(e) => setEditRow((r) => ({ ...r, isActive: e.target.checked }))}
-                  className="w-4 h-4 accent-gray-900 rounded"
-                />
+                <input type="checkbox" id={`active-${v.id}`} checked={editRow.isActive ?? v.isActive} onChange={(e) => setEditRow((r) => ({ ...r, isActive: e.target.checked }))} className="w-4 h-4 accent-gray-900 rounded" />
                 <label htmlFor={`active-${v.id}`} className="text-sm text-gray-700 cursor-pointer">
                   {(editRow.isActive ?? v.isActive) ? "Active" : "Draft"}
                 </label>
               </div>
             </div>
           </div>
-
-          {/* Footer buttons */}
           <div className="flex justify-end gap-2 pt-1">
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={handleCancel}
-              className="rounded-xl text-sm"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleSave}
-              disabled={updateMut.isPending}
-              className="bg-gray-900 hover:bg-black text-white rounded-xl text-sm min-w-[110px]"
-            >
+            <Button type="button" size="sm" variant="ghost" onClick={handleCancel} className="rounded-xl text-sm">Cancel</Button>
+            <Button type="button" size="sm" onClick={handleSave} disabled={updateMut.isPending} className="bg-gray-900 hover:bg-black text-white rounded-xl text-sm min-w-[110px]">
               <Check className="w-3.5 h-3.5 mr-1.5" />
               {updateMut.isPending ? "Saving…" : "Save Changes"}
             </Button>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Bulk strain panel ────────────────────────────────────────────────────────
+
+function BulkStrainPanel({
+  productId, sortOffset, onDone, onCancel,
+}: {
+  productId: number;
+  sortOffset: number;
+  onDone: () => void;
+  onCancel: () => void;
+}) {
+  const [bulk, setBulk] = useState<BulkState>(defaultBulk());
+  const [saving, setSaving] = useState(false);
+
+  const createMut = trpc.productVariants.create.useMutation({
+    onError: (e) => toast.error(e.message),
+  });
+
+  const updateWeight = (w: string, patch: Partial<WeightRow>) =>
+    setBulk((b) => ({ ...b, weights: b.weights.map((r) => (r.weight === w ? { ...r, ...patch } : r)) }));
+
+  const selectedWeights = bulk.weights.filter((r) => r.checked);
+
+  const handleAddAll = async () => {
+    if (!bulk.strainName.trim()) { toast.error("Enter a strain name"); return; }
+    if (!selectedWeights.length) { toast.error("Select at least one weight"); return; }
+    for (const w of selectedWeights) {
+      if (!w.price) { toast.error(`Enter a price for ${w.weight}`); return; }
+    }
+
+    setSaving(true);
+    try {
+      for (let i = 0; i < selectedWeights.length; i++) {
+        const w = selectedWeights[i];
+        await createMut.mutateAsync({
+          productId,
+          name: `${bulk.strainName.trim()} - ${w.weight}`,
+          price: w.price,
+          inventory: w.inventory,
+          isActive: true,
+          sortOrder: sortOffset + i,
+          ...(bulk.image ? {
+            imageBase64: bulk.image.base64,
+            imageFilename: bulk.image.filename,
+            imageContentType: bulk.image.contentType,
+          } : {}),
+        });
+      }
+      toast.success(`${selectedWeights.length} variant${selectedWeights.length !== 1 ? "s" : ""} added`);
+      onDone();
+    } catch {
+      toast.error("Some variants failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="border border-gray-200 rounded-xl overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2.5 bg-white border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <Layers className="w-4 h-4 text-gray-500" />
+          <p className="text-sm font-medium text-gray-900">Add Strain + Weights</p>
+        </div>
+        <button type="button" onClick={onCancel} className="p-1 text-gray-400 hover:text-gray-700 rounded">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div className="px-4 py-4 space-y-4 bg-gray-50/50">
+        {/* Strain name */}
+        <div>
+          <Label className="text-xs text-gray-500 mb-1 block">Strain Name *</Label>
+          <Input
+            value={bulk.strainName}
+            onChange={(e) => setBulk((b) => ({ ...b, strainName: e.target.value }))}
+            placeholder="e.g. Blue Dream"
+            className="h-8 text-sm rounded-lg max-w-xs"
+            autoFocus
+          />
+        </div>
+
+        {/* Strain image */}
+        <div>
+          <Label className="text-xs text-gray-500 mb-2 block">Strain Image <span className="text-gray-400 font-normal">(shared across all weights)</span></Label>
+          <ImagePicker
+            currentUrl={null}
+            draft={bulk.image}
+            onPick={(d) => setBulk((b) => ({ ...b, image: d }))}
+            onClear={() => setBulk((b) => ({ ...b, image: null }))}
+          />
+        </div>
+
+        {/* Weight + price rows */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Label className="text-xs text-gray-500">Weights & Prices *</Label>
+            <span className="text-xs text-gray-400">— check the weights you want to add</span>
+          </div>
+          <div className="space-y-2">
+            {bulk.weights.map((row) => (
+              <div key={row.weight} className="flex items-center gap-2">
+                <label className="flex items-center gap-2 w-16 shrink-0 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={row.checked}
+                    onChange={(e) => updateWeight(row.weight, { checked: e.target.checked })}
+                    className="w-4 h-4 accent-gray-900 rounded"
+                  />
+                  <span className="text-sm font-medium text-gray-700">{row.weight}</span>
+                </label>
+                <div className={`flex items-center gap-2 flex-1 transition-opacity ${row.checked ? "" : "opacity-30 pointer-events-none"}`}>
+                  <div className="relative flex-1">
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                    <Input
+                      value={row.price}
+                      onChange={(e) => updateWeight(row.weight, { price: e.target.value })}
+                      placeholder="0.00"
+                      className="h-7 pl-5 text-xs rounded-lg"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1 w-28 shrink-0">
+                    <Input
+                      type="number"
+                      value={row.inventory}
+                      onChange={(e) => updateWeight(row.weight, { inventory: parseInt(e.target.value) || 0 })}
+                      placeholder="0"
+                      className="h-7 text-xs rounded-lg w-16"
+                    />
+                    <span className="text-xs text-gray-400">stock</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-2 pt-1">
+          <Button type="button" size="sm" variant="ghost" className="rounded-xl text-sm" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleAddAll}
+            disabled={saving || !selectedWeights.length}
+            className="bg-gray-900 hover:bg-black text-white rounded-xl text-sm"
+          >
+            <Check className="w-3.5 h-3.5 mr-1.5" />
+            {saving
+              ? "Adding…"
+              : `Add ${selectedWeights.length > 0 ? selectedWeights.length : ""} Variant${selectedWeights.length !== 1 ? "s" : ""}`}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -321,6 +401,7 @@ export default function ProductVariantsEditor({ productId }: { productId: number
   const { data: variants = [], isLoading } = trpc.productVariants.list.useQuery({ productId });
 
   const [showAdd, setShowAdd] = useState(false);
+  const [showBulk, setShowBulk] = useState(false);
   const [newRow, setNewRow] = useState({ ...EMPTY_NEW });
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -367,15 +448,26 @@ export default function ProductVariantsEditor({ productId }: { productId: number
         <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
           Variants with Individual Pricing
         </Label>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => { setShowAdd(true); setEditingId(null); }}
-          className="rounded-xl border-gray-200 text-gray-900 hover:bg-gray-50 text-xs"
-        >
-          <Plus className="w-3.5 h-3.5 mr-1" /> Add Variant
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => { setShowBulk(true); setShowAdd(false); setEditingId(null); }}
+            className="rounded-xl border-gray-200 text-gray-900 hover:bg-gray-50 text-xs gap-1"
+          >
+            <Layers className="w-3.5 h-3.5" /> Add Strain
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => { setShowAdd(true); setShowBulk(false); setEditingId(null); }}
+            className="rounded-xl border-gray-200 text-gray-900 hover:bg-gray-50 text-xs"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" /> Add Variant
+          </Button>
+        </div>
       </div>
 
       {/* Variant cards */}
@@ -396,25 +488,30 @@ export default function ProductVariantsEditor({ productId }: { productId: number
       ) : (
         <div className="flex items-center gap-2 py-4 px-3 bg-gray-50 rounded-xl text-gray-400 text-xs">
           <Package2 className="w-4 h-4" />
-          No variants yet. Add variants with individual pricing (e.g. different weights or flavors).
+          No variants yet. Use "Add Strain" for strain+weight combos, or "Add Variant" for a single variant.
         </div>
       )}
 
-      {/* Add new variant form */}
+      {/* Bulk strain panel */}
+      {showBulk && (
+        <BulkStrainPanel
+          productId={productId}
+          sortOffset={variants.length}
+          onDone={() => { invalidate(); setShowBulk(false); }}
+          onCancel={() => setShowBulk(false)}
+        />
+      )}
+
+      {/* Single variant form */}
       {showAdd && (
         <div className="border border-gray-200 rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-3 py-2.5 bg-white border-b border-gray-100">
             <p className="text-sm font-medium text-gray-900">New Variant</p>
-            <button
-              type="button"
-              onClick={() => { setShowAdd(false); setNewRow({ ...EMPTY_NEW }); }}
-              className="p-1 text-gray-400 hover:text-gray-700 rounded"
-            >
+            <button type="button" onClick={() => { setShowAdd(false); setNewRow({ ...EMPTY_NEW }); }} className="p-1 text-gray-400 hover:text-gray-700 rounded">
               <X className="w-4 h-4" />
             </button>
           </div>
           <div className="px-4 py-4 space-y-4 bg-gray-50/50">
-            {/* Image */}
             <div>
               <Label className="text-xs text-gray-500 mb-2 block">Image</Label>
               <ImagePicker
@@ -424,8 +521,6 @@ export default function ProductVariantsEditor({ productId }: { productId: number
                 onClear={() => setNewRow((r) => ({ ...r, image: null }))}
               />
             </div>
-
-            {/* Name + SKU */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs text-gray-500 mb-1 block">Name *</Label>
@@ -436,8 +531,6 @@ export default function ProductVariantsEditor({ productId }: { productId: number
                 <Input value={newRow.sku} onChange={(e) => setNewRow((r) => ({ ...r, sku: e.target.value }))} placeholder="SKU-001" className="h-8 text-sm rounded-lg" />
               </div>
             </div>
-
-            {/* Price + Compare At */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs text-gray-500 mb-1 block">Price *</Label>
@@ -454,14 +547,10 @@ export default function ProductVariantsEditor({ productId }: { productId: number
                 </div>
               </div>
             </div>
-
-            {/* Stock */}
             <div className="w-1/2 pr-1.5">
               <Label className="text-xs text-gray-500 mb-1 block">Stock</Label>
               <Input type="number" value={newRow.inventory} onChange={(e) => setNewRow((r) => ({ ...r, inventory: parseInt(e.target.value) || 0 }))} className="h-8 text-sm rounded-lg" />
             </div>
-
-            {/* Footer */}
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" size="sm" variant="ghost" className="rounded-xl text-sm" onClick={() => { setShowAdd(false); setNewRow({ ...EMPTY_NEW }); }}>
                 Cancel

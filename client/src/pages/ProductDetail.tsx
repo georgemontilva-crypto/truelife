@@ -21,6 +21,7 @@ export default function ProductDetail() {
   const { refetch, openCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
+  const [selectedStrain, setSelectedStrain] = useState<string | null>(null);
   const [showAttrs, setShowAttrs] = useState(true);
   const [showLabs, setShowLabs] = useState(false);
 
@@ -118,6 +119,16 @@ export default function ProductDetail() {
     selectedVariantId ? (r.variantId === selectedVariantId || r.variantId === null) : true
   ) ?? [];
 
+  // Two-level (Strain → Weight) detection
+  const STRAIN_WEIGHT_RE = /^(.+?)\s+-\s+(.+)$/;
+  const isLayered = activeVariants.length > 0 && activeVariants.every((v) => STRAIN_WEIGHT_RE.test(v.name));
+  const strains = isLayered
+    ? [...new Map(activeVariants.map((v) => [v.name.match(STRAIN_WEIGHT_RE)![1].trim(), v])).keys()]
+    : [];
+  const strainFirstVariant = selectedStrain
+    ? activeVariants.find((v) => v.name.match(STRAIN_WEIGHT_RE)?.[1]?.trim() === selectedStrain) ?? null
+    : null;
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -137,7 +148,7 @@ export default function ProductDetail() {
           {/* Image — switches to variant image when one is selected */}
           <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl md:rounded-3xl overflow-hidden">
             {(() => {
-              const displayImg = selectedVariant?.imageUrl ?? p.imageUrl;
+              const displayImg = selectedVariant?.imageUrl ?? strainFirstVariant?.imageUrl ?? p.imageUrl;
               return displayImg ? (
                 <img
                   key={displayImg}
@@ -215,8 +226,90 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {/* Variants with individual pricing (gramajes, sabores, etc.) */}
-            {activeVariants.length > 0 && (
+            {/* Variant selector — layered (Strain → Weight) or flat */}
+            {isLayered ? (
+              <div className="mb-5 space-y-4">
+                {/* Level 1: Strain */}
+                <div>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Select Strain:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {strains.map((strain) => {
+                      const strainVariants = activeVariants.filter(
+                        (v) => v.name.match(STRAIN_WEIGHT_RE)?.[1]?.trim() === strain
+                      );
+                      const allOut = strainVariants.every((v) => v.inventory === 0);
+                      const isSelected = selectedStrain === strain;
+                      const thumb = strainVariants[0]?.imageUrl;
+                      return (
+                        <button
+                          key={strain}
+                          onClick={() => {
+                            if (!allOut) {
+                              setSelectedStrain(strain);
+                              setSelectedVariantId(null);
+                            }
+                          }}
+                          disabled={allOut}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-all ${
+                            isSelected
+                              ? "bg-gray-900 text-white border-gray-900 shadow-sm"
+                              : allOut
+                              ? "bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed"
+                              : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"
+                          }`}
+                        >
+                          {thumb && (
+                            <img
+                              src={thumb}
+                              alt={strain}
+                              className={`w-6 h-6 rounded-lg object-cover shrink-0 ${isSelected ? "ring-1 ring-white/40" : ""}`}
+                            />
+                          )}
+                          <span>{strain}</span>
+                          {allOut && <span className="text-xs opacity-60 ml-0.5">(Out)</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Level 2: Weight (only shown after strain selected) */}
+                {selectedStrain && (
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Select Weight:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {activeVariants
+                        .filter((v) => v.name.match(STRAIN_WEIGHT_RE)?.[1]?.trim() === selectedStrain)
+                        .map((v) => {
+                          const weight = v.name.match(STRAIN_WEIGHT_RE)![2].trim();
+                          const outOfStock = v.inventory === 0;
+                          const isSelected = selectedVariantId === v.id;
+                          return (
+                            <button
+                              key={v.id}
+                              onClick={() => !outOfStock && setSelectedVariantId(isSelected ? null : v.id)}
+                              disabled={outOfStock}
+                              className={`px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+                                isSelected
+                                  ? "bg-gray-900 text-white border-gray-900 shadow-sm"
+                                  : outOfStock
+                                  ? "bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed"
+                                  : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"
+                              }`}
+                            >
+                              <span>{weight}</span>
+                              <span className={`ml-1.5 text-xs ${isSelected ? "opacity-70" : "opacity-60"}`}>
+                                ${parseFloat(v.price).toFixed(2)}
+                              </span>
+                              {outOfStock && <span className="text-xs opacity-60 ml-0.5">(Out)</span>}
+                            </button>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : activeVariants.length > 0 ? (
               <div className="mb-5">
                 {(() => {
                   const vt = attributes.data?.find((a: any) => a.key === "variant_type")?.value;
@@ -226,7 +319,6 @@ export default function ProductDetail() {
                   return <p className="text-sm font-semibold text-gray-700 mb-3">{label}</p>;
                 })()}
                 <div className="flex flex-wrap gap-2">
-                  {/* Base product option */}
                   <button
                     onClick={() => setSelectedVariantId(null)}
                     className={`px-3 py-2.5 rounded-xl text-sm font-medium border transition-all ${
@@ -255,11 +347,7 @@ export default function ProductDetail() {
                         }`}
                       >
                         {v.imageUrl && (
-                          <img
-                            src={v.imageUrl}
-                            alt={v.name}
-                            className={`w-6 h-6 rounded-lg object-cover shrink-0 ${isSelected ? "ring-1 ring-white/40" : ""}`}
-                          />
+                          <img src={v.imageUrl} alt={v.name} className={`w-6 h-6 rounded-lg object-cover shrink-0 ${isSelected ? "ring-1 ring-white/40" : ""}`} />
                         )}
                         <span>{v.name}</span>
                         <span className={`text-xs ${isSelected ? "opacity-70" : "opacity-60"}`}>
@@ -271,7 +359,7 @@ export default function ProductDetail() {
                   })}
                 </div>
               </div>
-            )}
+            ) : null}
 
             {/* Quantity + Add to cart */}
             <div className="flex items-center gap-3 mb-6">
@@ -304,10 +392,16 @@ export default function ProductDetail() {
               <Button
                 className="flex-1 h-11 bg-gray-900 hover:bg-black text-white rounded-xl font-medium"
                 onClick={handleAddToCart}
-                disabled={isOutOfStock || addToCart.isPending}
+                disabled={isOutOfStock || addToCart.isPending || (isLayered && !selectedVariantId)}
               >
                 <ShoppingCart className="w-4 h-4 mr-2" />
-                {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+                {isOutOfStock
+                  ? "Out of Stock"
+                  : isLayered && !selectedStrain
+                  ? "Select a Strain"
+                  : isLayered && !selectedVariantId
+                  ? "Select a Weight"
+                  : "Add to Cart"}
               </Button>
             </div>
 
