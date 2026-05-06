@@ -9,7 +9,7 @@ import { getLoginUrl } from "@/const";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-blue-100 text-blue-700",
+  confirmed: "bg-gray-100 text-gray-900",
   processing: "bg-purple-100 text-purple-700",
   shipped: "bg-indigo-100 text-indigo-700",
   delivered: "bg-green-100 text-green-700",
@@ -27,7 +27,7 @@ export default function OrdersPage() {
         <Navbar />
         <div className="container py-20 text-center">
           <p className="text-gray-600 mb-4">Sign in to view your orders</p>
-          <a href={getLoginUrl()}><Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">Sign In</Button></a>
+          <a href={getLoginUrl()}><Button className="bg-gray-900 hover:bg-black text-white rounded-xl">Sign In</Button></a>
         </div>
       </div>
     );
@@ -50,7 +50,7 @@ export default function OrdersPage() {
             {orders.data.map((order) => (
               <div
                 key={order.id}
-                className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-blue-200 hover:shadow-sm transition-all cursor-pointer"
+                className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-gray-200 hover:shadow-sm transition-all cursor-pointer"
                 onClick={() => navigate(`/order-confirmation/${order.id}`)}
               >
                 <div className="flex items-center justify-between mb-3">
@@ -78,7 +78,7 @@ export default function OrdersPage() {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Package className="w-12 h-12 text-gray-200 mb-4" />
             <p className="text-gray-500 font-medium">No orders yet</p>
-            <Button className="mt-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={() => navigate("/catalog")}>
+            <Button className="mt-6 bg-gray-900 hover:bg-black text-white rounded-xl" onClick={() => navigate("/catalog")}>
               Start Shopping
             </Button>
           </div>

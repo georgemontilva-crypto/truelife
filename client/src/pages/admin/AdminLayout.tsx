@@ -24,7 +24,7 @@ function SidebarContent({ location, logout, onNavClick }: {
     <>
       <div className="px-6 py-5 border-b border-gray-100">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
             <FlaskConical className="w-4 h-4 text-white" />
           </div>
           <div>
@@ -39,9 +39,9 @@ function SidebarContent({ location, logout, onNavClick }: {
           return (
             <Link key={href} href={href} onClick={onNavClick}>
               <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
-                isActive ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                isActive ? "bg-gray-50 text-gray-900" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               }`}>
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-blue-600" : "text-gray-400"}`} />
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-gray-900" : "text-gray-400"}`} />
                 {label}
               </div>
             </Link>
@@ -75,7 +75,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -85,7 +85,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="text-center">
           <p className="text-gray-600 mb-4">Please sign in to access the admin panel</p>
           <a href={getLoginUrl()}>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">Sign In</Button>
+            <Button className="bg-gray-900 hover:bg-black text-white rounded-xl">Sign In</Button>
           </a>
         </div>
       </div>
@@ -112,7 +112,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Mobile top bar */}
       <div className="md:hidden sticky top-0 z-40 bg-white border-b border-gray-100 flex items-center justify-between px-4 h-14 shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
             <FlaskConical className="w-3.5 h-3.5 text-white" />
           </div>
           <span className="text-sm font-semibold text-gray-900">Admin Panel</span>

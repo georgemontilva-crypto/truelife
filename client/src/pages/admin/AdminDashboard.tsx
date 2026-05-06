@@ -7,7 +7,7 @@ export default function AdminDashboard() {
 
   const STATUS_COLORS: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-700",
-    confirmed: "bg-blue-100 text-blue-700",
+    confirmed: "bg-gray-100 text-gray-900",
     processing: "bg-purple-100 text-purple-700",
     shipped: "bg-indigo-100 text-indigo-700",
     delivered: "bg-green-100 text-green-700",
@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   };
 
   const statCards = [
-    { label: "Total Orders", value: stats.data?.totalOrders ?? 0, icon: ShoppingBag, color: "text-blue-600", bg: "bg-blue-50" },
+    { label: "Total Orders", value: stats.data?.totalOrders ?? 0, icon: ShoppingBag, color: "text-gray-900", bg: "bg-gray-50" },
     { label: "Total Revenue", value: `$${parseFloat(stats.data?.totalRevenue ?? "0").toFixed(2)}`, icon: DollarSign, color: "text-green-600", bg: "bg-green-50" },
     { label: "Pending Orders", value: stats.data?.pendingOrders ?? 0, icon: TrendingUp, color: "text-yellow-600", bg: "bg-yellow-50" },
     { label: "Total Users", value: stats.data?.totalUsers ?? 0, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },

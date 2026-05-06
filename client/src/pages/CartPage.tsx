@@ -24,7 +24,7 @@ export default function CartPage() {
           <ShoppingCart className="w-12 h-12 text-gray-200 mx-auto mb-4" />
           <p className="text-gray-600 font-medium mb-4">Sign in to view your cart</p>
           <a href={getLoginUrl()}>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">Sign In</Button>
+            <Button className="bg-gray-900 hover:bg-black text-white rounded-xl">Sign In</Button>
           </a>
         </div>
       </div>
@@ -44,7 +44,7 @@ export default function CartPage() {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Package className="w-16 h-16 text-gray-200 mb-4" />
             <p className="text-gray-500 font-medium text-lg">Your cart is empty</p>
-            <Button className="mt-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={() => navigate("/catalog")}>
+            <Button className="mt-6 bg-gray-900 hover:bg-black text-white rounded-xl" onClick={() => navigate("/catalog")}>
               Browse Products
             </Button>
           </div>
@@ -70,7 +70,7 @@ export default function CartPage() {
                         {Object.entries(item.selectedVariants).map(([k, v]) => `${k}: ${v}`).join(", ")}
                       </p>
                     )}
-                    <p className="text-blue-600 font-bold mt-1">${(parseFloat(item.productPrice) * item.quantity).toFixed(2)}</p>
+                    <p className="text-gray-900 font-bold mt-1">${(parseFloat(item.productPrice) * item.quantity).toFixed(2)}</p>
                     <div className="flex items-center gap-3 mt-3">
                       <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
                         <button onClick={() => updateItem.mutate({ cartItemId: item.id, quantity: item.quantity - 1 })} className="w-8 h-8 flex items-center justify-center hover:bg-gray-50">
@@ -103,7 +103,7 @@ export default function CartPage() {
                     <span>{shippingCost === 0 ? <span className="text-green-600 font-medium">Free</span> : `$${shippingCost.toFixed(2)}`}</span>
                   </div>
                   {subtotal < 50 && (
-                    <p className="text-xs text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
+                    <p className="text-xs text-gray-900 bg-gray-50 rounded-lg px-3 py-2">
                       Add ${(50 - subtotal).toFixed(2)} more for free shipping!
                     </p>
                   )}
@@ -112,7 +112,7 @@ export default function CartPage() {
                   </div>
                 </div>
                 <Button
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium"
+                  className="w-full h-12 bg-gray-900 hover:bg-black text-white rounded-xl font-medium"
                   onClick={() => navigate("/checkout")}
                 >
                   Checkout <ArrowRight className="w-4 h-4 ml-2" />

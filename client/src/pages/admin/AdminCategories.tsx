@@ -50,7 +50,7 @@ export default function AdminCategories() {
           <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
           <p className="text-gray-500 text-sm mt-1">{categories.data?.length ?? 0} categories</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY); }}>
+        <Button className="bg-gray-900 hover:bg-black text-white rounded-xl" onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY); }}>
           <Plus className="w-4 h-4 mr-2" /> Add Category
         </Button>
       </div>
@@ -76,7 +76,7 @@ export default function AdminCategories() {
             </div>
           </div>
           <div className="flex gap-3 mt-5">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={handleSubmit} disabled={create.isPending || update.isPending}>
+            <Button className="bg-gray-900 hover:bg-black text-white rounded-xl" onClick={handleSubmit} disabled={create.isPending || update.isPending}>
               <Check className="w-4 h-4 mr-2" /> {editId ? "Save Changes" : "Create Category"}
             </Button>
             <Button variant="ghost" onClick={() => { setShowForm(false); setEditId(null); setForm(EMPTY); }}>Cancel</Button>
@@ -99,12 +99,12 @@ export default function AdminCategories() {
             <tbody className="divide-y divide-gray-50">
               {categories.data.map((c) => (
                 <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-4 font-medium text-gray-900 flex items-center gap-2"><Tag className="w-4 h-4 text-blue-400" />{c.name}</td>
+                  <td className="px-5 py-4 font-medium text-gray-900 flex items-center gap-2"><Tag className="w-4 h-4 text-gray-400" />{c.name}</td>
                   <td className="px-5 py-4 text-gray-500 font-mono text-xs">{c.slug}</td>
                   <td className="px-5 py-4 text-gray-500 max-w-xs truncate">{c.description ?? "—"}</td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => handleEdit(c)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Pencil className="w-4 h-4" /></button>
+                      <button onClick={() => handleEdit(c)} className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"><Pencil className="w-4 h-4" /></button>
                       <button onClick={() => { if (confirm("Delete this category?")) remove.mutate({ id: c.id }); }} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>
@@ -116,7 +116,7 @@ export default function AdminCategories() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Tag className="w-12 h-12 text-gray-200 mb-3" />
             <p className="text-gray-500 font-medium">No categories yet</p>
-            <Button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={() => setShowForm(true)}>
+            <Button className="mt-4 bg-gray-900 hover:bg-black text-white rounded-xl" onClick={() => setShowForm(true)}>
               <Plus className="w-4 h-4 mr-2" /> Add First Category
             </Button>
           </div>

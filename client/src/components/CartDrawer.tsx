@@ -30,7 +30,7 @@ export default function CartDrawer() {
             <ShoppingCart className="w-5 h-5 text-gray-700" />
             <h2 className="text-base font-semibold text-gray-900">Your Cart</h2>
             {items.length > 0 && (
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+              <span className="text-xs bg-gray-100 text-gray-900 px-2 py-0.5 rounded-full font-medium">
                 {items.reduce((s, i) => s + i.quantity, 0)} items
               </span>
             )}
@@ -49,7 +49,7 @@ export default function CartDrawer() {
               <p className="text-gray-400 text-sm mt-1">Add some products to get started</p>
               <Button
                 variant="outline"
-                className="mt-6 border-blue-200 text-blue-600 hover:bg-blue-50"
+                className="mt-6 border-gray-200 text-gray-900 hover:bg-gray-50"
                 onClick={() => { closeCart(); navigate("/catalog"); }}
               >
                 Browse Products
@@ -75,7 +75,7 @@ export default function CartDrawer() {
                         {Object.entries(item.selectedVariants).map(([k, v]) => `${k}: ${v}`).join(", ")}
                       </p>
                     )}
-                    <p className="text-sm font-semibold text-blue-600 mt-1">
+                    <p className="text-sm font-semibold text-gray-900 mt-1">
                       ${(parseFloat(item.productPrice) * item.quantity).toFixed(2)}
                     </p>
 
@@ -121,7 +121,7 @@ export default function CartDrawer() {
                 <span>{shippingCost === 0 ? <span className="text-green-600 font-medium">Free</span> : `$${shippingCost.toFixed(2)}`}</span>
               </div>
               {subtotal < 50 && (
-                <p className="text-xs text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
+                <p className="text-xs text-gray-900 bg-gray-50 rounded-lg px-3 py-2">
                   Add ${(50 - subtotal).toFixed(2)} more for free shipping!
                 </p>
               )}
@@ -131,7 +131,7 @@ export default function CartDrawer() {
               </div>
             </div>
             <Button
-              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium"
+              className="w-full h-12 bg-gray-900 hover:bg-black text-white rounded-xl font-medium"
               onClick={() => { closeCart(); navigate("/checkout"); }}
             >
               Proceed to Checkout

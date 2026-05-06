@@ -37,7 +37,7 @@ export default function ProfilePage() {
         <Navbar />
         <div className="container py-20 text-center">
           <p className="text-gray-600 mb-4">Sign in to view your profile</p>
-          <a href={getLoginUrl()}><Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">Sign In</Button></a>
+          <a href={getLoginUrl()}><Button className="bg-gray-900 hover:bg-black text-white rounded-xl">Sign In</Button></a>
         </div>
       </div>
     );
@@ -52,8 +52,8 @@ export default function ProfilePage() {
         {/* User info */}
         <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <User className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
+              <User className="w-6 h-6 text-gray-900" />
             </div>
             <div>
               <p className="font-semibold text-gray-900">{user?.name ?? "User"}</p>
@@ -72,9 +72,9 @@ export default function ProfilePage() {
         <div className="bg-white border border-gray-100 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-blue-600" /> Saved Addresses
+              <MapPin className="w-4 h-4 text-gray-900" /> Saved Addresses
             </h2>
-            <Button size="sm" variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50" onClick={() => setShowAddAddress(!showAddAddress)}>
+            <Button size="sm" variant="outline" className="border-gray-200 text-gray-900 hover:bg-gray-50" onClick={() => setShowAddAddress(!showAddAddress)}>
               <Plus className="w-4 h-4 mr-1" /> Add
             </Button>
           </div>
@@ -90,7 +90,7 @@ export default function ProfilePage() {
                 <div><Label className="text-xs text-gray-600 mb-1 block">Country</Label><Input value={addrForm.country} onChange={(e) => setAddrForm(f => ({ ...f, country: e.target.value }))} className="rounded-lg" /></div>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg" onClick={() => createAddress.mutate(addrForm)} disabled={createAddress.isPending}>Save</Button>
+                <Button size="sm" className="bg-gray-900 hover:bg-black text-white rounded-lg" onClick={() => createAddress.mutate(addrForm)} disabled={createAddress.isPending}>Save</Button>
                 <Button size="sm" variant="ghost" onClick={() => setShowAddAddress(false)}>Cancel</Button>
               </div>
             </div>

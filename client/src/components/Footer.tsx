@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { FlaskConical, Truck, RotateCcw, Lock, Headphones } from "lucide-react";
+import { FlaskConical } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -9,15 +9,13 @@ export default function Footer() {
         <div className="container py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { icon: Truck, title: "Free Shipping", desc: "On all orders over $50" },
-              { icon: RotateCcw, title: "Easy Returns", desc: "30-day return policy" },
-              { icon: Lock, title: "Secure Checkout", desc: "SSL encrypted payment" },
-              { icon: Headphones, title: "24/7 Support", desc: "Always here to help" },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="flex items-start gap-3">
-                <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4 text-blue-600" />
-                </div>
+              { img: "/manus-storage/free-shipping_df5d544c.svg", title: "Free Shipping", desc: "On all orders over $50" },
+              { img: "/manus-storage/risk-money-1_4186a7dd.svg", title: "Easy Returns", desc: "30-day return policy" },
+              { img: "/manus-storage/natural-1_162ff9c5.svg", title: "100% Natural", desc: "Hemp-derived ingredients" },
+              { img: "/manus-storage/labtested-1_7cf4af18.svg", title: "Lab Tested", desc: "Every batch verified" },
+            ].map(({ img, title, desc }) => (
+              <div key={title} className="flex items-center gap-3">
+                <img src={img} alt={title} className="w-12 h-12 object-contain shrink-0" />
                 <div>
                   <p className="text-sm font-semibold text-gray-800">{title}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
@@ -33,11 +31,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
+              <div className="w-7 h-7 bg-gray-900 rounded-md flex items-center justify-center">
                 <FlaskConical className="w-3.5 h-3.5 text-white" />
               </div>
               <span className="text-base font-semibold text-gray-900">
-                Chronic<span className="text-blue-600">Hemp</span>
+                Chronic<span className="text-gray-900">Hemp</span>
               </span>
             </div>
             <p className="text-xs text-gray-500 leading-relaxed">

@@ -6,7 +6,7 @@ import { ShoppingBag, ChevronDown } from "lucide-react";
 const STATUSES = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-blue-100 text-blue-700",
+  confirmed: "bg-gray-100 text-gray-900",
   processing: "bg-purple-100 text-purple-700",
   shipped: "bg-indigo-100 text-indigo-700",
   delivered: "bg-green-100 text-green-700",
@@ -51,7 +51,7 @@ export default function AdminOrders() {
                         value={order.status}
                         onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { e.stopPropagation(); updateStatus.mutate({ id: order.id, status: e.target.value as "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" }); }}
                         onClick={(e) => e.stopPropagation()}
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 ${STATUS_COLORS[order.status] ?? "bg-gray-100 text-gray-600"}`}
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-400 ${STATUS_COLORS[order.status] ?? "bg-gray-100 text-gray-600"}`}
                       >
                         {STATUSES.map((s) => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
                       </select>

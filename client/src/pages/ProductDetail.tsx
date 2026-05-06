@@ -136,7 +136,7 @@ export default function ProductDetail() {
           {/* Details */}
           <div>
             <div className="mb-5">
-              <p className="text-xs font-semibold text-blue-600 uppercase tracking-widest mb-2">
+              <p className="text-xs font-semibold text-gray-900 uppercase tracking-widest mb-2">
                 Hemp Derived · ≤0.3% Δ9THC
               </p>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-3">{p.name}</h1>
@@ -205,8 +205,8 @@ export default function ProductDetail() {
                     onClick={() => setSelectedVariantId(null)}
                     className={`px-3 py-2.5 rounded-xl text-sm font-medium border transition-all ${
                       selectedVariantId === null
-                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                        : "bg-white text-gray-700 border-gray-200 hover:border-blue-300"
+                        ? "bg-gray-900 text-white border-gray-900 shadow-sm"
+                        : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"
                     }`}
                   >
                     <span>Base</span>
@@ -221,10 +221,10 @@ export default function ProductDetail() {
                         disabled={outOfStock}
                         className={`px-3 py-2.5 rounded-xl text-sm font-medium border transition-all ${
                           selectedVariantId === v.id
-                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                            ? "bg-gray-900 text-white border-gray-900 shadow-sm"
                             : outOfStock
                             ? "bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed"
-                            : "bg-white text-gray-700 border-gray-200 hover:border-blue-300"
+                            : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"
                         }`}
                       >
                         <span>{v.name}</span>
@@ -255,7 +255,7 @@ export default function ProductDetail() {
                 </button>
               </div>
               <Button
-                className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium"
+                className="flex-1 h-11 bg-gray-900 hover:bg-black text-white rounded-xl font-medium"
                 onClick={handleAddToCart}
                 disabled={isOutOfStock || addToCart.isPending}
               >
@@ -265,14 +265,15 @@ export default function ProductDetail() {
             </div>
 
             {/* Trust badges */}
-            <div className="grid grid-cols-3 gap-2 mb-5">
+            <div className="grid grid-cols-4 gap-2 mb-5">
               {[
-                { icon: Shield, label: "Lab Tested" },
-                { icon: Truck, label: "Free Ship. $50+" },
-                { icon: RotateCcw, label: "30-Day Returns" },
-              ].map(({ icon: Icon, label }) => (
+                { img: "/manus-storage/labtested-1_7cf4af18.svg", label: "Lab Tested" },
+                { img: "/manus-storage/free-shipping_df5d544c.svg", label: "Free Ship. $50+" },
+                { img: "/manus-storage/risk-money-1_4186a7dd.svg", label: "30-Day Returns" },
+                { img: "/manus-storage/natural-1_162ff9c5.svg", label: "100% Natural" },
+              ].map(({ img, label }) => (
                 <div key={label} className="flex flex-col items-center gap-1.5 bg-gray-50 rounded-xl p-2.5 text-center">
-                  <Icon className="w-4 h-4 text-blue-600" />
+                  <img src={img} alt={label} className="w-8 h-8 object-contain" />
                   <span className="text-xs text-gray-600 font-medium leading-tight">{label}</span>
                 </div>
               ))}
@@ -286,7 +287,7 @@ export default function ProductDetail() {
                   className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-50 hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <FlaskConical className="w-4 h-4 text-blue-600 shrink-0" />
+                    <FlaskConical className="w-4 h-4 text-gray-900 shrink-0" />
                     <span className="text-sm font-semibold text-gray-800">Product Characteristics</span>
                   </div>
                   {showAttrs
@@ -316,9 +317,9 @@ export default function ProductDetail() {
                   className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-50 hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                    <FileText className="w-4 h-4 text-gray-900 shrink-0" />
                     <span className="text-sm font-semibold text-gray-800">Lab Reports / COA</span>
-                    <span className="text-xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-gray-100 text-gray-900 font-semibold px-2 py-0.5 rounded-full">
                       {filteredLabReports.length}
                     </span>
                   </div>
@@ -334,10 +335,10 @@ export default function ProductDetail() {
                         href={report.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-blue-50 transition-colors group"
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-50 transition-colors group"
                       >
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-800 group-hover:text-blue-700 truncate">
+                          <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900 truncate">
                             {report.reportName}
                           </p>
                           {report.variantName && (
@@ -347,7 +348,7 @@ export default function ProductDetail() {
                             <p className="text-xs text-gray-400">Batch: {report.batchNumber}</p>
                           )}
                         </div>
-                        <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 shrink-0 ml-2" />
+                        <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-900 shrink-0 ml-2" />
                       </a>
                     ))}
                   </div>

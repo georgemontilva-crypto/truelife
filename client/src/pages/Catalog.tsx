@@ -51,7 +51,7 @@ export default function Catalog() {
                   onClick={() => setSelectedCategoryId(undefined)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                     !effectiveCategoryId
-                      ? "bg-blue-50 text-blue-700 font-medium"
+                      ? "bg-gray-50 text-gray-900 font-medium"
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                 >
@@ -63,7 +63,7 @@ export default function Catalog() {
                     onClick={() => setSelectedCategoryId(cat.id)}
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                       effectiveCategoryId === cat.id
-                        ? "bg-blue-50 text-blue-700 font-medium"
+                        ? "bg-gray-50 text-gray-900 font-medium"
                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                   >
@@ -80,7 +80,7 @@ export default function Catalog() {
               <button
                 onClick={() => setSelectedCategoryId(undefined)}
                 className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  !effectiveCategoryId ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"
+                  !effectiveCategoryId ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"
                 }`}
               >
                 All
@@ -90,7 +90,7 @@ export default function Catalog() {
                   key={cat.id}
                   onClick={() => setSelectedCategoryId(cat.id)}
                   className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    effectiveCategoryId === cat.id ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"
+                    effectiveCategoryId === cat.id ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"
                   }`}
                 >
                   {cat.name}

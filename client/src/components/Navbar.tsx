@@ -21,7 +21,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
       {/* Announcement bar */}
-      <div className="bg-blue-600 text-white text-xs text-center py-2 px-3 font-medium tracking-wide leading-relaxed">
+      <div className="bg-gray-900 text-white text-xs text-center py-2 px-3 font-medium tracking-wide leading-relaxed">
         FREE SHIPPING on orders over $50 · 30-Day Returns · Secure Checkout
       </div>
 
@@ -29,11 +29,11 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 no-underline">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
               <FlaskConical className="w-4 h-4 text-white" />
             </div>
             <span className="text-base sm:text-lg font-semibold text-gray-900 tracking-tight">
-              Chronic<span className="text-blue-600">Hemp</span>
+              Chronic<span className="text-gray-900">Hemp</span>
             </span>
           </Link>
 
@@ -41,7 +41,7 @@ export default function Navbar() {
           <nav className="hidden md:flex items-center gap-6">
             <Link
               href="/catalog"
-              className={`text-sm font-medium transition-colors no-underline ${location === "/catalog" ? "text-blue-600" : "text-gray-600 hover:text-gray-900"}`}
+              className={`text-sm font-medium transition-colors no-underline ${location === "/catalog" ? "text-gray-900" : "text-gray-600 hover:text-gray-900"}`}
             >
               All Products
             </Link>
@@ -49,7 +49,7 @@ export default function Navbar() {
               <Link
                 key={cat.id}
                 href={`/catalog/${cat.slug}`}
-                className={`text-sm font-medium transition-colors no-underline ${location === `/catalog/${cat.slug}` ? "text-blue-600" : "text-gray-600 hover:text-gray-900"}`}
+                className={`text-sm font-medium transition-colors no-underline ${location === `/catalog/${cat.slug}` ? "text-gray-900" : "text-gray-600 hover:text-gray-900"}`}
               >
                 {cat.name}
               </Link>
@@ -62,7 +62,7 @@ export default function Navbar() {
               <>
                 {isAdmin && (
                   <Link href="/admin">
-                    <Button variant="outline" size="sm" className="hidden md:flex text-xs border-blue-200 text-blue-600 hover:bg-blue-50">
+                    <Button variant="outline" size="sm" className="hidden md:flex text-xs border-gray-200 text-gray-900 hover:bg-gray-50">
                       Admin
                     </Button>
                   </Link>
@@ -89,7 +89,7 @@ export default function Navbar() {
             >
               <ShoppingCart className="w-5 h-5" />
               {itemCount > 0 && (
-                <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-xs bg-blue-600 text-white border-0">
+                <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-xs bg-gray-900 text-white border-0">
                   {itemCount}
                 </Badge>
               )}
@@ -125,7 +125,7 @@ export default function Navbar() {
               </Link>
             ))}
             {isAdmin && (
-              <Link href="/admin" className="block text-sm font-medium text-blue-600 py-2 no-underline" onClick={() => setMobileOpen(false)}>
+              <Link href="/admin" className="block text-sm font-medium text-gray-900 py-2 no-underline" onClick={() => setMobileOpen(false)}>
                 Admin Panel
               </Link>
             )}

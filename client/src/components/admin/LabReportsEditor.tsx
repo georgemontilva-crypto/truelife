@@ -88,7 +88,7 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
           size="sm"
           variant="outline"
           onClick={() => setShowForm(true)}
-          className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50 text-xs"
+          className="rounded-xl border-gray-200 text-gray-900 hover:bg-gray-50 text-xs"
         >
           <Plus className="w-3.5 h-3.5 mr-1" /> Add Report
         </Button>
@@ -99,12 +99,12 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
         <div className="space-y-2">
           {reports.map((r) => (
             <div key={r.id} className="flex items-center gap-3 px-3 py-2.5 bg-gray-50 rounded-xl border border-gray-100">
-              <FlaskConical className="w-4 h-4 text-blue-500 shrink-0" />
+              <FlaskConical className="w-4 h-4 text-white0 shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-800 truncate">{r.reportName}</p>
                 <div className="flex items-center gap-2 mt-0.5">
                   {r.variantName && (
-                    <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{r.variantName}</span>
+                    <span className="text-xs text-gray-900 bg-gray-50 px-2 py-0.5 rounded-full">{r.variantName}</span>
                   )}
                   {r.batchNumber && (
                     <span className="text-xs text-gray-500">Batch: {r.batchNumber}</span>
@@ -116,7 +116,7 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
                 href={r.fileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
@@ -138,9 +138,9 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
 
       {/* Add form */}
       {showForm && (
-        <div className="border border-blue-100 bg-blue-50/30 rounded-xl p-4 space-y-3">
+        <div className="border border-gray-200 bg-gray-50/30 rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-blue-700">New Lab Report</p>
+            <p className="text-xs font-semibold text-gray-900">New Lab Report</p>
             <button onClick={() => { setShowForm(false); setForm({ ...EMPTY }); }} className="text-gray-400 hover:text-gray-600">
               <X className="w-4 h-4" />
             </button>
@@ -161,7 +161,7 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
               <select
                 value={form.variantId ?? ""}
                 onChange={(e) => handleVariantChange(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 h-8"
+                className="w-full border border-gray-200 rounded-xl px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 h-8"
               >
                 <option value="">Applies to whole product</option>
                 {variants.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
@@ -184,7 +184,7 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={uploading || !form.reportName}
-              className="flex items-center gap-2 px-4 py-2 border border-dashed border-blue-300 rounded-xl text-sm text-blue-600 hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-400 rounded-xl text-sm text-gray-900 hover:border-gray-400 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Upload className="w-4 h-4" />
               {uploading ? "Uploading..." : "Choose PDF or Image"}

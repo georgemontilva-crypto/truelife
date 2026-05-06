@@ -37,7 +37,7 @@ export default function CheckoutPage() {
         <Navbar />
         <div className="container py-20 text-center">
           <p className="text-gray-600 mb-4">Sign in to continue with checkout</p>
-          <a href={getLoginUrl()}><Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">Sign In</Button></a>
+          <a href={getLoginUrl()}><Button className="bg-gray-900 hover:bg-black text-white rounded-xl">Sign In</Button></a>
         </div>
       </div>
     );
@@ -86,8 +86,8 @@ export default function CheckoutPage() {
           <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-6">
             {/* Saved addresses */}
             {savedAddresses.data && savedAddresses.data.length > 0 && (
-              <div className="bg-blue-50 rounded-2xl p-5">
-                <p className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
+              <div className="bg-gray-50 rounded-2xl p-5">
+                <p className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   <MapPin className="w-4 h-4" /> Saved Addresses
                 </p>
                 <div className="space-y-2">
@@ -96,7 +96,7 @@ export default function CheckoutPage() {
                       key={addr.id}
                       type="button"
                       onClick={() => fillFromSaved(addr)}
-                      className="w-full text-left bg-white rounded-xl px-4 py-3 text-sm text-gray-700 border border-blue-100 hover:border-blue-300 transition-colors"
+                      className="w-full text-left bg-white rounded-xl px-4 py-3 text-sm text-gray-700 border border-gray-200 hover:border-gray-400 transition-colors"
                     >
                       <span className="font-medium">{addr.fullName}</span> — {addr.line1}, {addr.city}, {addr.state} {addr.zip}
                     </button>
@@ -108,7 +108,7 @@ export default function CheckoutPage() {
             {/* Shipping address */}
             <div className="bg-white border border-gray-100 rounded-2xl p-6">
               <h2 className="font-semibold text-gray-900 mb-5 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-blue-600" /> Shipping Address
+                <MapPin className="w-4 h-4 text-gray-900" /> Shipping Address
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
@@ -148,7 +148,7 @@ export default function CheckoutPage() {
 
             <Button
               type="submit"
-              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-base"
+              className="w-full h-12 bg-gray-900 hover:bg-black text-white rounded-xl font-medium text-base"
               disabled={placeOrder.isPending || items.length === 0}
             >
               {placeOrder.isPending ? "Placing Order..." : `Place Order — $${total.toFixed(2)}`}
@@ -159,7 +159,7 @@ export default function CheckoutPage() {
           <div className="lg:col-span-1">
             <div className="bg-gray-50 rounded-2xl p-6 sticky top-24">
               <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4 text-blue-600" /> Order Summary
+                <ShoppingBag className="w-4 h-4 text-gray-900" /> Order Summary
               </h2>
               <div className="space-y-3 mb-4">
                 {items.map((item) => (

@@ -52,7 +52,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link href={`/product/${product.id}`}>
-      <div className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:border-blue-200 hover:shadow-lg transition-all duration-200 cursor-pointer">
+      <div className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:border-gray-200 hover:shadow-lg transition-all duration-200 cursor-pointer">
         {/* Image */}
         <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
           {product.imageUrl ? (
@@ -82,10 +82,10 @@ export default function ProductCard({ product }: { product: Product }) {
 
         {/* Info */}
         <div className="p-3 md:p-4">
-          <p className="text-xs text-blue-600 font-medium mb-1 uppercase tracking-wide">
+          <p className="text-xs text-gray-900 font-medium mb-1 uppercase tracking-wide">
             {product.thcContent ? `THC: ${product.thcContent}` : "Hemp Derived"}
           </p>
-          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-2 group-hover:text-blue-600 transition-colors">
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-2 group-hover:text-gray-900 transition-colors">
             {product.name}
           </h3>
 
@@ -101,7 +101,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
             <Button
               size="icon"
-              className="w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shrink-0"
+              className="w-8 h-8 bg-gray-900 hover:bg-black text-white rounded-lg shrink-0"
               onClick={handleAddToCart}
               disabled={isOutOfStock || addToCart.isPending}
             >

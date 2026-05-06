@@ -63,7 +63,7 @@ export default function ProductAttributesEditor({ productId }: { productId: numb
           Product Characteristics
         </Label>
         {dirty && (
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs" onClick={handleSave} disabled={setMut.isPending}>
+          <Button size="sm" className="bg-gray-900 hover:bg-black text-white rounded-xl text-xs" onClick={handleSave} disabled={setMut.isPending}>
             <Save className="w-3.5 h-3.5 mr-1" /> Save
           </Button>
         )}
@@ -76,7 +76,7 @@ export default function ProductAttributesEditor({ productId }: { productId: numb
             key={s}
             type="button"
             onClick={() => addRow(s)}
-            className="text-xs px-2.5 py-1 bg-gray-100 hover:bg-blue-100 hover:text-blue-700 text-gray-600 rounded-full transition-colors"
+            className="text-xs px-2.5 py-1 bg-gray-100 hover:bg-gray-100 hover:text-gray-900 text-gray-600 rounded-full transition-colors"
           >
             + {s}
           </button>
@@ -121,7 +121,7 @@ export default function ProductAttributesEditor({ productId }: { productId: numb
           <Plus className="w-3.5 h-3.5 mr-1" /> Add Custom
         </Button>
         {dirty && (
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs" onClick={handleSave} disabled={setMut.isPending}>
+          <Button size="sm" className="bg-gray-900 hover:bg-black text-white rounded-xl text-xs" onClick={handleSave} disabled={setMut.isPending}>
             <Save className="w-3.5 h-3.5 mr-1" /> Save Attributes
           </Button>
         )}

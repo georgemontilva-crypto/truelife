@@ -36,8 +36,8 @@ export default function AdminUsers() {
                   <tr key={u.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                          {u.role === "admin" ? <Shield className="w-4 h-4 text-blue-600" /> : <User className="w-4 h-4 text-blue-400" />}
+                        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                          {u.role === "admin" ? <Shield className="w-4 h-4 text-gray-900" /> : <User className="w-4 h-4 text-gray-400" />}
                         </div>
                         <span className="font-medium text-gray-900">{u.name ?? "—"}</span>
                       </div>
@@ -54,7 +54,7 @@ export default function AdminUsers() {
                       <select
                         value={u.role}
                         onChange={(e) => updateRole.mutate({ userId: u.id, role: e.target.value as "user" | "admin" })}
-                        className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                        className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gray-400 text-gray-700"
                       >
                         <option value="user">User</option>
                         <option value="admin">Admin</option>

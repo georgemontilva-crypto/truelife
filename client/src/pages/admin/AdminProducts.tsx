@@ -138,7 +138,7 @@ export default function AdminProducts() {
           <h1 className="text-2xl font-bold text-gray-900">Products</h1>
           <p className="text-gray-500 text-sm mt-1">{products.data?.length ?? 0} products total</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_FORM); setExpandedSection(null); }}>
+        <Button className="bg-gray-900 hover:bg-black text-white rounded-xl" onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_FORM); setExpandedSection(null); }}>
           <Plus className="w-4 h-4 mr-2" /> Add Product
         </Button>
       </div>
@@ -160,7 +160,7 @@ export default function AdminProducts() {
               <select
                 value={form.categoryId}
                 onChange={(e) => setForm((f) => ({ ...f, categoryId: parseInt(e.target.value) }))}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400"
               >
                 <option value={0}>Select category...</option>
                 {categories.data?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -211,7 +211,7 @@ export default function AdminProducts() {
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 rows={3}
                 placeholder="Product description..."
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 resize-none"
               />
             </div>
 
@@ -228,7 +228,7 @@ export default function AdminProducts() {
                   type="button"
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading}
-                  className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-xl text-sm text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-xl text-sm text-gray-600 hover:border-gray-400 hover:text-gray-900 transition-colors disabled:opacity-50"
                 >
                   <Upload className="w-4 h-4" />
                   {uploading ? "Uploading..." : form.imageUrl ? "Change Image" : "Upload Image"}
@@ -240,11 +240,11 @@ export default function AdminProducts() {
             {/* Toggles */}
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.isActive} onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))} className="w-4 h-4 rounded accent-blue-600" />
+                <input type="checkbox" checked={form.isActive} onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))} className="w-4 h-4 rounded accent-gray-900" />
                 <span className="text-sm text-gray-700">Active</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm((f) => ({ ...f, isFeatured: e.target.checked }))} className="w-4 h-4 rounded accent-blue-600" />
+                <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm((f) => ({ ...f, isFeatured: e.target.checked }))} className="w-4 h-4 rounded accent-gray-900" />
                 <span className="text-sm text-gray-700">Featured</span>
               </label>
             </div>
@@ -252,7 +252,7 @@ export default function AdminProducts() {
 
           {/* Save basic info */}
           <div className="flex gap-3 pb-6 border-b border-gray-100">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={handleSubmit} disabled={createProduct.isPending || updateProduct.isPending}>
+            <Button className="bg-gray-900 hover:bg-black text-white rounded-xl" onClick={handleSubmit} disabled={createProduct.isPending || updateProduct.isPending}>
               <Check className="w-4 h-4 mr-2" /> {editId ? "Save Changes" : "Create Product"}
             </Button>
             <Button variant="ghost" className="rounded-xl" onClick={() => { setShowForm(false); setEditId(null); setForm(EMPTY_FORM); }}>Cancel</Button>
@@ -377,7 +377,7 @@ export default function AdminProducts() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => handleEdit(p)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+                        <button onClick={() => handleEdit(p)} className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors" title="Edit">
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button onClick={() => { if (confirm("Delete this product?")) deleteProduct.mutate({ id: p.id }); }} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
@@ -394,7 +394,7 @@ export default function AdminProducts() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Package className="w-12 h-12 text-gray-200 mb-3" />
             <p className="text-gray-500 font-medium">No products yet</p>
-            <Button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={() => setShowForm(true)}>
+            <Button className="mt-4 bg-gray-900 hover:bg-black text-white rounded-xl" onClick={() => setShowForm(true)}>
               <Plus className="w-4 h-4 mr-2" /> Add First Product
             </Button>
           </div>

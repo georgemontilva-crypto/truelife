@@ -69,3 +69,18 @@
 - [x] Fix: Navbar overflow en mobile
 - [x] Tienda: detalle de producto muestra variantes con precio individual
 - [x] Tienda: detalle de producto muestra características y lab reports
+
+## Mejoras v3 - Paleta Blanco/Negro y Logos SVG
+- [x] Subir 4 SVGs al storage (free-shipping, risk-money, natural, labtested)
+- [x] Cambiar paleta global: azul → negro (index.css, variables CSS)
+- [x] Actualizar Navbar: azul → negro
+- [x] Actualizar Home: hero, badges, categorías, featured → negro
+- [x] Actualizar Footer: azul → negro
+- [x] Actualizar ProductDetail: badges, botones → negro
+- [x] Actualizar AgeGate: botón → negro
+- [x] Actualizar CartDrawer: botones → negro
+- [x] Actualizar CheckoutPage: botones → negro
+- [x] Actualizar Admin: sidebar, botones → negro
+- [x] Integrar 4 logos SVG en sección trust badges del Home
+- [x] Integrar logos SVG en Footer
+- [x] Integrar logos SVG en ProductDetail

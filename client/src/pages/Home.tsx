@@ -25,23 +25,23 @@ export default function Home() {
       <CartDrawer />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-white">
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-gray-50/30 to-white">
         <div className="container py-12 md:py-28">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5 border border-blue-100">
+            <div className="inline-flex items-center gap-2 bg-gray-50 text-gray-900 text-xs font-semibold px-3 py-1.5 rounded-full mb-5 border border-gray-200">
               <Shield className="w-3.5 h-3.5" />
               Lab-Tested · ≤0.3% Δ9THC · FDA Compliant
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 leading-tight tracking-tight mb-5">
               Premium Hemp
-              <span className="block text-blue-600">Products</span>
+              <span className="block text-gray-900">Products</span>
             </h1>
             <p className="text-lg text-gray-500 leading-relaxed mb-7 max-w-xl">
               Pharmaceutical-grade hemp-derived products. Every batch lab-tested for purity, potency, and compliance. Expect the best.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link href="/catalog">
-                <Button className="h-11 md:h-12 px-6 md:px-8 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium">
+                <Button className="h-11 md:h-12 px-6 md:px-8 bg-gray-900 hover:bg-black text-white rounded-xl font-medium">
                   Shop Now
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -56,7 +56,7 @@ export default function Home() {
         </div>
 
         {/* Decorative element */}
-        <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-blue-50/50 to-transparent hidden lg:block pointer-events-none" />
+        <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-gray-50/50 to-transparent hidden lg:block pointer-events-none" />
         <div className="absolute right-16 top-1/2 -translate-y-1/2 hidden lg:flex flex-col gap-4">
           {[
             { icon: FlaskConical, label: "Lab Tested", sub: "Every batch" },
@@ -64,8 +64,8 @@ export default function Home() {
             { icon: Star, label: "5-Star Rated", sub: "500+ reviews" },
           ].map(({ icon: Icon, label, sub }) => (
             <div key={label} className="bg-white/80 backdrop-blur-sm border border-gray-100 rounded-2xl px-5 py-3.5 flex items-center gap-3 shadow-sm">
-              <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
-                <Icon className="w-4 h-4 text-blue-600" />
+              <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center">
+                <Icon className="w-4 h-4 text-gray-900" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-800">{label}</p>
@@ -84,7 +84,7 @@ export default function Home() {
             <p className="text-gray-500 text-sm mt-1">Find exactly what you're looking for</p>
           </div>
           <Link href="/catalog">
-            <Button variant="ghost" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            <Button variant="ghost" className="text-gray-900 hover:text-gray-900 text-sm font-medium">
               View all <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
@@ -100,9 +100,9 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             {categories.data?.map((cat) => (
               <Link key={cat.id} href={`/catalog/${cat.slug}`}>
-                <div className="group bg-white border border-gray-100 rounded-2xl p-5 text-center hover:border-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer">
+                <div className="group bg-white border border-gray-100 rounded-2xl p-5 text-center hover:border-gray-300 hover:shadow-md transition-all duration-200 cursor-pointer">
                   <div className="text-3xl mb-3">{CATEGORY_ICONS[cat.slug] ?? "🌿"}</div>
-                  <p className="text-sm font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
+                  <p className="text-sm font-semibold text-gray-800 group-hover:text-gray-900 transition-colors">
                     {cat.name}
                   </p>
                   {cat.description && (
@@ -124,7 +124,7 @@ export default function Home() {
               <p className="text-gray-500 text-sm mt-1">Our most popular selections</p>
             </div>
             <Link href="/catalog">
-              <Button variant="ghost" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              <Button variant="ghost" className="text-gray-900 hover:text-gray-900 text-sm font-medium">
                 See all <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
@@ -175,6 +175,27 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Trust Badges */}
+      <section className="border-t border-gray-100 py-12 bg-white">
+        <div className="container">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
+            {[
+              { img: "/manus-storage/free-shipping_df5d544c.svg", title: "Free Shipping", sub: "On all orders over $50" },
+              { img: "/manus-storage/risk-money-1_4186a7dd.svg", title: "Easy Returns", sub: "30-day return policy" },
+              { img: "/manus-storage/natural-1_162ff9c5.svg", title: "100% Natural", sub: "Hemp-derived ingredients" },
+              { img: "/manus-storage/labtested-1_7cf4af18.svg", title: "Lab Tested", sub: "Every batch verified" },
+            ].map(({ img, title, sub }) => (
+              <div key={title} className="flex flex-col items-center text-center gap-3">
+                <img src={img} alt={title} className="w-20 h-20 object-contain" />
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
       <Footer />
     </div>
   );

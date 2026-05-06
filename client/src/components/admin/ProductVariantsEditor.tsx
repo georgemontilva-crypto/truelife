@@ -89,7 +89,7 @@ export default function ProductVariantsEditor({ productId }: { productId: number
           size="sm"
           variant="outline"
           onClick={() => setShowAdd(true)}
-          className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50 text-xs"
+          className="rounded-xl border-gray-200 text-gray-900 hover:bg-gray-50 text-xs"
         >
           <Plus className="w-3.5 h-3.5 mr-1" /> Add Variant
         </Button>
@@ -117,7 +117,7 @@ export default function ProductVariantsEditor({ productId }: { productId: number
                       <td className="px-2 py-2"><Input value={editRow.compareAtPrice ?? v.compareAtPrice ?? ""} onChange={(e) => setEditRow((r) => ({ ...r, compareAtPrice: e.target.value }))} className="h-7 text-xs rounded-lg" /></td>
                       <td className="px-2 py-2"><Input type="number" value={editRow.inventory ?? v.inventory} onChange={(e) => setEditRow((r) => ({ ...r, inventory: parseInt(e.target.value) || 0 }))} className="h-7 text-xs rounded-lg w-16" /></td>
                       <td className="px-2 py-2">
-                        <input type="checkbox" checked={editRow.isActive ?? v.isActive} onChange={(e) => setEditRow((r) => ({ ...r, isActive: e.target.checked }))} className="w-3.5 h-3.5 accent-blue-600" />
+                        <input type="checkbox" checked={editRow.isActive ?? v.isActive} onChange={(e) => setEditRow((r) => ({ ...r, isActive: e.target.checked }))} className="w-3.5 h-3.5 accent-gray-900" />
                       </td>
                       <td className="px-2 py-2">
                         <div className="flex gap-1">
@@ -140,7 +140,7 @@ export default function ProductVariantsEditor({ productId }: { productId: number
                       </td>
                       <td className="px-3 py-2.5">
                         <div className="flex gap-1">
-                          <button onClick={() => { setEditingId(v.id); setEditRow({}); }} className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"><Pencil className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => { setEditingId(v.id); setEditRow({}); }} className="p-1 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded"><Pencil className="w-3.5 h-3.5" /></button>
                           <button onClick={() => { if (confirm("Delete variant?")) deleteMut.mutate({ id: v.id }); }} className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </td>
@@ -160,8 +160,8 @@ export default function ProductVariantsEditor({ productId }: { productId: number
 
       {/* Add new variant form */}
       {showAdd && (
-        <div className="border border-blue-100 bg-blue-50/30 rounded-xl p-4 space-y-3">
-          <p className="text-xs font-semibold text-blue-700">New Variant</p>
+        <div className="border border-gray-200 bg-gray-50/30 rounded-xl p-4 space-y-3">
+          <p className="text-xs font-semibold text-gray-900">New Variant</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div className="md:col-span-2">
               <Label className="text-xs text-gray-600 mb-1 block">Name *</Label>
@@ -185,7 +185,7 @@ export default function ProductVariantsEditor({ productId }: { productId: number
             </div>
           </div>
           <div className="flex gap-2">
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs" onClick={handleAdd} disabled={createMut.isPending}>
+            <Button size="sm" className="bg-gray-900 hover:bg-black text-white rounded-xl text-xs" onClick={handleAdd} disabled={createMut.isPending}>
               <Check className="w-3.5 h-3.5 mr-1" /> Add Variant
             </Button>
             <Button size="sm" variant="ghost" className="rounded-xl text-xs" onClick={() => { setShowAdd(false); setNewRow({ ...EMPTY_ROW }); }}>

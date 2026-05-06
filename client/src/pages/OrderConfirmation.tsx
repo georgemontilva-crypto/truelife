@@ -7,7 +7,7 @@ import { CheckCircle, Package, ArrowRight } from "lucide-react";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-blue-100 text-blue-700",
+  confirmed: "bg-gray-100 text-gray-900",
   processing: "bg-purple-100 text-purple-700",
   shipped: "bg-indigo-100 text-indigo-700",
   delivered: "bg-green-100 text-green-700",
@@ -63,7 +63,7 @@ export default function OrderConfirmation() {
           <Button variant="outline" className="flex-1 rounded-xl border-gray-200" onClick={() => navigate("/orders")}>
             View All Orders
           </Button>
-          <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={() => navigate("/catalog")}>
+          <Button className="flex-1 bg-gray-900 hover:bg-black text-white rounded-xl" onClick={() => navigate("/catalog")}>
             Continue Shopping <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

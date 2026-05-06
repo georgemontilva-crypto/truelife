@@ -11,8 +11,8 @@ export default function AgeGate() {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-md w-full mx-4 text-center">
         <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center">
-            <ShieldCheck className="w-8 h-8 text-blue-600" />
+          <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center">
+            <ShieldCheck className="w-8 h-8 text-gray-900" />
           </div>
         </div>
         <h1 className="text-2xl font-semibold text-gray-900 mb-2">Age Verification Required</h1>
@@ -26,7 +26,7 @@ export default function AgeGate() {
         <div className="space-y-3">
           <Button
             onClick={verify}
-            className="w-full h-12 text-base font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+            className="w-full h-12 text-base font-medium bg-gray-900 hover:bg-black text-white rounded-xl"
           >
             I am 21 or older — Enter Site
           </Button>
