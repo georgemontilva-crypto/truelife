@@ -100,12 +100,18 @@ export default function ProductDetail() {
   }>;
   const selectedVariant = activeVariants.find((v) => v.id === selectedVariantId) ?? null;
 
-  // Price: use selected variant price if available, otherwise product base price
-  const displayPrice = selectedVariant ? parseFloat(selectedVariant.price) : parseFloat(p.price);
+  // Price display logic
+  const minVariantPrice = activeVariants.length > 0
+    ? Math.min(...activeVariants.map((v) => parseFloat(v.price)))
+    : null;
+  const displayPrice = selectedVariant
+    ? parseFloat(selectedVariant.price)
+    : minVariantPrice ?? parseFloat(p.price);
+  const showFromPrefix = !selectedVariant && activeVariants.length > 0;
   const displayCompareAt = selectedVariant?.compareAtPrice
     ? parseFloat(selectedVariant.compareAtPrice)
     : p.compareAtPrice ? parseFloat(p.compareAtPrice) : null;
-  const hasDiscount = displayCompareAt !== null && displayCompareAt > displayPrice;
+  const hasDiscount = !showFromPrefix && displayCompareAt !== null && displayCompareAt > displayPrice;
   const discountPct = hasDiscount ? Math.round((1 - displayPrice / displayCompareAt!) * 100) : 0;
 
   // Stock: use selected variant inventory if available
@@ -174,17 +180,28 @@ export default function ProductDetail() {
 
               {/* Price */}
               <div className="flex flex-wrap items-baseline gap-2 mb-3">
-                <span className="text-2xl md:text-3xl font-bold text-gray-900">
-                  ${displayPrice.toFixed(2)}
-                </span>
-                {hasDiscount && (
+                {showFromPrefix ? (
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-base font-medium text-gray-500">From</span>
+                    <span className="text-2xl md:text-3xl font-bold text-gray-900">
+                      ${displayPrice.toFixed(2)}
+                    </span>
+                  </div>
+                ) : (
                   <>
-                    <span className="text-base md:text-lg text-gray-400 line-through">
-                      ${displayCompareAt!.toFixed(2)}
+                    <span className="text-2xl md:text-3xl font-bold text-gray-900">
+                      ${displayPrice.toFixed(2)}
                     </span>
-                    <span className="text-sm font-semibold text-red-500 bg-red-50 px-2 py-0.5 rounded-lg">
-                      -{discountPct}% OFF
-                    </span>
+                    {hasDiscount && (
+                      <>
+                        <span className="text-base md:text-lg text-gray-400 line-through">
+                          ${displayCompareAt!.toFixed(2)}
+                        </span>
+                        <span className="text-sm font-semibold text-red-500 bg-red-50 px-2 py-0.5 rounded-lg">
+                          -{discountPct}% OFF
+                        </span>
+                      </>
+                    )}
                   </>
                 )}
               </div>

@@ -35,14 +35,14 @@ const EMPTY_NEW = {
 
 const DEFAULT_WEIGHTS = ["1g", "3.5g", "7g", "14g", "28g"];
 
-type WeightRow = { weight: string; checked: boolean; price: string; inventory: number };
+type WeightRow = { weight: string; checked: boolean; price: string; inStock: boolean };
 type BulkState = { strainName: string; image: ImageDraft | null; weights: WeightRow[] };
 
 function defaultBulk(): BulkState {
   return {
     strainName: "",
     image: null,
-    weights: DEFAULT_WEIGHTS.map((w) => ({ weight: w, checked: false, price: "", inventory: 0 })),
+    weights: DEFAULT_WEIGHTS.map((w) => ({ weight: w, checked: false, price: "", inStock: true })),
   };
 }
 
@@ -272,7 +272,7 @@ function BulkStrainPanel({
           productId,
           name: `${bulk.strainName.trim()} - ${w.weight}`,
           price: w.price,
-          inventory: w.inventory,
+          inventory: w.inStock ? 999 : 0,
           isActive: true,
           sortOrder: sortOffset + i,
           ...(bulk.image ? {
@@ -355,16 +355,17 @@ function BulkStrainPanel({
                       className="h-7 pl-5 text-xs rounded-lg"
                     />
                   </div>
-                  <div className="flex items-center gap-1 w-28 shrink-0">
-                    <Input
-                      type="number"
-                      value={row.inventory}
-                      onChange={(e) => updateWeight(row.weight, { inventory: parseInt(e.target.value) || 0 })}
-                      placeholder="0"
-                      className="h-7 text-xs rounded-lg w-16"
+                  <label className="flex items-center gap-1.5 cursor-pointer select-none w-24 shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={row.inStock}
+                      onChange={(e) => updateWeight(row.weight, { inStock: e.target.checked })}
+                      className="w-4 h-4 accent-gray-900 rounded"
                     />
-                    <span className="text-xs text-gray-400">stock</span>
-                  </div>
+                    <span className={`text-xs font-medium ${row.inStock ? "text-green-600" : "text-gray-400"}`}>
+                      {row.inStock ? "In Stock" : "No Stock"}
+                    </span>
+                  </label>
                 </div>
               </div>
             ))}

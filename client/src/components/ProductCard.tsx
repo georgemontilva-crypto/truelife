@@ -35,6 +35,14 @@ export default function ProductCard({ product }: { product: Product }) {
   });
 
   const utils = trpc.useUtils();
+  const { data: variantsList = [] } = trpc.productVariants.list.useQuery(
+    { productId: product.id },
+    { staleTime: 5 * 60 * 1000 }
+  );
+  const minVariantPrice = variantsList.length > 0
+    ? Math.min(...variantsList.filter((v) => v.isActive).map((v) => parseFloat(v.price)))
+    : null;
+  const showFromPrice = minVariantPrice !== null && isFinite(minVariantPrice);
   const { data: wishlistData } = trpc.wishlist.list.useQuery(undefined, { enabled: isAuthenticated });
   const isWishlisted = wishlistData?.some((w: any) => w.productId === product.id) ?? false;
 
@@ -124,11 +132,20 @@ export default function ProductCard({ product }: { product: Product }) {
 
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-sm md:text-base font-bold text-gray-900">${parseFloat(product.price).toFixed(2)}</span>
-              {hasDiscount && (
-                <span className="text-xs text-gray-400 line-through ml-2">
-                  ${parseFloat(product.compareAtPrice!).toFixed(2)}
-                </span>
+              {showFromPrice ? (
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">From</span>
+                  <span className="text-sm md:text-base font-bold text-gray-900">${minVariantPrice!.toFixed(2)}</span>
+                </div>
+              ) : (
+                <>
+                  <span className="text-sm md:text-base font-bold text-gray-900">${parseFloat(product.price).toFixed(2)}</span>
+                  {hasDiscount && (
+                    <span className="text-xs text-gray-400 line-through ml-2">
+                      ${parseFloat(product.compareAtPrice!).toFixed(2)}
+                    </span>
+                  )}
+                </>
               )}
             </div>
 
