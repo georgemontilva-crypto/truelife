@@ -237,12 +237,12 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             {(categories.data ?? []).map((cat) => (
-              <Link key={cat.id} href={`/catalog?category=${cat.id}`}>
+              <Link key={cat.id} href={`/catalog/${cat.slug}`}>
                 <div className="group relative overflow-hidden rounded-2xl cursor-pointer aspect-[3/4] md:aspect-[3/4]">
-                  {(cat as any).imageUrl ? (
+                  {cat.imageUrl ? (
                     <>
                       <img
-                        src={(cat as any).imageUrl}
+                        src={cat.imageUrl}
                         alt={cat.name}
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />

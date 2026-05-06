@@ -410,7 +410,7 @@ export async function createOrder(data: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
-  await db.insert(orders).values({
+  const [insertResult] = await db.insert(orders).values({
     userId: data.userId,
     subtotal: data.subtotal,
     shippingCost: data.shippingCost,
@@ -418,13 +418,9 @@ export async function createOrder(data: {
     shippingAddress: data.shippingAddress,
     notes: data.notes,
   });
+  const orderId = (insertResult as any).insertId as number;
   const order = (
-    await db
-      .select()
-      .from(orders)
-      .where(eq(orders.userId, data.userId))
-      .orderBy(desc(orders.createdAt))
-      .limit(1)
+    await db.select().from(orders).where(eq(orders.id, orderId)).limit(1)
   )[0]!;
   await db.insert(orderItems).values(
     data.items.map((item) => ({ ...item, orderId: order.id }))
@@ -469,7 +465,13 @@ export async function getAllOrders() {
     .from(orders)
     .leftJoin(users, eq(orders.userId, users.id))
     .orderBy(desc(orders.createdAt));
-  return allOrders;
+
+  const result = [];
+  for (const order of allOrders) {
+    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, order.id));
+    result.push({ ...order, items });
+  }
+  return result;
 }
 
 export async function getOrderById(id: number) {
@@ -662,7 +664,6 @@ export async function createLocalUser(data: {
   if (!db) throw new Error("DB unavailable");
   const [result] = await db.insert(users).values({
     ...data,
-    openId: null as any,
     loginMethod: "email",
     emailVerified: false,
     lastSignedIn: new Date(),

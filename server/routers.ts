@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { COOKIE_NAME } from "@shared/const";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -47,7 +48,7 @@ import {
 import { notifyOwner } from "./_core/notification";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { storagePut } from "./storage";
 import { sdk } from "./_core/sdk";
 import { sendVerificationEmail } from "./_core/email";
@@ -66,14 +67,6 @@ import {
   isInWishlist,
 } from "./db";
 
-// ─── Admin guard ──────────────────────────────────────────────────────────────
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
-  }
-  return next({ ctx });
-});
-
 // ─── App Router ───────────────────────────────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
@@ -91,7 +84,7 @@ export const appRouter = router({
         const existing = await getUserByEmail(input.email);
         if (existing) throw new TRPCError({ code: "CONFLICT", message: "Email already registered" });
         const passwordHash = await bcrypt.hash(input.password, 12);
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const code = randomInt(100000, 1000000).toString();
         const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 min
         const { id } = await createLocalUser({
           name: input.name,
@@ -133,7 +126,7 @@ export const appRouter = router({
         const user = await getUserByEmail(input.email);
         if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
         if (user.emailVerified) throw new TRPCError({ code: "BAD_REQUEST", message: "Email already verified" });
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const code = randomInt(100000, 1000000).toString();
         const expiry = new Date(Date.now() + 15 * 60 * 1000);
         await setEmailVerifyToken(user.id, code, expiry);
         await sendVerificationEmail(input.email, user.name || "there", code);

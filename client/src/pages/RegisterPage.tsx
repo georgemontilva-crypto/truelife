@@ -15,6 +15,11 @@ export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
   const [done, setDone] = useState(false);
 
+  const resend = trpc.auth.resendVerification.useMutation({
+    onSuccess: () => navigate(`/verify-email?email=${encodeURIComponent(form.email)}`),
+    onError: (err) => toast.error(err.message || "Failed to resend code"),
+  });
+
   const register = trpc.auth.register.useMutation({
     onSuccess: (data) => {
       setDone(true);
@@ -56,13 +61,11 @@ export default function RegisterPage() {
           <p className="text-sm text-gray-400 mt-4">
             Didn't receive it?{" "}
             <button
-              className="text-gray-700 underline"
-              onClick={() => {
-                sessionStorage.setItem("verify_email", form.email);
-                navigate(`/verify-email?email=${encodeURIComponent(form.email)}`);
-              }}
+              className="text-gray-700 underline disabled:opacity-50"
+              disabled={resend.isPending}
+              onClick={() => resend.mutate({ email: form.email })}
             >
-              Resend code
+              {resend.isPending ? "Sending..." : "Resend code"}
             </button>
           </p>
         </div>

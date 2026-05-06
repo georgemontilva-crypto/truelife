@@ -51,15 +51,22 @@ export default function AccountPage() {
   });
 
   const [profileForm, setProfileForm] = useState({ name: "", phone: "" });
+  const [passForm, setPassForm] = useState({ currentPassword: "", newPassword: "", confirm: "" });
+  const [showPass, setShowPass] = useState(false);
+
+  // Redirect if not authenticated — must be before any conditional returns
+  useEffect(() => {
+    if (!userLoading && !user) {
+      navigate("/login?returnTo=/account");
+    }
+  }, [userLoading, user]);
 
   // Sync form when user data loads
   useEffect(() => {
     if (user) {
-      setProfileForm({ name: user.name || "", phone: (user as any)?.phone || "" });
+      setProfileForm({ name: user.name || "", phone: user.phone || "" });
     }
-  }, [user?.name, (user as any)?.phone]);
-  const [passForm, setPassForm] = useState({ currentPassword: "", newPassword: "", confirm: "" });
-  const [showPass, setShowPass] = useState(false);
+  }, [user?.name, user?.phone]);
 
   const updateProfile = trpc.auth.updateProfile.useMutation({
     onSuccess: () => {
@@ -89,13 +96,7 @@ export default function AccountPage() {
     );
   }
 
-  useEffect(() => {
-    if (!userLoading && !user) {
-      navigate("/login?returnTo=/account");
-    }
-  }, [userLoading, user]);
-
-  if (!userLoading && !user) return null;
+  if (!user) return null;
 
   const tabs = [
     { id: "orders" as Tab, label: "My Orders", icon: ShoppingBag },
@@ -168,7 +169,7 @@ export default function AccountPage() {
                     <Package className="w-12 h-12 text-gray-200 mx-auto mb-4" />
                     <p className="text-gray-500 font-medium">No orders yet</p>
                     <p className="text-gray-400 text-sm mt-1 mb-6">Your orders will appear here once you make a purchase.</p>
-                    <Link href="/shop">
+                    <Link href="/catalog">
                       <Button className="bg-gray-900 hover:bg-black text-white rounded-xl">Shop Now</Button>
                     </Link>
                   </div>
@@ -223,7 +224,7 @@ export default function AccountPage() {
                     <Heart className="w-12 h-12 text-gray-200 mx-auto mb-4" />
                     <p className="text-gray-500 font-medium">Your wishlist is empty</p>
                     <p className="text-gray-400 text-sm mt-1 mb-6">Save products you love to find them easily later.</p>
-                    <Link href="/shop">
+                    <Link href="/catalog">
                       <Button className="bg-gray-900 hover:bg-black text-white rounded-xl">Browse Products</Button>
                     </Link>
                   </div>
@@ -234,7 +235,7 @@ export default function AccountPage() {
                       if (!p) return null;
                       return (
                         <div key={item.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden group">
-                          <Link href={`/products/${p.slug || p.id}`}>
+                          <Link href={`/product/${p.id}`}>
                             <div className="aspect-square bg-gray-50 overflow-hidden">
                               {p.imageUrl ? (
                                 <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -244,7 +245,7 @@ export default function AccountPage() {
                             </div>
                           </Link>
                           <div className="p-4">
-                            <Link href={`/products/${p.slug || p.id}`}>
+                            <Link href={`/product/${p.id}`}>
                               <h3 className="font-semibold text-gray-900 hover:underline text-sm mb-1">{p.name}</h3>
                             </Link>
                             <div className="flex items-center justify-between">

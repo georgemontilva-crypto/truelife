@@ -66,7 +66,7 @@ export default function AdminOrders() {
                       <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Items</p>
                         <div className="space-y-2">
-                          {(order as any).items?.map((item: any) => (
+                          {order.items?.map((item) => (
                             <div key={item.id as number} className="flex justify-between text-sm">
                               <span className="text-gray-700">{item.productName} × {item.quantity}</span>
                               <span className="font-medium text-gray-900">${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
