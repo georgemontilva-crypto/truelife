@@ -251,18 +251,17 @@ export async function createProduct(data: {
   compareAtPrice?: string;
   imageUrl?: string;
   imageKey?: string;
-  variants?: { label: string; options: string[] }[];
   inventory?: number;
   isActive?: boolean;
   isFeatured?: boolean;
   thcContent?: string;
   cbdContent?: string;
   weight?: string;
-  labReportUrl?: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
-  await db.insert(products).values(data);
+  const [result] = await db.insert(products).values(data);
+  return { id: result.insertId };
 }
 
 export async function updateProduct(
@@ -276,7 +275,6 @@ export async function updateProduct(
     compareAtPrice: string;
     imageUrl: string;
     imageKey: string;
-    variants: { label: string; options: string[] }[];
     inventory: number;
     isActive: boolean;
     isFeatured: boolean;

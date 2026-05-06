@@ -64,8 +64,6 @@ export const products = mysqlTable("products", {
   compareAtPrice: decimal("compareAtPrice", { precision: 10, scale: 2 }),
   imageUrl: text("imageUrl"),
   imageKey: text("imageKey"),
-  // variants stored as JSON: [{label: "Flavor", options: ["Lemon", "Berry"]}]
-  variants: json("variants").$type<{ label: string; options: string[] }[]>(),
   inventory: int("inventory").default(0).notNull(),
   isActive: boolean("isActive").default(true).notNull(),
   isFeatured: boolean("isFeatured").default(false).notNull(),

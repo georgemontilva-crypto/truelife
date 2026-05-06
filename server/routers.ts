@@ -283,16 +283,12 @@ export const appRouter = router({
           compareAtPrice: z.string().optional(),
           imageUrl: z.string().optional(),
           imageKey: z.string().optional(),
-          variants: z
-            .array(z.object({ label: z.string(), options: z.array(z.string()) }))
-            .optional(),
           inventory: z.number().optional(),
           isActive: z.boolean().optional(),
           isFeatured: z.boolean().optional(),
           thcContent: z.string().optional(),
           cbdContent: z.string().optional(),
           weight: z.string().optional(),
-          labReportUrl: z.string().optional(),
         })
       )
       .mutation(({ input }) => createProduct(input)),
@@ -309,9 +305,6 @@ export const appRouter = router({
           compareAtPrice: z.string().optional(),
           imageUrl: z.string().optional(),
           imageKey: z.string().optional(),
-          variants: z
-            .array(z.object({ label: z.string(), options: z.array(z.string()) }))
-            .optional(),
           inventory: z.number().optional(),
           isActive: z.boolean().optional(),
           isFeatured: z.boolean().optional(),
