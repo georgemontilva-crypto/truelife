@@ -560,17 +560,17 @@ export const appRouter = router({
     listAll: publicProcedure.query(() => getAllLabReports()),
     uploadAndCreate: adminProcedure
       .input(z.object({
-        productId: z.number().optional(),
-        category: z.string().optional(),
-        variantId: z.number().optional(),
-        variantName: z.string().optional(),
+        category: z.string().min(1),
         reportName: z.string().min(1),
-        batchNumber: z.string().optional(),
-        title: z.string().optional(),
-        testedAt: z.string().optional(),
         filename: z.string(),
         contentType: z.string(),
         base64: z.string(),
+        productId: z.number().optional(),
+        variantId: z.number().optional(),
+        variantName: z.string().optional(),
+        batchNumber: z.string().optional(),
+        title: z.string().optional(),
+        testedAt: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64, "base64");
