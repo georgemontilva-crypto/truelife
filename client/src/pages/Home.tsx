@@ -7,7 +7,7 @@ import CartDrawer from "@/components/CartDrawer";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, FlaskConical, Leaf, Star, Shield, Award, Users, Zap } from "lucide-react";
+import { ArrowRight, FlaskConical, Leaf, Star, Shield, Award, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -22,7 +22,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 function HeroBannerSlider() {
   const { data: banners, isLoading } = trpc.banners.list.useQuery();
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
-    Autoplay({ delay: 5000, stopOnInteraction: false }),
+    Autoplay({ delay: 5500, stopOnInteraction: false }),
   ]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
@@ -40,57 +40,65 @@ function HeroBannerSlider() {
     return () => { emblaApi.off("select", onSelect); };
   }, [emblaApi, onSelect]);
 
-  const scrollTo = useCallback(
-    (index: number) => emblaApi && emblaApi.scrollTo(index),
-    [emblaApi]
-  );
+  const scrollTo = useCallback((index: number) => emblaApi && emblaApi.scrollTo(index), [emblaApi]);
+  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
+
+  if (isLoading) {
+    return <div className="w-full h-[480px] md:h-[600px] bg-gray-900 animate-pulse" />;
+  }
 
   // Fallback static hero if no banners
-  if (!isLoading && (!banners || banners.length === 0)) {
+  if (!banners || banners.length === 0) {
     return (
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-gray-50/30 to-white">
-        <div className="container py-12 md:py-28">
+      <section className="relative overflow-hidden bg-gray-950 min-h-[480px] md:min-h-[600px] flex items-center">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-30"
+          style={{ backgroundImage: "url('/manus-storage/banner1-cannabis-bud_b82f9e57.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/80 to-gray-950/30" />
+        <div className="relative container py-16 md:py-28">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-gray-50 text-gray-900 text-xs font-semibold px-3 py-1.5 rounded-full mb-5 border border-gray-200">
+            <div className="inline-flex items-center gap-2 bg-white/10 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-6 border border-white/20 backdrop-blur-sm">
               <Shield className="w-3.5 h-3.5" />
               Lab-Tested · ≤0.3% Δ9THC · FDA Compliant
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 leading-tight tracking-tight mb-5">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-white leading-tight tracking-tight mb-6">
               Premium Hemp
-              <span className="block text-gray-900">Products</span>
+              <span className="block text-gray-400">Products</span>
             </h1>
-            <p className="text-lg text-gray-500 leading-relaxed mb-7 max-w-xl">
-              Pharmaceutical-grade hemp-derived products. Every batch lab-tested for purity, potency, and compliance. Expect the best.
+            <p className="text-lg text-gray-300 leading-relaxed mb-8 max-w-xl">
+              Pharmaceutical-grade hemp-derived products. Every batch lab-tested for purity, potency, and compliance.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link href="/catalog">
-                <Button className="h-11 md:h-12 px-6 md:px-8 bg-gray-900 hover:bg-black text-white rounded-xl font-medium">
+                <Button className="h-12 px-8 bg-white text-gray-900 hover:bg-gray-100 rounded-xl font-semibold text-base">
                   Shop Now
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
               <Link href="/catalog">
-                <Button variant="ghost" className="h-11 md:h-12 px-5 md:px-6 text-gray-600 hover:text-gray-900 font-medium">
+                <Button variant="ghost" className="h-12 px-6 text-white hover:text-white hover:bg-white/10 font-medium text-base">
                   View Catalog
                 </Button>
               </Link>
             </div>
           </div>
         </div>
-        <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-gray-50/50 to-transparent hidden lg:block pointer-events-none" />
-        <div className="absolute right-16 top-1/2 -translate-y-1/2 hidden lg:flex flex-col gap-4">
+        {/* Floating badges */}
+        <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-3">
           {[
             { icon: FlaskConical, label: "Lab Tested", sub: "Every batch" },
             { icon: Leaf, label: "Hemp Derived", sub: "≤0.3% THC" },
             { icon: Star, label: "5-Star Rated", sub: "500+ reviews" },
           ].map(({ icon: Icon, label, sub }) => (
-            <div key={label} className="bg-white/80 backdrop-blur-sm border border-gray-100 rounded-2xl px-5 py-3.5 flex items-center gap-3 shadow-sm">
-              <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center">
-                <Icon className="w-4 h-4 text-gray-900" />
+            <div key={label} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-5 py-3.5 flex items-center gap-3">
+              <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
+                <Icon className="w-4 h-4 text-white" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-800">{label}</p>
-                <p className="text-xs text-gray-500">{sub}</p>
+                <p className="text-sm font-semibold text-white">{label}</p>
+                <p className="text-xs text-gray-400">{sub}</p>
               </div>
             </div>
           ))}
@@ -99,51 +107,47 @@ function HeroBannerSlider() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="w-full h-[400px] md:h-[560px] bg-gray-100 animate-pulse" />
-    );
-  }
-
   return (
     <section className="relative overflow-hidden">
-      {/* Embla viewport */}
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
-          {(banners ?? []).map((banner) => (
+          {banners.map((banner) => (
             <div
               key={banner.id}
-              className="relative flex-none w-full h-[400px] md:h-[560px] lg:h-[640px]"
+              className="relative flex-none w-full h-[480px] md:h-[600px] lg:h-[680px]"
             >
-              {/* Background image */}
               <img
                 src={banner.imageUrl}
                 alt={banner.title ?? "Banner"}
                 className="absolute inset-0 w-full h-full object-cover"
               />
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-              {/* Content */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/10" />
               <div className="relative h-full flex items-center">
                 <div className="container">
-                  <div className="max-w-xl text-white">
+                  <div className="max-w-2xl text-white">
+                    <div className="inline-flex items-center gap-2 bg-white/10 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-6 border border-white/20 backdrop-blur-sm">
+                      <Shield className="w-3.5 h-3.5" />
+                      Lab-Tested · ≤0.3% Δ9THC · FDA Compliant
+                    </div>
                     {banner.title && (
-                      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-4">
+                      <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight mb-5">
                         {banner.title}
                       </h1>
                     )}
                     {banner.subtitle && (
-                      <p className="text-base md:text-lg text-white/80 leading-relaxed mb-7">
+                      <p className="text-lg text-white/75 leading-relaxed mb-8 max-w-xl">
                         {banner.subtitle}
                       </p>
                     )}
                     {banner.linkUrl && (
-                      <Link href={banner.linkUrl}>
-                        <Button className="h-11 md:h-12 px-6 md:px-8 bg-white text-gray-900 hover:bg-gray-100 rounded-xl font-semibold">
-                          {banner.linkText || "Shop Now"}
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </Link>
+                      <div className="flex flex-wrap gap-3">
+                        <Link href={banner.linkUrl}>
+                          <Button className="h-12 px-8 bg-white text-gray-900 hover:bg-gray-100 rounded-xl font-semibold text-base">
+                            {banner.linkText || "Shop Now"}
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </Button>
+                        </Link>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -153,17 +157,37 @@ function HeroBannerSlider() {
         </div>
       </div>
 
-      {/* Dots navigation */}
+      {/* Prev/Next arrows */}
+      {banners.length > 1 && (
+        <>
+          <button
+            onClick={scrollPrev}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/10 hover:bg-white/25 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center transition-all"
+            aria-label="Previous slide"
+          >
+            <ChevronLeft className="w-5 h-5 text-white" />
+          </button>
+          <button
+            onClick={scrollNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/10 hover:bg-white/25 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center transition-all"
+            aria-label="Next slide"
+          >
+            <ChevronRight className="w-5 h-5 text-white" />
+          </button>
+        </>
+      )}
+
+      {/* Dots */}
       {scrollSnaps.length > 1 && (
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
           {scrollSnaps.map((_, index) => (
             <button
               key={index}
               onClick={() => scrollTo(index)}
               className={`transition-all duration-300 rounded-full ${
                 index === selectedIndex
-                  ? "w-6 h-2 bg-white"
-                  : "w-2 h-2 bg-white/50 hover:bg-white/80"
+                  ? "w-7 h-2.5 bg-white"
+                  : "w-2.5 h-2.5 bg-white/40 hover:bg-white/70"
               }`}
               aria-label={`Go to slide ${index + 1}`}
             />
@@ -188,14 +212,14 @@ export default function Home() {
       <HeroBannerSlider />
 
       {/* Categories */}
-      <section className="container py-16">
-        <div className="flex items-center justify-between mb-8">
+      <section className="container py-16 md:py-20">
+        <div className="flex items-center justify-between mb-10">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Shop by Category</h2>
-            <p className="text-gray-500 text-sm mt-1">Find exactly what you're looking for</p>
+            <h2 className="text-3xl font-bold text-gray-900">Shop by Category</h2>
+            <p className="text-gray-500 mt-1">Find exactly what you're looking for</p>
           </div>
           <Link href="/catalog">
-            <Button variant="ghost" className="text-gray-900 hover:text-gray-900 text-sm font-medium">
+            <Button variant="ghost" className="text-gray-700 hover:text-gray-900 font-medium">
               View all <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
@@ -203,40 +227,37 @@ export default function Home() {
         {categories.isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-28 bg-gray-100 rounded-2xl animate-pulse" />
+              <div key={i} className="h-40 bg-gray-100 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             {(categories.data ?? []).map((cat) => (
               <Link key={cat.id} href={`/catalog?category=${cat.id}`}>
-                <div className="group relative overflow-hidden rounded-2xl border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all duration-200 cursor-pointer bg-gray-50 aspect-[4/3] flex flex-col items-center justify-center text-center p-4">
-                  {/* Category image */}
+                <div className="group relative overflow-hidden rounded-2xl cursor-pointer aspect-[3/4] md:aspect-[3/4]">
                   {(cat as any).imageUrl ? (
                     <>
                       <img
                         src={(cat as any).imageUrl}
                         alt={cat.name}
-                        className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-200"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/10" />
-                      <div className="relative z-10 text-white">
-                        <p className="text-sm font-semibold">{cat.name}</p>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <p className="text-sm font-bold text-white">{cat.name}</p>
                         {cat.description && (
-                          <p className="text-xs text-white/70 mt-1 line-clamp-1">{cat.description}</p>
+                          <p className="text-xs text-white/60 mt-0.5 line-clamp-1">{cat.description}</p>
                         )}
                       </div>
                     </>
                   ) : (
-                    <>
+                    <div className="absolute inset-0 bg-gray-50 border border-gray-100 flex flex-col items-center justify-center p-4 hover:border-gray-300 hover:shadow-md transition-all">
                       <div className="text-3xl mb-3">{CATEGORY_ICONS[cat.slug] ?? "🌿"}</div>
-                      <p className="text-sm font-semibold text-gray-800 group-hover:text-gray-900 transition-colors">
-                        {cat.name}
-                      </p>
+                      <p className="text-sm font-semibold text-gray-800">{cat.name}</p>
                       {cat.description && (
                         <p className="text-xs text-gray-400 mt-1 line-clamp-1">{cat.description}</p>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
               </Link>
@@ -246,15 +267,15 @@ export default function Home() {
       </section>
 
       {/* Featured Products */}
-      <section className="bg-gray-50/50 py-16">
+      <section className="bg-gray-950 py-16 md:py-20">
         <div className="container">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-10">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Featured Products</h2>
-              <p className="text-gray-500 text-sm mt-1">Our most popular selections</p>
+              <h2 className="text-3xl font-bold text-white">Featured Products</h2>
+              <p className="text-gray-400 mt-1">Our most popular selections</p>
             </div>
             <Link href="/catalog">
-              <Button variant="ghost" className="text-gray-900 hover:text-gray-900 text-sm font-medium">
+              <Button variant="ghost" className="text-gray-300 hover:text-white font-medium">
                 See all <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
@@ -262,7 +283,7 @@ export default function Home() {
           {featured.isLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-72 bg-gray-100 rounded-2xl animate-pulse" />
+                <div key={i} className="h-72 bg-gray-800 rounded-2xl animate-pulse" />
               ))}
             </div>
           ) : featured.data && featured.data.length > 0 ? (
@@ -272,7 +293,7 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-gray-500">
               <p>No featured products yet. Check back soon!</p>
             </div>
           )}
@@ -280,30 +301,51 @@ export default function Home() {
       </section>
 
       {/* About Us */}
-      <section className="py-20 bg-white" id="about">
+      <section className="py-20 md:py-28 bg-white" id="about">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            {/* Image */}
+            <div className="relative order-2 lg:order-1">
+              <div className="relative rounded-3xl overflow-hidden aspect-[4/3]">
+                <img
+                  src="/manus-storage/banner2-cannabis-dark_1f0b32b8.jpg"
+                  alt="About Chronic Hemp"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent" />
+              </div>
+              {/* Floating stat card */}
+              <div className="absolute -bottom-6 -right-4 md:-right-8 bg-white rounded-2xl shadow-xl border border-gray-100 px-6 py-4 flex items-center gap-4">
+                <div className="w-12 h-12 bg-gray-950 rounded-xl flex items-center justify-center shrink-0">
+                  <FlaskConical className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">100%</p>
+                  <p className="text-xs text-gray-500">Lab Verified</p>
+                </div>
+              </div>
+            </div>
             {/* Text */}
-            <div>
-              <div className="inline-flex items-center gap-2 bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5 border border-gray-200">
+            <div className="order-1 lg:order-2">
+              <div className="inline-flex items-center gap-2 bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6 border border-gray-200">
                 <Leaf className="w-3.5 h-3.5" />
                 Our Story
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-5">
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6">
                 Expect the Best.<br />
-                <span className="text-gray-500">Always.</span>
+                <span className="text-gray-400">Always.</span>
               </h2>
-              <p className="text-gray-600 leading-relaxed mb-5">
+              <p className="text-gray-600 leading-relaxed mb-5 text-base">
                 At Chronic Hemp Co., we believe that quality is non-negotiable. Founded with a passion for clean, effective hemp wellness, we set out to create products that meet the highest pharmaceutical standards — because you deserve nothing less.
               </p>
-              <p className="text-gray-600 leading-relaxed mb-8">
+              <p className="text-gray-600 leading-relaxed mb-8 text-base">
                 Every product in our lineup is crafted from federally compliant, farm-bill-approved hemp. We partner with certified labs to verify potency and purity on every single batch, so you can shop with complete confidence.
               </p>
               <div className="grid grid-cols-3 gap-4 mb-8">
                 {[
                   { value: "500+", label: "Happy Customers" },
                   { value: "100%", label: "Lab Verified" },
-                  { value: "≤0.3%", label: "Δ9THC Compliant" },
+                  { value: "≤0.3%", label: "Δ9THC" },
                 ].map(({ value, label }) => (
                   <div key={label} className="text-center p-4 bg-gray-50 rounded-2xl border border-gray-100">
                     <p className="text-2xl font-bold text-gray-900">{value}</p>
@@ -311,80 +353,69 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+              <div className="grid grid-cols-2 gap-3 mb-8">
+                {[
+                  { icon: FlaskConical, title: "Pharmaceutical Grade", desc: "GMP-compliant manufacturing." },
+                  { icon: Shield, title: "Federally Compliant", desc: "2018 Farm Bill approved." },
+                  { icon: Award, title: "Third-Party Tested", desc: "COAs available for every batch." },
+                  { icon: Users, title: "Customer First", desc: "30-day returns & free shipping." },
+                ].map(({ icon: Icon, title, desc }) => (
+                  <div key={title} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                      <Icon className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
               <Link href="/catalog">
-                <Button className="h-11 px-7 bg-gray-900 hover:bg-black text-white rounded-xl font-medium">
+                <Button className="h-12 px-8 bg-gray-900 hover:bg-black text-white rounded-xl font-semibold">
                   Explore Our Products
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
-            </div>
-            {/* Values grid */}
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                {
-                  icon: FlaskConical,
-                  title: "Pharmaceutical Grade",
-                  desc: "Manufactured in GMP-compliant facilities with strict quality controls.",
-                },
-                {
-                  icon: Shield,
-                  title: "Federally Compliant",
-                  desc: "All products contain ≤0.3% Δ9THC and comply with the 2018 Farm Bill.",
-                },
-                {
-                  icon: Award,
-                  title: "Third-Party Tested",
-                  desc: "Independent lab reports available for every product batch.",
-                },
-                {
-                  icon: Users,
-                  title: "Customer First",
-                  desc: "24/7 support, 30-day returns, and free shipping on orders over $50.",
-                },
-              ].map(({ icon: Icon, title, desc }) => (
-                <div
-                  key={title}
-                  className="bg-gray-50 border border-gray-100 rounded-2xl p-5 hover:border-gray-200 hover:shadow-sm transition-all duration-200"
-                >
-                  <div className="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center mb-3 shadow-sm">
-                    <Icon className="w-5 h-5 text-gray-900" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-1">{title}</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
-                </div>
-              ))}
             </div>
           </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section className="container py-16">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl font-bold text-gray-900">Hear From Our Clients</h2>
-          <p className="text-gray-500 text-sm mt-2">See what our satisfied customers have to say</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { name: "Walter Avendaño", text: "I can't believe how well this delta 8 CBD product works! I've been dealing with constant joint pains for years, and after trying so many things without success, I finally found something that has truly helped." },
-            { name: "Juan Pinzon", text: "After a long day at work, I needed something to unwind and disconnect. I decided to try out the delta 8 THC product from this store, and it didn't disappoint at all." },
-            { name: "Ivan Ramirez", text: "I've tried various CBD and delta 8 products in the past, but none of them compare to the flavor of the products from this store. I was amazed by how delicious it was." },
-          ].map(({ name, text }) => (
-            <div key={name} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-              <div className="flex gap-1 mb-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                ))}
+      <section className="bg-gray-50 py-16 md:py-20">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900">Hear From Our Clients</h2>
+            <p className="text-gray-500 mt-2">See what our satisfied customers have to say</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { name: "Walter Avendaño", text: "I can't believe how well this delta 8 CBD product works! I've been dealing with constant joint pains for years, and after trying so many things without success, I finally found something that has truly helped." },
+              { name: "Juan Pinzon", text: "After a long day at work, I needed something to unwind and disconnect. I decided to try out the delta 8 THC product from this store, and it didn't disappoint at all." },
+              { name: "Ivan Ramirez", text: "I've tried various CBD and delta 8 products in the past, but none of them compare to the flavor of the products from this store. I was amazed by how delicious it was." },
+            ].map(({ name, text }) => (
+              <div key={name} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex gap-1 mb-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed mb-5">"{text}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">{name[0]}</span>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-800">{name}</p>
+                </div>
               </div>
-              <p className="text-sm text-gray-600 leading-relaxed mb-4">"{text}"</p>
-              <p className="text-sm font-semibold text-gray-800">— {name}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Trust Badges */}
-      <section className="border-t border-gray-100 py-12 bg-white">
+      <section className="border-t border-gray-100 py-14 bg-white">
         <div className="container">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
             {[
@@ -394,7 +425,7 @@ export default function Home() {
               { img: "/manus-storage/labtested-1_7cf4af18.svg", title: "Lab Tested", sub: "Every batch verified" },
             ].map(({ img, title, sub }) => (
               <div key={title} className="flex flex-col items-center text-center gap-3">
-                <img src={img} alt={title} className="w-20 h-20 object-contain" />
+                <img src={img} alt={title} className="w-16 h-16 md:w-20 md:h-20 object-contain" />
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{title}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
