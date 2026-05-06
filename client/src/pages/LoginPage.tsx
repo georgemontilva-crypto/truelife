@@ -12,16 +12,20 @@ import Footer from "@/components/Footer";
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const params = new URLSearchParams(window.location.search);
-  const returnTo = params.get("returnTo") || "/account";
+  const returnTo = params.get("returnTo"); // null if not explicitly set
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPass, setShowPass] = useState(false);
   const utils = trpc.useUtils();
 
   const login = trpc.auth.login.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       utils.auth.me.invalidate();
       toast.success("Welcome back!");
-      navigate(returnTo);
+      if (data.user?.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate(returnTo || "/");
+      }
     },
     onError: (err) => {
       if (err.message.includes("verify your email")) {
