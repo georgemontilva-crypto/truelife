@@ -1,26 +1,26 @@
 import { Link } from "wouter";
-import { FlaskConical } from "lucide-react";
 
 export default function Footer() {
   return (
     <footer className="bg-gray-50 border-t border-gray-100 mt-20">
-      {/* Trust badges */}
+      {/* As Seen In */}
       <div className="border-b border-gray-100">
         <div className="container py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest text-center mb-6">As Seen In</p>
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
             {[
-              { img: "/manus-storage/free-shipping_df5d544c.svg", title: "Free Shipping", desc: "On all orders over $50" },
-              { img: "/manus-storage/risk-money-1_4186a7dd.svg", title: "Easy Returns", desc: "30-day return policy" },
-              { img: "/manus-storage/natural-1_162ff9c5.svg", title: "100% Natural", desc: "Hemp-derived ingredients" },
-              { img: "/manus-storage/labtested-1_7cf4af18.svg", title: "Lab Tested", desc: "Every batch verified" },
-            ].map(({ img, title, desc }) => (
-              <div key={title} className="flex items-center gap-3">
-                <img src={img} alt={title} className="w-12 h-12 object-contain shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-gray-800">{title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
-                </div>
-              </div>
+              { src: "/manus-storage/leafly-logo_8a286c57.png", alt: "Leafly" },
+              { src: "/manus-storage/mjbizdaily-logo_94eacd30.png", alt: "Marijuana Business Daily" },
+              { src: "/manus-storage/herb-logo_11211b3d.png", alt: "Herb" },
+              { src: "/manus-storage/ocweekly-logo_96b0f9b3.png", alt: "OC Weekly" },
+              { src: "/manus-storage/forbes-logo_e0f6bba3.png", alt: "Forbes" },
+            ].map(({ src, alt }) => (
+              <img
+                key={alt}
+                src={src}
+                alt={alt}
+                className="h-7 w-auto object-contain opacity-50 grayscale hover:opacity-80 hover:grayscale-0 transition-all duration-300"
+              />
             ))}
           </div>
         </div>
@@ -30,13 +30,12 @@ export default function Footer() {
       <div className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-7 h-7 bg-gray-900 rounded-md flex items-center justify-center">
-                <FlaskConical className="w-3.5 h-3.5 text-white" />
-              </div>
-              <span className="text-base font-semibold text-gray-900">
-                Chronic<span className="text-gray-900">Hemp</span>
-              </span>
+            <div className="mb-4">
+              <img
+                src="/manus-storage/chronic-logo_75b545c4.png"
+                alt="Chronic - Expect the Best"
+                className="h-8 w-auto object-contain"
+              />
             </div>
             <p className="text-xs text-gray-500 leading-relaxed">
               Premium hemp-derived products. Quality you can trust, formulated with care.
@@ -83,7 +82,7 @@ export default function Footer() {
             <span className="font-semibold text-gray-500">FDA Disclosure:</span> This product is not for use by or sale to persons under the age of 21 depending on the laws of your governing state or territory. This product should be used only as directed on the label. It should not be used if you are pregnant or nursing. Consult with a physician before use, especially if you have a medical condition or use prescription medications. A doctor's advice should be sought before using any of these products. All trademarks and copyrights are property of their respective owners and are not affiliated with nor do they endorse this product. These statements have not been evaluated by the FDA. These products are not intended to diagnose, treat, cure or prevent any disease. By using this site you agree to follow the Privacy Policy and all Terms &amp; Conditions printed on this site. Void Where Prohibited By Law.
           </p>
           <p className="text-xs text-gray-400 mt-4">
-            © {new Date().getFullYear()} ChronicHemp Co. All rights reserved.
+            © {new Date().getFullYear()} Chronic Hemp Co. All rights reserved.
           </p>
         </div>
       </div>
