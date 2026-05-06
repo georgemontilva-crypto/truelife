@@ -19,16 +19,24 @@ export default function ProductAttributesEditor({ productId }: { productId: numb
   const { data: attrs = [], isLoading } = trpc.productAttributes.list.useQuery({ productId });
   const [rows, setRows] = useState<AttrRow[]>([]);
   const [dirty, setDirty] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
+  // Only initialize rows from server data once (or when productId changes)
+  // Using a stable key (JSON of ids) prevents infinite loops from unstable array references
+  const attrsKey = attrs.map((a) => `${a.id}:${a.key}:${a.value}`).join(",");
   useEffect(() => {
-    setRows(attrs.map((a) => ({ key: a.key, value: a.value })));
-    setDirty(false);
-  }, [attrs]);
+    if (!dirty) {
+      setRows(attrs.map((a) => ({ key: a.key, value: a.value })));
+      setInitialized(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attrsKey, productId]);
 
   const setMut = trpc.productAttributes.set.useMutation({
     onSuccess: () => {
       utils.productAttributes.list.invalidate({ productId });
       setDirty(false);
+      setInitialized(false); // allow re-sync from server after save
       toast.success("Attributes saved");
     },
     onError: (e) => toast.error(e.message),
