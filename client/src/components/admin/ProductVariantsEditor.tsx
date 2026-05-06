@@ -33,17 +33,15 @@ const EMPTY_NEW = {
   image: null as ImageDraft | null,
 };
 
-const DEFAULT_WEIGHTS = ["1g", "3.5g", "7g", "14g", "28g"];
-
-type WeightRow = { weight: string; checked: boolean; price: string; inStock: boolean };
+type WeightRow = { _id: string; weight: string; price: string; inStock: boolean };
 type BulkState = { strainName: string; image: ImageDraft | null; weights: WeightRow[] };
 
+function emptyRow(): WeightRow {
+  return { _id: Math.random().toString(36).slice(2), weight: "", price: "", inStock: true };
+}
+
 function defaultBulk(): BulkState {
-  return {
-    strainName: "",
-    image: null,
-    weights: DEFAULT_WEIGHTS.map((w) => ({ weight: w, checked: false, price: "", inStock: true })),
-  };
+  return { strainName: "", image: null, weights: [emptyRow()] };
 }
 
 // ─── Image picker ─────────────────────────────────────────────────────────────
@@ -252,25 +250,25 @@ function BulkStrainPanel({
     onError: (e) => toast.error(e.message),
   });
 
-  const updateWeight = (w: string, patch: Partial<WeightRow>) =>
-    setBulk((b) => ({ ...b, weights: b.weights.map((r) => (r.weight === w ? { ...r, ...patch } : r)) }));
+  const updateWeight = (_id: string, patch: Partial<WeightRow>) =>
+    setBulk((b) => ({ ...b, weights: b.weights.map((r) => (r._id === _id ? { ...r, ...patch } : r)) }));
 
-  const selectedWeights = bulk.weights.filter((r) => r.checked);
+  const removeWeight = (_id: string) =>
+    setBulk((b) => ({ ...b, weights: b.weights.filter((r) => r._id !== _id) }));
+
+  const validRows = bulk.weights.filter((r) => r.weight.trim() && r.price.trim());
 
   const handleAddAll = async () => {
     if (!bulk.strainName.trim()) { toast.error("Enter a strain name"); return; }
-    if (!selectedWeights.length) { toast.error("Select at least one weight"); return; }
-    for (const w of selectedWeights) {
-      if (!w.price) { toast.error(`Enter a price for ${w.weight}`); return; }
-    }
+    if (!validRows.length) { toast.error("Add at least one weight with a price"); return; }
 
     setSaving(true);
     try {
-      for (let i = 0; i < selectedWeights.length; i++) {
-        const w = selectedWeights[i];
+      for (let i = 0; i < validRows.length; i++) {
+        const w = validRows[i];
         await createMut.mutateAsync({
           productId,
-          name: `${bulk.strainName.trim()} - ${w.weight}`,
+          name: `${bulk.strainName.trim()} - ${w.weight.trim()}`,
           price: w.price,
           inventory: w.inStock ? 999 : 0,
           isActive: true,
@@ -282,7 +280,7 @@ function BulkStrainPanel({
           } : {}),
         });
       }
-      toast.success(`${selectedWeights.length} variant${selectedWeights.length !== 1 ? "s" : ""} added`);
+      toast.success(`${validRows.length} variant${validRows.length !== 1 ? "s" : ""} added`);
       onDone();
     } catch {
       toast.error("Some variants failed to save");
@@ -318,7 +316,9 @@ function BulkStrainPanel({
 
         {/* Strain image */}
         <div>
-          <Label className="text-xs text-gray-500 mb-2 block">Strain Image <span className="text-gray-400 font-normal">(shared across all weights)</span></Label>
+          <Label className="text-xs text-gray-500 mb-2 block">
+            Strain Image <span className="text-gray-400 font-normal">(shared across all weights)</span>
+          </Label>
           <ImagePicker
             currentUrl={null}
             draft={bulk.image}
@@ -327,49 +327,57 @@ function BulkStrainPanel({
           />
         </div>
 
-        {/* Weight + price rows */}
+        {/* Dynamic weight rows */}
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Label className="text-xs text-gray-500">Weights & Prices *</Label>
-            <span className="text-xs text-gray-400">— check the weights you want to add</span>
-          </div>
+          <Label className="text-xs text-gray-500 mb-2 block">Weights & Prices *</Label>
           <div className="space-y-2">
             {bulk.weights.map((row) => (
-              <div key={row.weight} className="flex items-center gap-2">
-                <label className="flex items-center gap-2 w-16 shrink-0 cursor-pointer select-none">
+              <div key={row._id} className="flex items-center gap-2">
+                <Input
+                  value={row.weight}
+                  onChange={(e) => updateWeight(row._id, { weight: e.target.value })}
+                  placeholder="3.5g, Quarter…"
+                  className="h-7 text-xs rounded-lg w-24 shrink-0"
+                />
+                <div className="relative flex-1">
+                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
+                  <Input
+                    value={row.price}
+                    onChange={(e) => updateWeight(row._id, { price: e.target.value })}
+                    placeholder="0.00"
+                    className="h-7 pl-5 text-xs rounded-lg"
+                  />
+                </div>
+                <label className="flex items-center gap-1.5 cursor-pointer select-none shrink-0">
                   <input
                     type="checkbox"
-                    checked={row.checked}
-                    onChange={(e) => updateWeight(row.weight, { checked: e.target.checked })}
-                    className="w-4 h-4 accent-gray-900 rounded"
+                    checked={row.inStock}
+                    onChange={(e) => updateWeight(row._id, { inStock: e.target.checked })}
+                    className="w-3.5 h-3.5 accent-gray-900 rounded"
                   />
-                  <span className="text-sm font-medium text-gray-700">{row.weight}</span>
+                  <span className={`text-xs font-medium ${row.inStock ? "text-green-600" : "text-gray-400"}`}>
+                    {row.inStock ? "In Stock" : "Out"}
+                  </span>
                 </label>
-                <div className={`flex items-center gap-2 flex-1 transition-opacity ${row.checked ? "" : "opacity-30 pointer-events-none"}`}>
-                  <div className="relative flex-1">
-                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
-                    <Input
-                      value={row.price}
-                      onChange={(e) => updateWeight(row.weight, { price: e.target.value })}
-                      placeholder="0.00"
-                      className="h-7 pl-5 text-xs rounded-lg"
-                    />
-                  </div>
-                  <label className="flex items-center gap-1.5 cursor-pointer select-none w-24 shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={row.inStock}
-                      onChange={(e) => updateWeight(row.weight, { inStock: e.target.checked })}
-                      className="w-4 h-4 accent-gray-900 rounded"
-                    />
-                    <span className={`text-xs font-medium ${row.inStock ? "text-green-600" : "text-gray-400"}`}>
-                      {row.inStock ? "In Stock" : "No Stock"}
-                    </span>
-                  </label>
-                </div>
+                {bulk.weights.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeWeight(row._id)}
+                    className="p-1 text-gray-400 hover:text-red-500 rounded shrink-0 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             ))}
           </div>
+          <button
+            type="button"
+            onClick={() => setBulk((b) => ({ ...b, weights: [...b.weights, emptyRow()] }))}
+            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 transition-colors mt-2"
+          >
+            <Plus className="w-3 h-3" /> Add weight
+          </button>
         </div>
 
         {/* Footer */}
@@ -381,13 +389,11 @@ function BulkStrainPanel({
             type="button"
             size="sm"
             onClick={handleAddAll}
-            disabled={saving || !selectedWeights.length}
+            disabled={saving || !validRows.length}
             className="bg-gray-900 hover:bg-black text-white rounded-xl text-sm"
           >
             <Check className="w-3.5 h-3.5 mr-1.5" />
-            {saving
-              ? "Adding…"
-              : `Add ${selectedWeights.length > 0 ? selectedWeights.length : ""} Variant${selectedWeights.length !== 1 ? "s" : ""}`}
+            {saving ? "Adding…" : `Add ${validRows.length > 0 ? validRows.length : ""} Variant${validRows.length !== 1 ? "s" : ""}`}
           </Button>
         </div>
       </div>
