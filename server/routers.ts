@@ -337,7 +337,7 @@ export const appRouter = router({
       )
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64, "base64");
-        const key = `products/${Date.now()}-${input.filename}`;
+        const key = `Products/${Date.now()}-${input.filename}`;
         const { url } = await storagePut(key, buffer, input.contentType);
         return { url, key };
       }),
@@ -351,7 +351,7 @@ export const appRouter = router({
       )
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64, "base64");
-        const key = `lab-reports/${Date.now()}-${input.filename}`;
+        const key = `Lab Reports/${Date.now()}-${input.filename}`;
         const { url } = await storagePut(key, buffer, input.contentType);
         return { url, key };
       }),
@@ -557,7 +557,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64, "base64");
-        const key = `lab-reports/${input.productId}/${Date.now()}-${input.filename}`;
+        const key = `Lab Reports/${input.productId}/${Date.now()}-${input.filename}`;
         const { url } = await storagePut(key, buffer, input.contentType);
         return createLabReport({
           productId: input.productId,
@@ -593,7 +593,7 @@ export const appRouter = router({
       )
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.imageBase64, "base64");
-        const key = `banners/${Date.now()}-${input.imageFilename}`;
+        const key = `Banners/${Date.now()}-${input.imageFilename}`;
         const { url } = await storagePut(key, buffer, input.imageContentType || "image/jpeg");
         return createBanner({
           title: input.title,
@@ -627,7 +627,7 @@ export const appRouter = router({
         let imageKey: string | undefined;
         if (imageBase64 && imageFilename) {
           const buffer = Buffer.from(imageBase64, "base64");
-          const key = `banners/${Date.now()}-${imageFilename}`;
+          const key = `Banners/${Date.now()}-${imageFilename}`;
           const result = await storagePut(key, buffer, imageContentType || "image/jpeg");
           imageUrl = result.url;
           imageKey = key;
