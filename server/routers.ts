@@ -292,7 +292,8 @@ export const appRouter = router({
         })
       )
       .mutation(({ input }) => {
-        console.log("products.create input:", JSON.stringify(input, null, 2));
+        console.log("INPUT_KEYS:", Object.keys(input).join(","));
+        console.log("INPUT_VALS:", Object.values(input).map(v => typeof v + ":" + String(v).slice(0,20)).join(" | "));
         return createProduct(input);
       }),
 

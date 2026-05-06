@@ -279,8 +279,9 @@ export async function createProduct(data: {
   if (data.thcContent !== undefined) values.thcContent = data.thcContent;
   if (data.cbdContent !== undefined) values.cbdContent = data.cbdContent;
   if (data.weight !== undefined) values.weight = data.weight;
-  console.log("createProduct values:", JSON.stringify(values, null, 2));
-  console.log("createProduct keys count:", Object.keys(values).length);
+  console.log("INSERT_KEYS:", Object.keys(values).join(","));
+  console.log("INSERT_COUNT:", Object.keys(values).length);
+  Object.entries(values).forEach(([k,v]) => console.log("K:", k, "=", String(v).slice(0,30)));
   const [result] = await db.insert(products).values(values);
   return { id: result.insertId };
 }
