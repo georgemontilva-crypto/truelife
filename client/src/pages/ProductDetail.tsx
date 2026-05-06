@@ -327,34 +327,39 @@ export default function ProductDetail() {
             </div>
 
             {/* Product Characteristics accordion */}
-            {attributes.data && attributes.data.length > 0 && (
-              <div className="border border-gray-100 rounded-2xl overflow-hidden mb-3">
-                <button
-                  onClick={() => setShowAttrs(!showAttrs)}
-                  className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-50 hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <FlaskConical className="w-4 h-4 text-gray-900 shrink-0" />
-                    <span className="text-sm font-semibold text-gray-800">Product Characteristics</span>
-                  </div>
-                  {showAttrs
-                    ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
-                    : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
-                </button>
-                {showAttrs && (
-                  <div className="px-4 py-3 border-t border-gray-100">
-                    <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
-                      {attributes.data.map((attr) => (
-                        <div key={attr.id}>
-                          <dt className="text-xs text-gray-500 mb-0.5">{attr.key}</dt>
-                          <dd className="text-sm font-medium text-gray-800">{attr.value}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  </div>
-                )}
-              </div>
-            )}
+            {(() => {
+              const SYSTEM_KEY = /^(gallery_\d+|variant_type|sku)$/;
+              const publicAttrs = (attributes.data ?? []).filter((a: any) => !SYSTEM_KEY.test(a.key));
+              if (publicAttrs.length === 0) return null;
+              return (
+                <div className="border border-gray-100 rounded-2xl overflow-hidden mb-3">
+                  <button
+                    onClick={() => setShowAttrs(!showAttrs)}
+                    className="w-full flex items-center justify-between px-4 py-3.5 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FlaskConical className="w-4 h-4 text-gray-900 shrink-0" />
+                      <span className="text-sm font-semibold text-gray-800">Product Characteristics</span>
+                    </div>
+                    {showAttrs
+                      ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
+                      : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />}
+                  </button>
+                  {showAttrs && (
+                    <div className="px-4 py-3 border-t border-gray-100">
+                      <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+                        {publicAttrs.map((attr: any) => (
+                          <div key={attr.id}>
+                            <dt className="text-xs text-gray-500 mb-0.5">{attr.key}</dt>
+                            <dd className="text-sm font-medium text-gray-800">{attr.value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Lab Reports / COA */}
             {filteredLabReports.length > 0 ? (

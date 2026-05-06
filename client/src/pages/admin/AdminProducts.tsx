@@ -502,10 +502,9 @@ export default function AdminProducts() {
             </div>
           )}
 
-          {/* Lab Reports (edit mode) */}
+          {/* Lab Reports (edit mode only — needs a saved productId) */}
           {editId && (
             <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Lab Reports / COA</p>
               <LabReportsEditor productId={editId} />
             </div>
           )}
