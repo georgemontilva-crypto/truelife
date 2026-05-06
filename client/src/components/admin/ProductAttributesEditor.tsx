@@ -8,10 +8,13 @@ import { Plus, Trash2, Save, GripVertical } from "lucide-react";
 
 type AttrRow = { key: string; value: string };
 
+// Keys managed elsewhere (media gallery, variant type, sku) — hidden from this editor but preserved on save
+const SYSTEM_KEY_PATTERN = /^(variant_type|sku|gallery_\d+)$/;
+
 // Suggested attribute keys for quick-add
 const SUGGESTIONS = [
-  "Active Ingredient", "Flavor", "Strain", "Weight", "THC Content",
-  "CBD Content", "Terpenes", "Extraction Method", "Origin", "Format",
+  "Active Ingredient", "Flavor", "Strain", "Terpenes",
+  "Extraction Method", "Origin", "Format", "Effect",
 ];
 
 export default function ProductAttributesEditor({ productId }: { productId: number }) {
@@ -21,12 +24,11 @@ export default function ProductAttributesEditor({ productId }: { productId: numb
   const [dirty, setDirty] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
-  // Only initialize rows from server data once (or when productId changes)
-  // Using a stable key (JSON of ids) prevents infinite loops from unstable array references
   const attrsKey = attrs.map((a) => `${a.id}:${a.key}:${a.value}`).join(",");
   useEffect(() => {
     if (!dirty) {
-      setRows(attrs.map((a) => ({ key: a.key, value: a.value })));
+      // Filter out system-managed keys (variant_type, sku, gallery_*) — they're preserved on save
+      setRows(attrs.filter(a => !SYSTEM_KEY_PATTERN.test(a.key)).map((a) => ({ key: a.key, value: a.value })));
       setInitialized(true);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -59,7 +61,13 @@ export default function ProductAttributesEditor({ productId }: { productId: numb
 
   const handleSave = () => {
     const valid = rows.filter((r) => r.key.trim() && r.value.trim());
-    setMut.mutate({ productId, attrs: valid.map((r, i) => ({ key: r.key.trim(), value: r.value.trim(), sortOrder: i })) });
+    // Re-include system keys so they aren't deleted when this editor saves
+    const systemAttrs = attrs.filter(a => SYSTEM_KEY_PATTERN.test(a.key));
+    const merged = [
+      ...valid.map((r, i) => ({ key: r.key.trim(), value: r.value.trim(), sortOrder: i })),
+      ...systemAttrs.map((a, i) => ({ key: a.key, value: a.value, sortOrder: valid.length + i })),
+    ];
+    setMut.mutate({ productId, attrs: merged });
   };
 
   if (isLoading) return <div className="h-20 bg-gray-100 rounded-xl animate-pulse" />;

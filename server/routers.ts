@@ -337,20 +337,6 @@ export const appRouter = router({
         const { url } = await storagePut(key, buffer, input.contentType);
         return { url, key };
       }),
-    uploadLabReport: adminProcedure
-      .input(
-        z.object({
-          filename: z.string(),
-          contentType: z.string(),
-          base64: z.string(),
-        })
-      )
-      .mutation(async ({ input }) => {
-        const buffer = Buffer.from(input.base64, "base64");
-        const key = `Lab Reports/${Date.now()}-${input.filename}`;
-        const { url } = await storagePut(key, buffer, input.contentType);
-        return { url, key };
-      }),
   }),
 
   // ─── Cart ────────────────────────────────────────────────────────────────────
