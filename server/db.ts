@@ -14,6 +14,7 @@ import {
   productVariants,
   products,
   users,
+  wishlist,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -633,4 +634,98 @@ export async function deleteLabReportsByProduct(productId: number) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
   await db.delete(labReports).where(eq(labReports.productId, productId));
+}
+
+// ─── Auth propia (email/password) ─────────────────────────────────────────────
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return result[0];
+}
+
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result[0];
+}
+
+export async function createLocalUser(data: {
+  name: string;
+  email: string;
+  passwordHash: string;
+  emailVerifyToken: string;
+  emailVerifyExpiry: Date;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  const [result] = await db.insert(users).values({
+    ...data,
+    openId: null as any,
+    loginMethod: "email",
+    emailVerified: false,
+    lastSignedIn: new Date(),
+  });
+  return { id: (result as any).insertId as number };
+}
+
+export async function verifyUserEmail(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.update(users).set({
+    emailVerified: true,
+    emailVerifyToken: null,
+    emailVerifyExpiry: null,
+    lastSignedIn: new Date(),
+  }).where(eq(users.id, userId));
+}
+
+export async function setEmailVerifyToken(userId: number, token: string, expiry: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.update(users).set({ emailVerifyToken: token, emailVerifyExpiry: expiry }).where(eq(users.id, userId));
+}
+
+export async function updateUserProfile(userId: number, data: { name?: string; phone?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.update(users).set({ ...data, updatedAt: new Date() }).where(eq(users.id, userId));
+}
+
+export async function updateUserPassword(userId: number, passwordHash: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, userId));
+}
+
+// ─── Wishlist ─────────────────────────────────────────────────────────────────
+export async function getWishlist(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(wishlist).where(eq(wishlist.userId, userId)).orderBy(desc(wishlist.createdAt));
+}
+
+export async function addToWishlist(userId: number, productId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  // Ignore duplicate
+  try {
+    await db.insert(wishlist).values({ userId, productId });
+  } catch {
+    // already exists
+  }
+}
+
+export async function removeFromWishlist(userId: number, productId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.delete(wishlist).where(and(eq(wishlist.userId, userId), eq(wishlist.productId, productId)));
+}
+
+export async function isInWishlist(userId: number, productId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.select().from(wishlist).where(and(eq(wishlist.userId, userId), eq(wishlist.productId, productId))).limit(1);
+  return result.length > 0;
 }

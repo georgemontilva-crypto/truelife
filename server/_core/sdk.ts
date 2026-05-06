@@ -257,20 +257,24 @@ class SDKServer {
   }
 
   async authenticateRequest(req: Request): Promise<User> {
-    // Regular authentication flow
     const cookies = this.parseCookies(req.headers.cookie);
     const sessionCookie = cookies.get(COOKIE_NAME);
-    const session = await this.verifySession(sessionCookie);
+    if (!sessionCookie) throw ForbiddenError("Missing session cookie");
 
-    if (!session) {
-      throw ForbiddenError("Invalid session cookie");
+    // Try local session first (userId-based JWT)
+    const localSession = await this.verifyLocalSession(sessionCookie);
+    if (localSession) {
+      const user = await db.getUserById(localSession.userId);
+      if (!user) throw ForbiddenError("User not found");
+      return user;
     }
 
-    const sessionUserId = session.openId;
-    const signedInAt = new Date();
-    let user = await db.getUserByOpenId(sessionUserId);
+    // Fall back to Manus OAuth session
+    const session = await this.verifySession(sessionCookie);
+    if (!session) throw ForbiddenError("Invalid session cookie");
 
-    // If user not in DB, sync from OAuth server automatically
+    const signedInAt = new Date();
+    let user = await db.getUserByOpenId(session.openId);
     if (!user) {
       try {
         const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
@@ -287,17 +291,32 @@ class SDKServer {
         throw ForbiddenError("Failed to sync user info");
       }
     }
-
-    if (!user) {
-      throw ForbiddenError("User not found");
-    }
-
-    await db.upsertUser({
-      openId: user.openId,
-      lastSignedIn: signedInAt,
-    });
-
+    if (!user) throw ForbiddenError("User not found");
+    await db.upsertUser({ openId: user.openId!, lastSignedIn: signedInAt });
     return user;
+  }
+
+  async createLocalSessionToken(userId: number, options: { expiresInMs?: number } = {}): Promise<string> {
+    const issuedAt = Date.now();
+    const expiresInMs = options.expiresInMs ?? ONE_YEAR_MS;
+    const expirationSeconds = Math.floor((issuedAt + expiresInMs) / 1000);
+    const secretKey = this.getSessionSecret();
+    return new SignJWT({ userId, type: "local" })
+      .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+      .setExpirationTime(expirationSeconds)
+      .sign(secretKey);
+  }
+
+  async verifyLocalSession(cookieValue: string | undefined | null): Promise<{ userId: number } | null> {
+    if (!cookieValue) return null;
+    try {
+      const secretKey = this.getSessionSecret();
+      const { payload } = await jwtVerify(cookieValue, secretKey, { algorithms: ["HS256"] });
+      if (payload.type !== "local" || typeof payload.userId !== "number") return null;
+      return { userId: payload.userId };
+    } catch {
+      return null;
+    }
   }
 }
 

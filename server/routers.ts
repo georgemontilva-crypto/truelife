@@ -49,6 +49,22 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { storagePut } from "./storage";
+import { sdk } from "./_core/sdk";
+import { sendVerificationEmail } from "./_core/email";
+import bcrypt from "bcryptjs";
+import {
+  getUserByEmail,
+  getUserById,
+  createLocalUser,
+  verifyUserEmail,
+  setEmailVerifyToken,
+  updateUserProfile,
+  updateUserPassword,
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist,
+  isInWishlist,
+} from "./db";
 
 // ─── Admin guard ──────────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -64,6 +80,112 @@ export const appRouter = router({
 
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
+
+    register: publicProcedure
+      .input(z.object({
+        name: z.string().min(2, "Name must be at least 2 characters"),
+        email: z.string().email("Invalid email address"),
+        password: z.string().min(8, "Password must be at least 8 characters"),
+      }))
+      .mutation(async ({ input }) => {
+        const existing = await getUserByEmail(input.email);
+        if (existing) throw new TRPCError({ code: "CONFLICT", message: "Email already registered" });
+        const passwordHash = await bcrypt.hash(input.password, 12);
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+        const { id } = await createLocalUser({
+          name: input.name,
+          email: input.email,
+          passwordHash,
+          emailVerifyToken: code,
+          emailVerifyExpiry: expiry,
+        });
+        await sendVerificationEmail(input.email, input.name, code);
+        return { userId: id, email: input.email };
+      }),
+
+    verifyEmail: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        code: z.string().length(6),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const user = await getUserByEmail(input.email);
+        if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+        if (user.emailVerified) throw new TRPCError({ code: "BAD_REQUEST", message: "Email already verified" });
+        if (!user.emailVerifyToken || user.emailVerifyToken !== input.code) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid verification code" });
+        }
+        if (user.emailVerifyExpiry && new Date() > user.emailVerifyExpiry) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Verification code expired. Please request a new one." });
+        }
+        await verifyUserEmail(user.id);
+        // Auto-login after verification
+        const token = await sdk.createLocalSessionToken(user.id);
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, token, cookieOptions);
+        return { success: true };
+      }),
+
+    resendVerification: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input }) => {
+        const user = await getUserByEmail(input.email);
+        if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+        if (user.emailVerified) throw new TRPCError({ code: "BAD_REQUEST", message: "Email already verified" });
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiry = new Date(Date.now() + 15 * 60 * 1000);
+        await setEmailVerifyToken(user.id, code, expiry);
+        await sendVerificationEmail(input.email, user.name || "there", code);
+        return { success: true };
+      }),
+
+    login: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        password: z.string().min(1),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const user = await getUserByEmail(input.email);
+        if (!user || !user.passwordHash) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
+        }
+        const valid = await bcrypt.compare(input.password, user.passwordHash);
+        if (!valid) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
+        if (!user.emailVerified) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Please verify your email before signing in" });
+        }
+        const token = await sdk.createLocalSessionToken(user.id);
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, token, cookieOptions);
+        return { success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
+      }),
+
+    updateProfile: protectedProcedure
+      .input(z.object({
+        name: z.string().min(2).optional(),
+        phone: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await updateUserProfile(ctx.user.id, input);
+        return { success: true };
+      }),
+
+    changePassword: protectedProcedure
+      .input(z.object({
+        currentPassword: z.string().min(1),
+        newPassword: z.string().min(8),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const user = await getUserById(ctx.user.id);
+        if (!user?.passwordHash) throw new TRPCError({ code: "BAD_REQUEST", message: "No password set for this account" });
+        const valid = await bcrypt.compare(input.currentPassword, user.passwordHash);
+        if (!valid) throw new TRPCError({ code: "UNAUTHORIZED", message: "Current password is incorrect" });
+        const hash = await bcrypt.hash(input.newPassword, 12);
+        await updateUserPassword(ctx.user.id, hash);
+        return { success: true };
+      }),
+
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
@@ -523,6 +645,40 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => deleteBanner(input.id)),
   }),
+  // ─── Wishlist ─────────────────────────────────────────────────────────────────
+  wishlist: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const items = await getWishlist(ctx.user.id);
+      // Enrich with product data
+      const productIds = items.map((i) => i.productId);
+      if (productIds.length === 0) return [];
+      const allProducts = await getProducts({ activeOnly: true });
+      const productMap = new Map(allProducts.map((p) => [p.id, p]));
+      return items.map((item) => ({
+        ...item,
+        product: productMap.get(item.productId) || null,
+      })).filter((i) => i.product !== null);
+    }),
+    add: protectedProcedure
+      .input(z.object({ productId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        await addToWishlist(ctx.user.id, input.productId);
+        return { success: true };
+      }),
+    remove: protectedProcedure
+      .input(z.object({ productId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        await removeFromWishlist(ctx.user.id, input.productId);
+        return { success: true };
+      }),
+    check: protectedProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const inList = await isInWishlist(ctx.user.id, input.productId);
+        return { inWishlist: inList };
+      }),
+  }),
+
   // ─── Admin ───────────────────────────────────────────────────────────────────
   admin: router({
     stats: adminProcedure.query(() => getOrderStats()),

@@ -102,3 +102,22 @@
 - [x] Backend: incluir labReportUrl en upsert y queries de productos
 - [x] Admin: sección "Lab Reports / COA" con upload de PDF por variante en panel de producto
 - [x] Tienda: botón prominente "View Lab Reports / COA" en página de detalle del producto
+
+## Auth Propia (Email + Código de Verificación)
+- [ ] DB: campos emailVerified, emailVerifyToken, emailVerifyExpiry, passwordHash en tabla users
+- [ ] DB: tabla wishlist (userId, productId)
+- [ ] Backend: procedure register (email, password, nombre) — genera código y envía email
+- [ ] Backend: procedure verifyEmail (email, code) — activa cuenta
+- [ ] Backend: procedure login (email, password) — retorna sesión
+- [ ] Backend: procedure logout
+- [ ] Backend: procedure me — retorna usuario actual
+- [ ] Backend: procedure resendVerification
+- [ ] Backend: procedure wishlist.add / wishlist.remove / wishlist.list
+- [ ] Backend: envío de email con código usando Resend o notificaciones integradas
+- [ ] Frontend: página /register con formulario email/password/nombre
+- [ ] Frontend: página /login con formulario email/password
+- [ ] Frontend: página /verify-email con campo de código de 6 dígitos
+- [ ] Frontend: página /account con tabs: Pedidos, Favoritos, Datos personales
+- [ ] Frontend: botón de favorito (corazón) en tarjetas de producto y detalle
+- [ ] Frontend: actualizar Navbar con links Login/Register o menú de usuario
+- [ ] Frontend: remover Manus OAuth de toda la app

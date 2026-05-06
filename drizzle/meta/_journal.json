@@ -36,6 +36,13 @@
       "when": 1778034806968,
       "tag": "0004_lonely_greymalkin",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1778036173943,
+      "tag": "0005_freezing_gladiator",
+      "breakpoints": true
     }
   ]
 }

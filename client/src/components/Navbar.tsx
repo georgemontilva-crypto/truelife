@@ -66,18 +66,18 @@ export default function Navbar() {
                     </Button>
                   </Link>
                 )}
-                <Link href="/profile">
+                <Link href="/account">
                   <Button variant="ghost" size="icon" className="text-gray-600 hover:text-gray-900">
                     <User className="w-5 h-5" />
                   </Button>
                 </Link>
               </>
             ) : (
-              <a href={getLoginUrl()}>
+              <Link href="/login">
                 <Button variant="ghost" size="sm" className="text-sm text-gray-600 hover:text-gray-900">
                   Sign In
                 </Button>
-              </a>
+              </Link>
             )}
 
             <Button
