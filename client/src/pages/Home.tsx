@@ -210,6 +210,133 @@ function HeroBannerSlider() {
   );
 }
 
+// ─── Category Carousel ───────────────────────────────────────────────────────
+
+type Category = { id: number; name: string; slug: string; description: string | null; imageUrl: string | null };
+
+function CategoryCarousel({ categories }: { categories: Category[] }) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", loop: false, dragFree: false });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+    setCanPrev(emblaApi.canScrollPrev());
+    setCanNext(emblaApi.canScrollNext());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    setScrollSnaps(emblaApi.scrollSnapList());
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+    onSelect();
+    return () => { emblaApi.off("select", onSelect); emblaApi.off("reInit", onSelect); };
+  }, [emblaApi, onSelect]);
+
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+  const scrollTo  = useCallback((i: number) => emblaApi?.scrollTo(i), [emblaApi]);
+
+  return (
+    <div className="relative group/carousel">
+      {/* Viewport */}
+      <div ref={emblaRef} className="overflow-hidden">
+        <div className="flex gap-3 md:gap-4">
+          {categories.map((cat) => (
+            <div
+              key={cat.id}
+              // 2 slides on mobile, 5 on desktop — gap is 12px (gap-3) / 16px (gap-4)
+              className="flex-none w-[calc(50%-6px)] md:w-[calc(20%-13px)]"
+            >
+              <Link href={`/catalog/${cat.slug}`}>
+                <div className="group relative overflow-hidden rounded-2xl cursor-pointer aspect-[3/4]">
+                  {cat.imageUrl ? (
+                    <>
+                      <img
+                        src={cat.imageUrl}
+                        alt={cat.name}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <p className="text-sm font-bold text-white">{cat.name}</p>
+                        {cat.description && (
+                          <p className="text-xs text-white/60 mt-0.5 line-clamp-1">{cat.description}</p>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 bg-gray-50 border border-gray-100 flex flex-col items-center justify-center p-4 hover:border-gray-300 hover:shadow-md transition-all">
+                      <div className="text-3xl mb-3">{CATEGORY_ICONS[cat.slug] ?? "🌿"}</div>
+                      <p className="text-sm font-semibold text-gray-800">{cat.name}</p>
+                      {cat.description && (
+                        <p className="text-xs text-gray-400 mt-1 line-clamp-1">{cat.description}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Left arrow */}
+      <button
+        onClick={scrollPrev}
+        aria-label="Previous categories"
+        className={`
+          absolute left-0 top-[calc(50%-20px)] -translate-x-1/2 z-10
+          w-10 h-10 rounded-full bg-white shadow-md border border-gray-100
+          flex items-center justify-center text-gray-700
+          hover:bg-gray-50 hover:shadow-lg active:scale-95
+          transition-all duration-200
+          ${canPrev ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
+        `}
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+
+      {/* Right arrow */}
+      <button
+        onClick={scrollNext}
+        aria-label="Next categories"
+        className={`
+          absolute right-0 top-[calc(50%-20px)] translate-x-1/2 z-10
+          w-10 h-10 rounded-full bg-white shadow-md border border-gray-100
+          flex items-center justify-center text-gray-700
+          hover:bg-gray-50 hover:shadow-lg active:scale-95
+          transition-all duration-200
+          ${canNext ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
+        `}
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+
+      {/* Dots */}
+      {scrollSnaps.length > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          {scrollSnaps.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => scrollTo(i)}
+              aria-label={`Go to position ${i + 1}`}
+              className={`transition-all duration-300 rounded-full bg-gray-300 hover:bg-gray-500 ${
+                i === selectedIndex ? "w-6 h-2 bg-gray-800" : "w-2 h-2"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Home Component ──────────────────────────────────────────────────────
 export default function Home() {
   const categories = trpc.categories.list.useQuery();
@@ -242,44 +369,16 @@ export default function Home() {
           </Link>
         </div>
         {categories.isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+          <div className="flex gap-3 md:gap-4 overflow-hidden">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-40 bg-gray-100 rounded-2xl animate-pulse" />
+              <div
+                key={i}
+                className="flex-none w-[calc(50%-6px)] md:w-[calc(20%-13px)] aspect-[3/4] bg-gray-100 rounded-2xl animate-pulse"
+              />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
-            {(categories.data ?? []).map((cat) => (
-              <Link key={cat.id} href={`/catalog/${cat.slug}`}>
-                <div className="group relative overflow-hidden rounded-2xl cursor-pointer aspect-[3/4] md:aspect-[3/4]">
-                  {cat.imageUrl ? (
-                    <>
-                      <img
-                        src={cat.imageUrl}
-                        alt={cat.name}
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <p className="text-sm font-bold text-white">{cat.name}</p>
-                        {cat.description && (
-                          <p className="text-xs text-white/60 mt-0.5 line-clamp-1">{cat.description}</p>
-                        )}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="absolute inset-0 bg-gray-50 border border-gray-100 flex flex-col items-center justify-center p-4 hover:border-gray-300 hover:shadow-md transition-all">
-                      <div className="text-3xl mb-3">{CATEGORY_ICONS[cat.slug] ?? "🌿"}</div>
-                      <p className="text-sm font-semibold text-gray-800">{cat.name}</p>
-                      {cat.description && (
-                        <p className="text-xs text-gray-400 mt-1 line-clamp-1">{cat.description}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
+          <CategoryCarousel categories={categories.data ?? []} />
         )}
       </section>
 
