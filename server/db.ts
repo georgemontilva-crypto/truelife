@@ -293,8 +293,8 @@ export async function updateProduct(
     name: string;
     slug: string;
     description: string;
-    price: string;
-    compareAtPrice: string;
+    price: number | string;
+    compareAtPrice: number | string;
     imageUrl: string;
     imageKey: string;
     inventory: number;
@@ -307,7 +307,10 @@ export async function updateProduct(
 ) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
-  await db.update(products).set(data).where(eq(products.id, id));
+  const toSet: any = { ...data };
+  if (data.price !== undefined) toSet.price = String(data.price);
+  if (data.compareAtPrice !== undefined) toSet.compareAtPrice = String(data.compareAtPrice);
+  await db.update(products).set(toSet).where(eq(products.id, id));
 }
 
 export async function deleteProduct(id: number) {
