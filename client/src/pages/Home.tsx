@@ -45,7 +45,19 @@ function HeroBannerSlider() {
   const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
 
   if (isLoading) {
-    return <div className="w-full h-[480px] md:h-[600px] bg-gray-900 animate-pulse" />;
+    return (
+      <div className="w-full h-[480px] md:h-[600px] bg-gray-900 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-800/60 via-gray-700/40 to-gray-800/60 animate-pulse" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="space-y-4 text-center px-8">
+            <div className="h-8 w-48 bg-gray-700/50 rounded-full mx-auto animate-pulse" />
+            <div className="h-16 w-96 max-w-full bg-gray-700/50 rounded-xl mx-auto animate-pulse" />
+            <div className="h-5 w-72 max-w-full bg-gray-700/30 rounded-lg mx-auto animate-pulse" />
+            <div className="h-12 w-36 bg-gray-600/50 rounded-xl mx-auto animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Fallback static hero if no banners
@@ -108,7 +120,7 @@ function HeroBannerSlider() {
     <section className="relative overflow-hidden">
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
-          {banners.map((banner) => (
+          {banners.map((banner, index) => (
             <div
               key={banner.id}
               className="relative flex-none w-full h-[480px] md:h-[600px] lg:h-[680px]"
@@ -117,6 +129,9 @@ function HeroBannerSlider() {
                 src={banner.imageUrl}
                 alt={banner.title ?? "Banner"}
                 className="absolute inset-0 w-full h-full object-cover"
+                loading={index === 0 ? "eager" : "lazy"}
+                fetchPriority={index === 0 ? "high" : "low"}
+                decoding={index === 0 ? "sync" : "async"}
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/10" />
               <div className="relative h-full flex items-center">
