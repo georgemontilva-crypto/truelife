@@ -199,6 +199,7 @@ function HeroBannerSlider() {
 export default function Home() {
   const categories = trpc.categories.list.useQuery();
   const featured = trpc.products.featured.useQuery();
+  const { data: siteImages = {} } = trpc.banners.siteImages.useQuery();
 
   return (
     <div className="min-h-screen bg-white">
@@ -308,16 +309,26 @@ export default function Home() {
             {/* Image */}
             <div className="relative order-2 lg:order-1">
               <div className="relative rounded-3xl overflow-hidden aspect-[4/3]">
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-950 flex items-center justify-center">
-                  <Leaf className="w-32 h-32 text-white/10" />
-                </div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-8">
-                  <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20">
-                    <Leaf className="w-8 h-8 text-white" />
-                  </div>
-                  <p className="text-white font-bold text-2xl tracking-tight">CHRONIC</p>
-                  <p className="text-white/60 text-sm text-center">Premium Hemp Co.</p>
-                </div>
+                {(siteImages as Record<string, string>).about_us ? (
+                  <img
+                    src={(siteImages as Record<string, string>).about_us}
+                    alt="About Us"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-950 flex items-center justify-center">
+                      <Leaf className="w-32 h-32 text-white/10" />
+                    </div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-8">
+                      <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20">
+                        <Leaf className="w-8 h-8 text-white" />
+                      </div>
+                      <p className="text-white font-bold text-2xl tracking-tight">CHRONIC</p>
+                      <p className="text-white/60 text-sm text-center">Premium Hemp Co.</p>
+                    </div>
+                  </>
+                )}
               </div>
               {/* Floating stat card */}
               <div className="absolute -bottom-6 -right-4 md:-right-8 bg-white rounded-2xl shadow-xl border border-gray-100 px-6 py-4 flex items-center gap-4">
@@ -424,21 +435,28 @@ export default function Home() {
         <div className="container">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
             {[
-              { icon: Truck, title: "Free Shipping", sub: "On all orders over $50" },
-              { icon: RotateCcw, title: "Easy Returns", sub: "30-day return policy" },
-              { icon: Leaf, title: "100% Natural", sub: "Hemp-derived ingredients" },
-              { icon: FlaskConical, title: "Lab Tested", sub: "Every batch verified" },
-            ].map(({ icon: Icon, title, sub }) => (
-              <div key={title} className="flex flex-col items-center text-center gap-3">
-                <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-2xl flex items-center justify-center">
-                  <Icon className="w-8 h-8 md:w-10 md:h-10 text-gray-700" />
+              { slot: "trust_shipping", icon: Truck,        title: "Free Shipping", sub: "On all orders over $50" },
+              { slot: "trust_returns",  icon: RotateCcw,    title: "Easy Returns",  sub: "30-day return policy" },
+              { slot: "trust_natural",  icon: Leaf,         title: "100% Natural",  sub: "Hemp-derived ingredients" },
+              { slot: "trust_lab",      icon: FlaskConical, title: "Lab Tested",    sub: "Every batch verified" },
+            ].map(({ slot, icon: Icon, title, sub }) => {
+              const imgUrl = (siteImages as Record<string, string>)[slot];
+              return (
+                <div key={title} className="flex flex-col items-center text-center gap-3">
+                  <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-2xl flex items-center justify-center overflow-hidden">
+                    {imgUrl ? (
+                      <img src={imgUrl} alt={title} className="w-full h-full object-contain p-2" />
+                    ) : (
+                      <Icon className="w-8 h-8 md:w-10 md:h-10 text-gray-700" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

@@ -214,9 +214,11 @@ export const labReports = mysqlTable("lab_reports", {
 export type LabReport = typeof labReports.$inferSelect;
 export type InsertLabReport = typeof labReports.$inferInsert;
 
-// ─── Banners (Hero Slider) ────────────────────────────────────────────────────
+// ─── Banners (Hero Slider + Site Images) ─────────────────────────────────────
+// slot = NULL → hero slider banner; slot = 'about_us' | 'trust_*' | 'logo_*' | 'press_*' → static site image
 export const banners = mysqlTable("banners", {
   id: int("id").autoincrement().primaryKey(),
+  slot: varchar("slot", { length: 64 }),
   title: varchar("title", { length: 256 }),
   subtitle: text("subtitle"),
   imageUrl: text("imageUrl").notNull(),

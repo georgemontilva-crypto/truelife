@@ -14,6 +14,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const categories = trpc.categories.list.useQuery();
+  const { data: siteImages = {} } = trpc.banners.siteImages.useQuery();
 
   const isAdmin = user?.role === "admin";
 
@@ -28,10 +29,20 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 no-underline">
-            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
-              <Leaf className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-lg tracking-tight text-gray-900">CHRONIC</span>
+            {(siteImages as Record<string, string>).logo_main ? (
+              <img
+                src={(siteImages as Record<string, string>).logo_main}
+                alt="CHRONIC"
+                className="h-8 w-auto object-contain"
+              />
+            ) : (
+              <>
+                <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
+                  <Leaf className="w-4 h-4 text-white" />
+                </div>
+                <span className="font-bold text-lg tracking-tight text-gray-900">CHRONIC</span>
+              </>
+            )}
           </Link>
 
           {/* Desktop nav */}

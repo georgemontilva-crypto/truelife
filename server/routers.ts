@@ -44,6 +44,9 @@ import {
   createBanner,
   updateBanner,
   deleteBanner,
+  getSiteImages,
+  upsertSiteImage,
+  deleteSiteImage,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -637,6 +640,24 @@ export const appRouter = router({
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => deleteBanner(input.id)),
+    siteImages: publicProcedure.query(() => getSiteImages()),
+    upsertSiteImage: adminProcedure
+      .input(z.object({
+        slot: z.string().min(1),
+        imageBase64: z.string(),
+        imageFilename: z.string(),
+        imageContentType: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.imageBase64, "base64");
+        const key = `SiteImages/${input.slot}-${Date.now()}-${input.imageFilename}`;
+        const { url } = await storagePut(key, buffer, input.imageContentType || "image/jpeg");
+        await upsertSiteImage(input.slot, url, key);
+        return { success: true };
+      }),
+    clearSiteImage: adminProcedure
+      .input(z.object({ slot: z.string().min(1) }))
+      .mutation(({ input }) => deleteSiteImage(input.slot)),
   }),
   // ─── Wishlist ─────────────────────────────────────────────────────────────────
   wishlist: router({

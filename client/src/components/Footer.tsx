@@ -1,7 +1,19 @@
 import { Link } from "wouter";
 import { Leaf } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+
+const PRESS_SLOTS = [
+  { slot: "press_leafly",          label: "Leafly" },
+  { slot: "press_forbes",          label: "Forbes" },
+  { slot: "press_herb",            label: "Herb" },
+  { slot: "press_oc_weekly",       label: "OC Weekly" },
+  { slot: "press_marijuana_daily", label: "MJBizDaily" },
+];
 
 export default function Footer() {
+  const { data: siteImages = {} } = trpc.banners.siteImages.useQuery();
+  const imgs = siteImages as Record<string, string>;
+
   return (
     <footer className="bg-gray-50 border-t border-gray-100 mt-20">
       {/* As Seen In */}
@@ -9,14 +21,16 @@ export default function Footer() {
         <div className="container py-8">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest text-center mb-6">As Seen In</p>
           <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-            {["Leafly", "MJBizDaily", "Herb", "OC Weekly", "Forbes"].map((name) => (
-              <span
-                key={name}
-                className="text-sm font-bold text-gray-300 tracking-wider hover:text-gray-500 transition-colors cursor-default"
-              >
-                {name}
-              </span>
-            ))}
+            {PRESS_SLOTS.map(({ slot, label }) => {
+              const imgUrl = imgs[slot];
+              return imgUrl ? (
+                <img key={slot} src={imgUrl} alt={label} className="h-6 w-auto object-contain opacity-50 hover:opacity-80 transition-opacity" />
+              ) : (
+                <span key={slot} className="text-sm font-bold text-gray-300 tracking-wider hover:text-gray-500 transition-colors cursor-default">
+                  {label}
+                </span>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -26,10 +40,16 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
-                <Leaf className="w-3.5 h-3.5 text-white" />
-              </div>
-              <span className="font-bold text-base tracking-tight text-gray-900">CHRONIC</span>
+              {imgs.logo_footer ? (
+                <img src={imgs.logo_footer} alt="CHRONIC" className="h-7 w-auto object-contain" />
+              ) : (
+                <>
+                  <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
+                    <Leaf className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <span className="font-bold text-base tracking-tight text-gray-900">CHRONIC</span>
+                </>
+              )}
             </div>
             <p className="text-xs text-gray-500 leading-relaxed">
               Premium hemp-derived products. Quality you can trust, formulated with care.

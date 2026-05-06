@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
@@ -134,9 +134,40 @@ export async function getBanners(activeOnly = false) {
   const db = await getDb();
   if (!db) return [];
   if (activeOnly) {
-    return db.select().from(banners).where(eq(banners.isActive, true)).orderBy(banners.sortOrder);
+    return db.select().from(banners)
+      .where(and(isNull(banners.slot), eq(banners.isActive, true)))
+      .orderBy(banners.sortOrder);
   }
-  return db.select().from(banners).orderBy(banners.sortOrder);
+  return db.select().from(banners).where(isNull(banners.slot)).orderBy(banners.sortOrder);
+}
+
+export async function getSiteImages(): Promise<Record<string, string>> {
+  const db = await getDb();
+  if (!db) return {};
+  const rows = await db.select({ slot: banners.slot, imageUrl: banners.imageUrl })
+    .from(banners)
+    .where(isNotNull(banners.slot));
+  return Object.fromEntries(rows.map((r) => [r.slot!, r.imageUrl]));
+}
+
+export async function upsertSiteImage(slot: string, imageUrl: string, imageKey?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  const existing = await db.select({ id: banners.id }).from(banners)
+    .where(eq(banners.slot, slot)).limit(1);
+  if (existing.length > 0) {
+    await db.update(banners)
+      .set({ imageUrl, ...(imageKey ? { imageKey } : {}) })
+      .where(eq(banners.slot, slot));
+  } else {
+    await db.insert(banners).values({ slot, imageUrl, imageKey: imageKey ?? null, sortOrder: 0, isActive: true });
+  }
+}
+
+export async function deleteSiteImage(slot: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.delete(banners).where(eq(banners.slot, slot));
 }
 export async function getBannerById(id: number) {
   const db = await getDb();
