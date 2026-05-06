@@ -684,6 +684,7 @@ export async function getAllLabReports() {
     .select({
       id: labReports.id,
       productId: labReports.productId,
+      category: labReports.category,
       productName: products.name,
       productSlug: products.slug,
       productImageUrl: products.imageUrl,
@@ -704,7 +705,8 @@ export async function getAllLabReports() {
 }
 
 export async function createLabReport(data: {
-  productId: number;
+  productId?: number;
+  category?: string;
   variantId?: number;
   variantName?: string;
   reportName: string;
@@ -718,6 +720,7 @@ export async function createLabReport(data: {
   if (!db) throw new Error("DB unavailable");
   const [result] = await db.insert(labReports).values({
     productId: data.productId,
+    category: data.category,
     variantId: data.variantId,
     variantName: data.variantName,
     reportName: data.reportName,

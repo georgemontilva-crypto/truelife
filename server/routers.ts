@@ -560,7 +560,8 @@ export const appRouter = router({
     listAll: publicProcedure.query(() => getAllLabReports()),
     uploadAndCreate: adminProcedure
       .input(z.object({
-        productId: z.number(),
+        productId: z.number().optional(),
+        category: z.string().optional(),
         variantId: z.number().optional(),
         variantName: z.string().optional(),
         reportName: z.string().min(1),
@@ -572,10 +573,11 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64, "base64");
-        const key = `Lab Reports/${input.productId}/${Date.now()}-${input.filename}`;
+        const key = `Lab Reports/${input.productId ?? "general"}/${Date.now()}-${input.filename}`;
         const { url } = await storagePut(key, buffer, input.contentType);
         return createLabReport({
           productId: input.productId,
+          category: input.category,
           variantId: input.variantId,
           variantName: input.variantName,
           reportName: input.reportName,
@@ -587,7 +589,8 @@ export const appRouter = router({
       }),
     createWithUrl: adminProcedure
       .input(z.object({
-        productId: z.number(),
+        productId: z.number().optional(),
+        category: z.string().optional(),
         variantId: z.number().optional(),
         variantName: z.string().optional(),
         reportName: z.string().min(1),
@@ -597,6 +600,7 @@ export const appRouter = router({
       }))
       .mutation(({ input }) => createLabReport({
         productId: input.productId,
+        category: input.category,
         variantId: input.variantId,
         variantName: input.variantName,
         reportName: input.reportName,

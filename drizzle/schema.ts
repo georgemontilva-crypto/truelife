@@ -200,9 +200,10 @@ export type ProductAttribute = typeof productAttributes.$inferSelect;
 // Reporte de laboratorio: puede estar vinculado a un producto o a una variante
 export const labReports = mysqlTable("lab_reports", {
   id: int("id").autoincrement().primaryKey(),
-  productId: int("productId").notNull(),
-  variantId: int("variantId"),                             // null = aplica al producto completo
-  variantName: varchar("variantName", { length: 256 }),    // etiqueta legible
+  productId: int("productId"),
+  category: varchar("category", { length: 128 }),
+  variantId: int("variantId"),
+  variantName: varchar("variantName", { length: 256 }),
   reportName: varchar("reportName", { length: 256 }).notNull(),
   fileUrl: text("fileUrl"),
   fileKey: varchar("fileKey", { length: 512 }),
