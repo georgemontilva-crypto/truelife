@@ -687,7 +687,16 @@ export async function getLabReports(productId: number) {
   const db = await getDb();
   if (!db) return [];
   return db
-    .select()
+    .select({
+      id: labReports.id,
+      productId: labReports.productId,
+      category: labReports.category,
+      variantId: labReports.variantId,
+      name: labReports.reportName,
+      fileUrl: labReports.fileUrl,
+      fileKey: labReports.fileKey,
+      createdAt: labReports.createdAt,
+    })
     .from(labReports)
     .where(eq(labReports.productId, productId))
     .orderBy(labReports.createdAt);
@@ -706,13 +715,9 @@ export async function getAllLabReports() {
       productImageUrl: products.imageUrl,
       productCategoryId: products.categoryId,
       variantId: labReports.variantId,
-      name: labReports.name,
+      name: labReports.reportName,
       fileUrl: labReports.fileUrl,
       fileKey: labReports.fileKey,
-      externalUrl: labReports.externalUrl,
-      batchNumber: labReports.batchNumber,
-      title: labReports.title,
-      testedAt: labReports.testedAt,
       createdAt: labReports.createdAt,
     })
     .from(labReports)
@@ -721,34 +726,20 @@ export async function getAllLabReports() {
 }
 
 export async function createLabReport(data: {
-  productId?: number;
   category?: string;
-  variantId?: number;
   name: string;
   fileUrl?: string;
   fileKey?: string;
-  externalUrl?: string;
-  testedAt?: Date;
-  batchNumber?: string;
-  title?: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
 
-  const values: Record<string, any> = {
-    name: data.name,
-  };
-  if (data.productId != null) values.productId = data.productId;
-  if (data.category != null && data.category !== '') values.category = data.category;
-  if (data.variantId != null) values.variantId = data.variantId;
-  if (data.fileUrl != null && data.fileUrl !== '') values.fileUrl = data.fileUrl;
-  if (data.fileKey != null && data.fileKey !== '') values.fileKey = data.fileKey;
-  if (data.externalUrl != null && data.externalUrl !== '') values.externalUrl = data.externalUrl;
-  if (data.batchNumber != null && data.batchNumber !== '') values.batchNumber = data.batchNumber;
-  if (data.title != null && data.title !== '') values.title = data.title;
-  if (data.testedAt != null) values.testedAt = data.testedAt;
+  const conn = (db as any).client ?? (db as any)._client ?? db;
+  const [result] = await conn.execute(
+    "INSERT INTO lab_reports (reportName, category, fileUrl, fileKey) VALUES (?, ?, ?, ?)",
+    [data.name, data.category ?? null, data.fileUrl ?? null, data.fileKey ?? null]
+  );
 
-  const [result] = await db.insert(labReports).values(values as any);
   return { id: (result as any).insertId as number };
 }
 

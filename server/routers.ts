@@ -614,15 +614,10 @@ export const appRouter = router({
 
           const clean = (v?: string) => v?.trim() || undefined;
           const result = await createLabReport({
-            productId: input.productId,
             category: clean(input.category),
-            variantId: input.variantId,
             name: input.name,
             fileUrl: url,
             fileKey: key,
-            batchNumber: clean(input.batchNumber),
-            title: clean(input.title),
-            testedAt: input.testedAt ? new Date(input.testedAt) : undefined,
           });
           console.log("LAB_DB_RESULT:", result);
           return result;
@@ -643,14 +638,9 @@ export const appRouter = router({
         testedAt: z.string().optional(),
       }))
       .mutation(({ input }) => createLabReport({
-        productId: input.productId,
         category: input.category,
-        variantId: input.variantId,
         name: input.name,
-        externalUrl: input.externalUrl,
-        batchNumber: input.batchNumber,
-        title: input.title,
-        testedAt: input.testedAt ? new Date(input.testedAt) : undefined,
+        fileUrl: input.externalUrl,
       })),
     delete: adminProcedure
       .input(z.object({ id: z.number() }))

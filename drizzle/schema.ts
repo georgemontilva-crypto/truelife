@@ -203,7 +203,7 @@ export const labReports = mysqlTable("lab_reports", {
   productId: int("productId"),
   category: varchar("category", { length: 128 }),
   variantId: int("variantId"),
-  name: varchar("name", { length: 256 }).notNull(),
+  reportName: varchar("reportName", { length: 256 }).notNull(),
   fileUrl: text("fileUrl"),
   fileKey: varchar("fileKey", { length: 512 }),
   externalUrl: text("externalUrl"),
