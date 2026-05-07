@@ -5,36 +5,48 @@ import Footer from "@/components/Footer";
 
 const FAQS = [
   {
-    q: "Is hemp CBD legal?",
-    a: "Yes. Under the 2018 Farm Bill, hemp-derived CBD products containing less than 0.3% Delta-9 THC are federally legal in the United States. Our products comply with all federal regulations and are sourced from licensed hemp farms.",
+    q: "When do I receive my order?",
+    a: "Your order is typically shipped the next business day and received within (5) business days.",
   },
   {
-    q: "Will CBD make me feel 'high'?",
-    a: "No. CBD (cannabidiol) is non-intoxicating. Unlike THC, it does not produce a psychoactive high. Our full-spectrum products contain trace amounts of THC (below the legal 0.3% threshold), which is not enough to cause intoxication.",
+    q: "What are cannabinoids?",
+    a: "Cannabinoids are natural chemical compounds that interact with the body's cannabinoid receptors in your endocannabinoid system. These compounds are very effective in regulating your bodily systems and balancing your state of mind.",
   },
   {
-    q: "How do I choose the right product for me?",
-    a: "It depends on your goals. For general wellness and daily use, our CBD oils or capsules are a great starting point. For targeted relief, topicals work well. If you prefer a smoke-free option, gummies or tinctures are popular choices. When in doubt, start with a lower potency and adjust based on your experience.",
+    q: "What are Terpenes?",
+    a: "Terpenes are organic compounds that attribute to the scent and taste of cannabis. When paired with other cannabinoids, such as THC and CBD, terpenes enhance your experience and hold numerous medical benefits. Terpenes and cannabinoids work synergistically to induce what's known as the 'entourage effect'.",
   },
   {
-    q: "How are your products tested?",
-    a: "All our products are third-party lab tested by accredited ISO-certified laboratories. Lab reports (Certificates of Analysis) are available on our Lab Results page and verify cannabinoid potency, terpene profiles, heavy metals, pesticides, and microbials.",
+    q: "Where are cannabinoids and terpenes found?",
+    a: "Cannabinoids and terpenes can be found in plants in the Cannabis Sativa L. species which includes both cannabis and hemp. Terpenoids/terpenes are also commonly found in many other plants including spices, herbs, trees and fruits. A cannabis terpene such as myrcene, is also found in mangoes, lemongrass, and basil.",
   },
   {
-    q: "How long does shipping take?",
-    a: "Standard shipping typically takes 3–5 business days. Expedited 2-day options are available at checkout. Orders over $50 ship free. We ship to all 50 US states.",
+    q: "What is the entourage effect?",
+    a: "Each cannabinoid and terpene has a specific biochemical effect on the body. When the many compounds within the cannabis plant interact with the human body, a synergistic effect results to produce a stronger influence known as the entourage effect. At Chronic Hemp, we focus on this notion with our blends by optimally combining cannabinoids and terpenes to provide sensational effects.",
   },
   {
-    q: "What is your return policy?",
-    a: "We offer a 30-day satisfaction guarantee. If you're not happy with your purchase, contact our support team within 30 days of delivery for a full refund or exchange. Products must be in original condition.",
+    q: "How are your products made?",
+    a: "We source clean pesticide-free hemp-derived cannabinoid oils from our manufacturing partners throughout the country. Our cannabinoid blends are formed by combining specific amounts of various hemp-derived cannabinoids, which we then infuse our proprietary terpene profiles to provide the desired effects.",
   },
   {
-    q: "Can I take CBD with other medications?",
-    a: "CBD can interact with certain medications. We always recommend consulting with a licensed healthcare provider before adding CBD to your routine, especially if you're taking prescription medications. This is not medical advice.",
+    q: "Are your products legal?",
+    a: "Yes! In 2018, the Farm Bill was signed into law. This legislation states that all derivatives of hemp are completely legal in the United States as long as they do not contain more than .3% Delta 9 THC. All of our products are hemp-derived and are rigorously tested via third-party labs to ensure compliance. Note: Certain states have legislation that has banned hemp-derived THC products including Alaska, Arizona, Arkansas, California, Colorado, Connecticut, Delaware, Kentucky, Idaho, Iowa, Mississippi, Montana, New York, Nevada, Rhode Island, Utah, Vermont, Washington, Michigan, and North Dakota.",
   },
   {
-    q: "What's the difference between full-spectrum, broad-spectrum, and isolate?",
-    a: "Full-spectrum contains all cannabinoids, terpenes, and trace THC (<0.3%) found naturally in hemp — the 'entourage effect' may enhance benefits. Broad-spectrum has the same compounds but with THC removed. Isolate is pure CBD with nothing else. We offer all three types across our product line.",
+    q: "Are your products third party tested?",
+    a: "Yes. Each batch of our products is rigorously tested by independent third-party laboratories to verify potency, purity, and compliance with federal regulations. You can view our Certificates of Analysis (COA) in the Lab Results section of our website.",
+  },
+  {
+    q: "How do you flavor your products?",
+    a: "The unique and complex flavors of our products come from naturally-occurring compounds. Our blends use a wide range of botanically-inspired components to create bolder, fruitier, and tastier flavors.",
+  },
+  {
+    q: "Do you use any fillers like PG/VG or MCT coconut oil?",
+    a: "No. We are proud to offer a terpene formulation created specifically for our vaporizers. This formulation improves upon commonly used diluents for cannabis vapor applications by extending stability, enhancing performance, and improving inhalation safety, delivering a consistent and safe end-product.",
+  },
+  {
+    q: "Where can I buy your products?",
+    a: "Chronic Hemp products are located in distributors throughout the USA and placed in retail Smoke Shops. You can also purchase directly through our website.",
   },
 ];
 
