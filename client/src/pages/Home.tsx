@@ -337,6 +337,101 @@ function CategoryCarousel({ categories }: { categories: Category[] }) {
   );
 }
 
+// ─── Featured Products Carousel ──────────────────────────────────────────────
+
+type FeaturedProduct = {
+  id: number;
+  name: string;
+  slug: string;
+  price: string;
+  compareAtPrice?: string | null;
+  imageUrl?: string | null;
+  isActive: boolean;
+  isFeatured: boolean;
+  categoryId: number | null;
+};
+
+function FeaturedProductsCarousel({ products }: { products: FeaturedProduct[] }) {
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { align: "start", loop: true },
+    [Autoplay({ delay: 4000, stopOnInteraction: false })]
+  );
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    setScrollSnaps(emblaApi.scrollSnapList());
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+    onSelect();
+    return () => { emblaApi.off("select", onSelect); emblaApi.off("reInit", onSelect); };
+  }, [emblaApi, onSelect]);
+
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+  const scrollTo  = useCallback((i: number) => emblaApi?.scrollTo(i), [emblaApi]);
+
+  return (
+    <div className="relative px-2">
+      {/* Viewport */}
+      <div ref={emblaRef} className="overflow-hidden">
+        <div className="flex gap-4">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              className="flex-none w-full md:w-[calc(50%-8px)] lg:w-[calc(25%-12px)]"
+            >
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Left arrow */}
+      <button
+        onClick={scrollPrev}
+        aria-label="Previous products"
+        className="absolute left-0 top-[calc(50%-28px)] -translate-x-1 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 border border-white/20 flex items-center justify-center transition-all backdrop-blur-sm"
+      >
+        <ChevronLeft className="w-5 h-5 text-white" />
+      </button>
+
+      {/* Right arrow */}
+      <button
+        onClick={scrollNext}
+        aria-label="Next products"
+        className="absolute right-0 top-[calc(50%-28px)] translate-x-1 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 border border-white/20 flex items-center justify-center transition-all backdrop-blur-sm"
+      >
+        <ChevronRight className="w-5 h-5 text-white" />
+      </button>
+
+      {/* Dots */}
+      {scrollSnaps.length > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-7">
+          {scrollSnaps.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => scrollTo(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              className={`transition-all duration-300 rounded-full ${
+                i === selectedIndex
+                  ? "w-6 h-2 bg-white"
+                  : "w-2 h-2 bg-white/30 hover:bg-white/60"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Home Component ──────────────────────────────────────────────────────
 export default function Home() {
   const categories = trpc.categories.list.useQuery();
@@ -397,17 +492,16 @@ export default function Home() {
             </Link>
           </div>
           {featured.isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
+            <div className="flex gap-4 overflow-hidden px-2">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-72 bg-gray-800 rounded-2xl animate-pulse" />
+                <div
+                  key={i}
+                  className="flex-none w-full md:w-[calc(50%-8px)] lg:w-[calc(25%-12px)] h-72 bg-gray-800 rounded-2xl animate-pulse"
+                />
               ))}
             </div>
           ) : featured.data && featured.data.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
-              {featured.data.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <FeaturedProductsCarousel products={featured.data} />
           ) : (
             <div className="text-center py-12 text-gray-500">
               <p>No featured products yet. Check back soon!</p>
