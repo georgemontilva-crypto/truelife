@@ -734,8 +734,8 @@ export async function createLabReport(data: {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
 
-  const conn = (db as any).client ?? (db as any)._client ?? db;
-  const [result] = await conn.execute(
+  const pool = (db as any).session?.client ?? (db as any).client;
+  const [result] = await pool.execute(
     "INSERT INTO lab_reports (reportName, category, fileUrl, fileKey) VALUES (?, ?, ?, ?)",
     [data.name, data.category ?? null, data.fileUrl ?? null, data.fileKey ?? null]
   );
