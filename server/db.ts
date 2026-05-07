@@ -865,36 +865,49 @@ async function ensureSiteSettingsTable() {
   if (_settingsReady) return;
   const db = await getDb();
   if (!db) return;
-  await db.execute(sql`
-    CREATE TABLE IF NOT EXISTS site_settings (
-      \`key\` VARCHAR(255) PRIMARY KEY,
-      \`value\` TEXT,
-      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )
-  `);
-  _settingsReady = true;
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        \`key\` VARCHAR(255) PRIMARY KEY,
+        \`value\` TEXT,
+        updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    _settingsReady = true;
+  } catch {
+    // Table may already exist with different schema — swallow and continue
+  }
 }
 
 export async function getSetting(key: string): Promise<string | null> {
-  const db = await getDb();
-  if (!db) return null;
-  await ensureSiteSettingsTable();
-  const [row] = await db.select().from(siteSettings).where(eq(siteSettings.key, key)).limit(1);
-  return row?.value ?? null;
+  try {
+    const db = await getDb();
+    if (!db) return null;
+    await ensureSiteSettingsTable();
+    const [row] = await db.select().from(siteSettings).where(eq(siteSettings.key, key)).limit(1);
+    return row?.value ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getSettings(keys: string[]): Promise<Record<string, string | null>> {
+  const empty = Object.fromEntries(keys.map((k) => [k, null]));
   if (keys.length === 0) return {};
-  const db = await getDb();
-  if (!db) return Object.fromEntries(keys.map((k) => [k, null]));
-  await ensureSiteSettingsTable();
-  const rows = await db.select().from(siteSettings).where(
-    keys.length === 1
-      ? eq(siteSettings.key, keys[0])
-      : sql`${siteSettings.key} IN (${sql.join(keys.map((k) => sql`${k}`), sql`, `)})`
-  );
-  const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
-  return Object.fromEntries(keys.map((k) => [k, map[k] ?? null]));
+  try {
+    const db = await getDb();
+    if (!db) return empty;
+    await ensureSiteSettingsTable();
+    const rows = await db.select().from(siteSettings).where(
+      keys.length === 1
+        ? eq(siteSettings.key, keys[0])
+        : sql`${siteSettings.key} IN (${sql.join(keys.map((k) => sql`${k}`), sql`, `)})`
+    );
+    const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+    return Object.fromEntries(keys.map((k) => [k, map[k] ?? null]));
+  } catch {
+    return empty;
+  }
 }
 
 export async function setSetting(key: string, value: string): Promise<void> {

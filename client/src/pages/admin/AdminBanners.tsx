@@ -473,9 +473,10 @@ type AboutKey = (typeof ABOUT_TEXT_KEYS)[number];
 function AboutPageTab() {
   const utils = trpc.useUtils();
   const { data: siteImages = {}, isLoading: imagesLoading } = trpc.banners.siteImages.useQuery();
-  const { data: textSettings, isLoading: textLoading } = trpc.settings.getMany.useQuery({
-    keys: [...ABOUT_TEXT_KEYS],
-  });
+  const { data: textSettings, isLoading: textLoading, isError: textError } = trpc.settings.getMany.useQuery(
+    { keys: [...ABOUT_TEXT_KEYS] },
+    { retry: false }
+  );
 
   const [form, setForm] = useState<Record<AboutKey, string>>({
     about_hero_title: "",
@@ -533,7 +534,7 @@ function AboutPageTab() {
 
   const isPending = upsertMutation.isPending || clearMutation.isPending;
 
-  if (imagesLoading || textLoading) {
+  if (imagesLoading) {
     return <div className="text-center py-12 text-muted-foreground">Loading...</div>;
   }
 
@@ -561,7 +562,9 @@ function AboutPageTab() {
 
       {/* Text settings */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Text Content</h3>
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          Text Content{textLoading && <span className="ml-2 text-xs font-normal text-gray-400 normal-case">Loading...</span>}{textError && <span className="ml-2 text-xs font-normal text-amber-500 normal-case">Could not load saved values</span>}
+        </h3>
         <div className="bg-white border rounded-xl p-6 space-y-5">
           <div className="space-y-1.5">
             <Label htmlFor="about_hero_title">Hero Title</Label>
