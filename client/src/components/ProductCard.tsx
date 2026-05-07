@@ -92,7 +92,6 @@ export default function ProductCard({ product, index }: { product: Product; inde
             <img
               src={product.imageUrl}
               alt={product.name}
-              crossOrigin="anonymous"
               loading={index !== undefined && index < 4 ? "eager" : "lazy"}
               onError={(e) => {
                 const t = e.target as HTMLImageElement;
