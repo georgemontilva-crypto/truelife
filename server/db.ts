@@ -706,8 +706,7 @@ export async function getAllLabReports() {
       productImageUrl: products.imageUrl,
       productCategoryId: products.categoryId,
       variantId: labReports.variantId,
-      variantName: labReports.variantName,
-      reportName: labReports.reportName,
+      name: labReports.name,
       fileUrl: labReports.fileUrl,
       fileKey: labReports.fileKey,
       externalUrl: labReports.externalUrl,
@@ -725,8 +724,7 @@ export async function createLabReport(data: {
   productId?: number;
   category?: string;
   variantId?: number;
-  variantName?: string;
-  reportName: string;
+  name: string;
   fileUrl?: string;
   fileKey?: string;
   externalUrl?: string;
@@ -740,8 +738,7 @@ export async function createLabReport(data: {
     productId: data.productId,
     category: data.category,
     variantId: data.variantId,
-    variantName: data.variantName,
-    reportName: data.reportName,
+    name: data.name,
     fileUrl: data.fileUrl,
     fileKey: data.fileKey,
     externalUrl: data.externalUrl,

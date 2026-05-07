@@ -39,7 +39,7 @@ export default function LabResultsPage() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return allReports.filter((r) => {
-      if (q && !r.reportName.toLowerCase().includes(q) && !(r.productName ?? "").toLowerCase().includes(q)) return false;
+      if (q && !r.name.toLowerCase().includes(q) && !(r.productName ?? "").toLowerCase().includes(q)) return false;
       if (categoryId !== "" && r.productCategoryId !== categoryId) return false;
       if (productId !== "" && r.productId !== productId) return false;
       return true;
@@ -137,15 +137,12 @@ export default function LabResultsPage() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs text-gray-500 truncate">{r.productName ?? "—"}</p>
-                        {r.variantName && (
-                          <span className="inline-block text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full mt-0.5">{r.variantName}</span>
-                        )}
                       </div>
                     </div>
 
                     {/* Report name */}
                     <div>
-                      <p className="text-sm font-semibold text-gray-900 leading-snug">{r.reportName}</p>
+                      <p className="text-sm font-semibold text-gray-900 leading-snug">{r.name}</p>
                       <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
                         {r.batchNumber && (
                           <span className="flex items-center gap-1 text-xs text-gray-500">

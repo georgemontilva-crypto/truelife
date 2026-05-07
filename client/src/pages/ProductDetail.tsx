@@ -514,12 +514,9 @@ export default function ProductDetail() {
                           </div>
                           <div>
                             <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900 truncate">
-                              {report.reportName}
+                              {report.name}
                             </p>
                             <div className="flex items-center gap-2 mt-0.5">
-                              {report.variantName && (
-                                <span className="text-xs text-gray-500">Variant: {report.variantName}</span>
-                              )}
                               {report.batchNumber && (
                                 <span className="text-xs text-gray-400">· Batch: {report.batchNumber}</span>
                               )}

@@ -10,14 +10,14 @@ import { Plus, Trash2, ExternalLink, FlaskConical, Upload, X, ChevronDown, Chevr
 
 type ReportDraft = {
   _id: string;
-  reportName: string;
+  name: string;
   file: File | null;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function makeDraft(): ReportDraft {
-  return { _id: Math.random().toString(36).slice(2), reportName: "", file: null };
+  return { _id: Math.random().toString(36).slice(2), name: "", file: null };
 }
 
 function fileToBase64(file: File): Promise<string> {
@@ -42,8 +42,8 @@ function DraftRow({ draft, onChange, onRemove, canRemove }: {
   return (
     <div className="flex items-center gap-2">
       <Input
-        value={draft.reportName}
-        onChange={(e) => onChange({ reportName: e.target.value })}
+        value={draft.name}
+        onChange={(e) => onChange({ name: e.target.value })}
         placeholder="Report name  (e.g. Blue Dream COA)"
         className="rounded-xl text-sm h-9 flex-1"
       />
@@ -147,10 +147,10 @@ export default function AdminLabReports() {
 
   const handleSaveAll = async () => {
     if (!formCategory.trim()) { toast.error("Enter a category"); return; }
-    const valid = drafts.filter((d) => d.reportName.trim());
+    const valid = drafts.filter((d) => d.name.trim());
     if (!valid.length) { toast.error("Add at least one report name"); return; }
     for (const d of valid) {
-      if (!d.file) { toast.error(`"${d.reportName}": select a PDF`); return; }
+      if (!d.file) { toast.error(`"${d.name}": select a PDF`); return; }
     }
 
     setSaving(true);
@@ -160,7 +160,7 @@ export default function AdminLabReports() {
         const base64 = await fileToBase64(d.file!);
         await uploadMut.mutateAsync({
           category: formCategory.trim(),
-          reportName: d.reportName.trim(),
+          name: d.name.trim(),
           filename: d.file!.name,
           contentType: "application/pdf",
           base64,
@@ -177,7 +177,7 @@ export default function AdminLabReports() {
     }
   };
 
-  const readyCount = drafts.filter((d) => d.reportName.trim() && d.file).length;
+  const readyCount = drafts.filter((d) => d.name.trim() && d.file).length;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -317,7 +317,7 @@ export default function AdminLabReports() {
                   <div className="divide-y divide-gray-50">
                     {reports.map((r) => (
                       <div key={r.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 group">
-                        <p className="text-sm text-gray-800 flex-1 truncate">{r.reportName}</p>
+                        <p className="text-sm text-gray-800 flex-1 truncate">{r.name}</p>
                         <div className="flex items-center gap-1 shrink-0">
                           {r.fileUrl && (
                             <a
@@ -331,7 +331,7 @@ export default function AdminLabReports() {
                           )}
                           <button
                             type="button"
-                            onClick={() => { if (confirm(`Delete "${r.reportName}"?`)) deleteMut.mutate({ id: r.id }); }}
+                            onClick={() => { if (confirm(`Delete "${r.name}"?`)) deleteMut.mutate({ id: r.id }); }}
                             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                             title="Delete"
                           >

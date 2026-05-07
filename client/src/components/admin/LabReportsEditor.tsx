@@ -7,16 +7,15 @@ import { toast } from "sonner";
 import { Plus, Trash2, FileText, Upload, X, ExternalLink, FlaskConical, Link2 } from "lucide-react";
 
 type NewReport = {
-  reportName: string;
+  name: string;
   variantId: number | undefined;
-  variantName: string;
   batchNumber: string;
   testedAt: string;
   externalUrl: string;
 };
 
 const EMPTY: NewReport = {
-  reportName: "", variantId: undefined, variantName: "",
+  name: "", variantId: undefined,
   batchNumber: "", testedAt: "", externalUrl: "",
 };
 
@@ -50,7 +49,7 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!form.reportName) { toast.error("Enter a report name first"); return; }
+    if (!form.name) { toast.error("Enter a report name first"); return; }
     setUploading(true);
     const reader = new FileReader();
     reader.onload = () => {
@@ -58,8 +57,7 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
       uploadMut.mutate({
         productId,
         variantId: form.variantId,
-        variantName: form.variantName || undefined,
-        reportName: form.reportName,
+        name: form.name,
         batchNumber: form.batchNumber || undefined,
         testedAt: form.testedAt || undefined,
         filename: file.name,
@@ -71,13 +69,12 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
   };
 
   const handleSaveUrl = () => {
-    if (!form.reportName) { toast.error("Report name is required"); return; }
+    if (!form.name) { toast.error("Report name is required"); return; }
     if (!form.externalUrl) { toast.error("URL is required"); return; }
     urlMut.mutate({
       productId,
       variantId: form.variantId,
-      variantName: form.variantName || undefined,
-      reportName: form.reportName,
+      name: form.name,
       externalUrl: form.externalUrl,
       batchNumber: form.batchNumber || undefined,
       testedAt: form.testedAt || undefined,
@@ -86,11 +83,9 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
 
   const handleVariantChange = (val: string) => {
     if (val === "") {
-      setForm((f) => ({ ...f, variantId: undefined, variantName: "" }));
+      setForm((f) => ({ ...f, variantId: undefined }));
     } else {
-      const id = parseInt(val);
-      const v = variants.find((v) => v.id === id);
-      setForm((f) => ({ ...f, variantId: id, variantName: v?.name ?? "" }));
+      setForm((f) => ({ ...f, variantId: parseInt(val) }));
     }
   };
 
@@ -118,9 +113,8 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
             <div key={r.id} className="flex items-center gap-3 px-3 py-2.5 bg-gray-50 rounded-xl border border-gray-100">
               <FlaskConical className="w-4 h-4 text-gray-500 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 truncate">{r.reportName}</p>
+                <p className="text-sm font-medium text-gray-800 truncate">{r.name}</p>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  {r.variantName && <span className="text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">{r.variantName}</span>}
                   {r.batchNumber && <span className="text-xs text-gray-500">Batch: {r.batchNumber}</span>}
                   {r.testedAt && <span className="text-xs text-gray-400">{new Date(r.testedAt).toLocaleDateString()}</span>}
                 </div>
@@ -165,8 +159,8 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
               <div>
                 <Label className="text-xs text-gray-600 mb-1 block">Report Name *</Label>
                 <Input
-                  value={form.reportName}
-                  onChange={(e) => setForm((f) => ({ ...f, reportName: e.target.value }))}
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder="e.g. COA Strawberry 3.5g"
                   className="rounded-xl text-sm h-8"
                 />
@@ -229,13 +223,13 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  disabled={uploading || !form.reportName}
+                  disabled={uploading || !form.name}
                   className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-xl text-sm text-gray-700 hover:border-gray-500 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full justify-center"
                 >
                   <Upload className="w-4 h-4" />
                   {uploading ? "Uploading…" : "Choose PDF or Image"}
                 </button>
-                {!form.reportName && <p className="text-xs text-amber-600 mt-1">Enter a report name before uploading</p>}
+                {!form.name && <p className="text-xs text-amber-600 mt-1">Enter a report name before uploading</p>}
                 <input ref={fileRef} type="file" accept=".pdf,image/*" className="hidden" onChange={handleFileChange} />
               </div>
             ) : (
@@ -252,7 +246,7 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
                 <Button
                   type="button" size="sm"
                   onClick={handleSaveUrl}
-                  disabled={urlMut.isPending || !form.reportName || !form.externalUrl}
+                  disabled={urlMut.isPending || !form.name || !form.externalUrl}
                   className="bg-gray-900 hover:bg-black text-white rounded-xl text-sm w-full"
                 >
                   {urlMut.isPending ? "Saving…" : "Save Report"}
