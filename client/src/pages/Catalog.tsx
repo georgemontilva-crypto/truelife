@@ -41,36 +41,34 @@ export default function Catalog() {
           </p>
         </div>
 
-        <div className="flex gap-8">
+        <div className="flex gap-8 items-start">
           {/* Sidebar filters */}
-          <aside className="hidden md:block w-52 shrink-0">
-            <div className="sticky top-24">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Categories</h3>
-              <div className="space-y-1">
+          <aside className="hidden md:block w-52 shrink-0 sticky top-20 self-start">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Categories</h3>
+            <div className="space-y-1">
+              <button
+                onClick={() => setSelectedCategoryId(undefined)}
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                  !effectiveCategoryId
+                    ? "bg-gray-50 text-gray-900 font-medium"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                }`}
+              >
+                All Products
+              </button>
+              {categories.data?.map((cat) => (
                 <button
-                  onClick={() => setSelectedCategoryId(undefined)}
+                  key={cat.id}
+                  onClick={() => setSelectedCategoryId(cat.id)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                    !effectiveCategoryId
+                    effectiveCategoryId === cat.id
                       ? "bg-gray-50 text-gray-900 font-medium"
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                 >
-                  All Products
+                  {cat.name}
                 </button>
-                {categories.data?.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setSelectedCategoryId(cat.id)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                      effectiveCategoryId === cat.id
-                        ? "bg-gray-50 text-gray-900 font-medium"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
+              ))}
             </div>
           </aside>
 
