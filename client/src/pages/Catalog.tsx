@@ -24,6 +24,7 @@ export default function Catalog() {
   const products = trpc.products.list.useQuery(
     effectiveCategoryId ? { categoryId: effectiveCategoryId } : undefined
   );
+  console.log("[Catalog] products query:", { isLoading: products.isLoading, error: products.error, count: products.data?.length });
 
   return (
     <div className="min-h-screen bg-white">
@@ -41,8 +42,33 @@ export default function Catalog() {
           </p>
         </div>
 
+        {/* Mobile category pills — above the grid, outside the flex row */}
+        <div className="md:hidden mb-6">
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <button
+              onClick={() => setSelectedCategoryId(undefined)}
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                !effectiveCategoryId ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              All
+            </button>
+            {categories.data?.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategoryId(cat.id)}
+                className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  effectiveCategoryId === cat.id ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="flex gap-8 items-start">
-          {/* Sidebar filters */}
+          {/* Desktop sidebar — hidden on mobile, sticky on md+ */}
           <aside className="hidden md:block w-52 shrink-0 sticky top-20 self-start">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Categories</h3>
             <div className="space-y-1">
@@ -72,33 +98,8 @@ export default function Catalog() {
             </div>
           </aside>
 
-          {/* Mobile category pills */}
-          <div className="md:hidden w-full mb-6">
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              <button
-                onClick={() => setSelectedCategoryId(undefined)}
-                className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  !effectiveCategoryId ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"
-                }`}
-              >
-                All
-              </button>
-              {categories.data?.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategoryId(cat.id)}
-                  className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    effectiveCategoryId === cat.id ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Products grid */}
-          <div className="flex-1">
+          {/* Products grid — full width on mobile, flex-1 alongside sidebar on md+ */}
+          <div className="flex-1 min-w-0 w-full">
             {products.isLoading ? (
               <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-5">
                 {Array.from({ length: 8 }).map((_, i) => (
