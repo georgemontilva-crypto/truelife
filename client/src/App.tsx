@@ -36,6 +36,8 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminBanners from "./pages/admin/AdminBanners";
 import AdminLabReports from "./pages/admin/AdminLabReports";
 import LabResultsPage from "./pages/LabResultsPage";
+import ContactPage from "./pages/ContactPage";
+import FAQsPage from "./pages/FAQsPage";
 
 function Router() {
   return (
@@ -57,6 +59,8 @@ function Router() {
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/account" component={AccountPage} />
       <Route path="/lab-results" component={LabResultsPage} />
+      <Route path="/contact" component={ContactPage} />
+      <Route path="/faqs" component={FAQsPage} />
       <Route path="/admin" component={() => <AdminLayout><AdminDashboard /></AdminLayout>} />
       <Route path="/admin/products" component={() => <AdminLayout><AdminProducts /></AdminLayout>} />
       <Route path="/admin/categories" component={() => <AdminLayout><AdminCategories /></AdminLayout>} />
