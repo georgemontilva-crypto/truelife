@@ -19,7 +19,7 @@ const SETTING_KEYS = ["about_hero_title", "about_hero_subtitle", "about_story_te
 const DEFAULT_HERO_TITLE    = "Expect the Best. Always.";
 const DEFAULT_HERO_SUBTITLE = "Pharmaceutical-grade hemp from farm to shelf. Every batch verified, every product crafted with care.";
 const DEFAULT_STORY_TEXT    =
-  "At Chronic Hemp Co., we believe that quality is non-negotiable. Founded with a passion for clean, effective hemp wellness, we set out to create products that meet the highest pharmaceutical standards — because you deserve nothing less.\n\nEvery product in our lineup is crafted from federally compliant, farm-bill-approved hemp. We partner with certified labs to verify potency and purity on every single batch, so you can shop with complete confidence.";
+  "All Chronic Hemp items are 100% natural and made in the USA. We only use the finest quality hemp derived THC with zero chemicals, such as fertilizers, herbicides, and pesticides.";
 
 export default function AboutPage() {
   const { data: siteImages = {} } = trpc.banners.siteImages.useQuery();
@@ -120,8 +120,8 @@ export default function AboutPage() {
                 Who We Are
               </div>
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6">
-                Quality You<br />
-                <span className="text-gray-400">Can Trust</span>
+                Derived From Organic<br />
+                <span className="text-gray-400">and Domestic Hemp</span>
               </h2>
               <div className="text-gray-600 leading-relaxed text-base mb-8 whitespace-pre-line">
                 {storyText}
@@ -169,12 +169,11 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold text-white">Our Values</h2>
           <p className="text-gray-400 mt-2">The principles that guide everything we do</p>
         </div>
-        <div className="container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="container grid grid-cols-1 sm:grid-cols-3 gap-5">
           {[
-            { icon: FlaskConical, title: "Science First",    desc: "Every formula is grounded in peer-reviewed research and rigorous third-party lab testing." },
-            { icon: Leaf,         title: "Sustainably Grown",desc: "Partnering with certified hemp farms that prioritize soil health and sustainable practices." },
-            { icon: Shield,       title: "Transparent",      desc: "Full COAs published for every product batch. No hidden ingredients, no surprises." },
-            { icon: Star,         title: "Customer Focused", desc: "Exceptional support, easy returns, and a 30-day money-back guarantee on all orders." },
+            { icon: Award, title: "Highest Quality Hemp Products on the Market", desc: "There is no beating the power and taste of Chronic Hemp products. As leaders in the industry, we are always innovating to focus on the natural health benefits for our customers and Wholesale Distributors." },
+            { icon: Star,  title: "30 Day Satisfaction Guarantee",               desc: "Each of our potent products includes a 100% satisfaction guarantee. If you are not happy within 30 days of your purchase, we will gladly refund your money on any unopened product." },
+            { icon: Leaf,  title: "Free Shipping",                               desc: "Pay no shipping fees on all orders. Chronic Hemp ships to all legal locations within the United States." },
           ].map(({ icon: Icon, title, desc }) => (
             <div key={title} className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors">
               <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
