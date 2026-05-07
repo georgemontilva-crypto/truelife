@@ -2,49 +2,37 @@ import { useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import Navbar from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
-import { FlaskConical, Search, FileText, ExternalLink, Calendar, Package } from "lucide-react";
-
-function SkeletonCard() {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-3 animate-pulse">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-gray-100 shrink-0" />
-        <div className="flex-1 space-y-2">
-          <div className="h-3 bg-gray-100 rounded w-3/4" />
-          <div className="h-2.5 bg-gray-100 rounded w-1/2" />
-        </div>
-      </div>
-      <div className="h-2.5 bg-gray-100 rounded w-full" />
-      <div className="h-8 bg-gray-100 rounded-xl" />
-    </div>
-  );
-}
+import { FlaskConical, Search, FileText, ExternalLink } from "lucide-react";
 
 export default function LabResultsPage() {
   const { data: allReports = [], isLoading } = trpc.labReports.listAll.useQuery();
-  const { data: categories = [] } = trpc.categories.list.useQuery();
-
   const [search, setSearch] = useState("");
-  const [categoryId, setCategoryId] = useState<number | "">("");
-  const [productId, setProductId] = useState<number | "">("");
-
-  const products = useMemo(() => {
-    const map = new Map<number, { id: number; name: string }>();
-    allReports.forEach((r) => {
-      if (r.productId && r.productName) map.set(r.productId, { id: r.productId, name: r.productName });
-    });
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [allReports]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return allReports.filter((r) => {
-      if (q && !r.name.toLowerCase().includes(q) && !(r.productName ?? "").toLowerCase().includes(q)) return false;
-      if (categoryId !== "" && r.productCategoryId !== categoryId) return false;
-      if (productId !== "" && r.productId !== productId) return false;
-      return true;
+    if (!q) return allReports;
+    return allReports.filter((r) =>
+      r.name.toLowerCase().includes(q) ||
+      (r.productName ?? "").toLowerCase().includes(q) ||
+      (r.category ?? "").toLowerCase().includes(q)
+    );
+  }, [allReports, search]);
+
+  // Group by the report's own category field; uncategorized → "General"
+  const groups = useMemo(() => {
+    const map = new Map<string, typeof filtered>();
+    for (const r of filtered) {
+      const key = r.category?.trim() || "General";
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(r);
+    }
+    // Alphabetical, "General" always last
+    return Array.from(map.entries()).sort(([a], [b]) => {
+      if (a === "General") return 1;
+      if (b === "General") return -1;
+      return a.localeCompare(b);
     });
-  }, [allReports, search, categoryId, productId]);
+  }, [filtered]);
 
   return (
     <>
@@ -65,9 +53,9 @@ export default function LabResultsPage() {
         </div>
 
         <div className="container py-8">
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-8">
-            <div className="relative flex-1 max-w-sm">
+          {/* Search */}
+          <div className="mb-8">
+            <div className="relative max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 value={search}
@@ -76,107 +64,88 @@ export default function LabResultsPage() {
                 className="pl-9 rounded-xl bg-white border-gray-200 h-10"
               />
             </div>
-            <select
-              value={categoryId}
-              onChange={(e) => { setCategoryId(e.target.value === "" ? "" : Number(e.target.value)); setProductId(""); }}
-              className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-gray-300 h-10 min-w-[160px]"
-            >
-              <option value="">All Categories</option>
-              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-            <select
-              value={productId}
-              onChange={(e) => setProductId(e.target.value === "" ? "" : Number(e.target.value))}
-              className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-gray-300 h-10 min-w-[180px]"
-            >
-              <option value="">All Products</option>
-              {products
-                .filter((p) => categoryId === "" || allReports.some((r) => r.productId === p.id && (categoryId === "" || r.productCategoryId === categoryId)))
-                .map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
+            {search && !isLoading && (
+              <p className="text-sm text-gray-400 mt-2">
+                {filtered.length} {filtered.length === 1 ? "report" : "reports"} found
+              </p>
+            )}
           </div>
 
-          {/* Count */}
-          {!isLoading && (
-            <p className="text-sm text-gray-400 mb-5">
-              {filtered.length} {filtered.length === 1 ? "report" : "reports"}
-              {(search || categoryId !== "" || productId !== "") && " found"}
-            </p>
-          )}
-
-          {/* Grid */}
+          {/* Loading skeletons */}
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+            <div className="space-y-12">
+              {[1, 2].map((i) => (
+                <div key={i}>
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="h-5 w-32 bg-gray-200 rounded animate-pulse" />
+                    <div className="flex-1 h-px bg-gray-200" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4].map((j) => (
+                      <div key={j} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-          ) : filtered.length === 0 ? (
+          ) : groups.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
                 <FileText className="w-7 h-7 text-gray-400" />
               </div>
               <p className="text-lg font-semibold text-gray-800 mb-1">No lab reports found</p>
               <p className="text-gray-400 text-sm">
-                {search || categoryId !== "" || productId !== ""
-                  ? "Try adjusting your search or filters"
-                  : "No lab reports available yet"}
+                {search ? "Try adjusting your search" : "No lab reports available yet"}
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map((r) => {
-                const viewUrl = r.fileUrl ?? r.externalUrl ?? null;
-                return (
-                  <div key={r.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-4 hover:shadow-md transition-shadow">
-                    {/* Product info */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 border border-gray-100 shrink-0 flex items-center justify-center">
-                        {r.productImageUrl
-                          ? <img src={r.productImageUrl} alt={r.productName ?? ""} className="w-full h-full object-cover" />
-                          : <Package className="w-5 h-5 text-gray-300" />
-                        }
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs text-gray-500 truncate">{r.productName ?? "—"}</p>
-                      </div>
-                    </div>
-
-                    {/* Report name */}
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900 leading-snug">{r.name}</p>
-                      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
-                        {r.batchNumber && (
-                          <span className="flex items-center gap-1 text-xs text-gray-500">
-                            <FlaskConical className="w-3 h-3" /> {r.batchNumber}
-                          </span>
-                        )}
-                        {r.testedAt && (
-                          <span className="flex items-center gap-1 text-xs text-gray-500">
-                            <Calendar className="w-3 h-3" />
-                            {new Date(r.testedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* CTA */}
-                    {viewUrl ? (
-                      <a
-                        href={viewUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-auto flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white text-sm font-medium transition-colors"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        View Report
-                      </a>
-                    ) : (
-                      <div className="mt-auto py-2.5 rounded-xl bg-gray-100 text-gray-400 text-sm text-center">
-                        Not available
-                      </div>
-                    )}
+            <div className="space-y-12">
+              {groups.map(([category, reports]) => (
+                <section key={category}>
+                  {/* Category header */}
+                  <div className="flex items-center gap-4 mb-5">
+                    <h2 className="text-base font-bold text-gray-900 uppercase tracking-widest shrink-0">
+                      {category}
+                    </h2>
+                    <div className="flex-1 h-px bg-gray-200" />
+                    <span className="text-xs text-gray-400 shrink-0">
+                      {reports.length} {reports.length === 1 ? "report" : "reports"}
+                    </span>
                   </div>
-                );
-              })}
+
+                  {/* Report cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {reports.map((r) => {
+                      const viewUrl = r.fileUrl ?? null;
+                      return (
+                        <div
+                          key={r.id}
+                          className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3 hover:shadow-md transition-shadow"
+                        >
+                          <p className="text-sm font-semibold text-gray-900 leading-snug flex-1">
+                            {r.name}
+                          </p>
+                          {viewUrl ? (
+                            <a
+                              href={viewUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-center gap-2 w-full py-2 rounded-xl bg-gray-900 hover:bg-black text-white text-sm font-medium transition-colors"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              View Report
+                            </a>
+                          ) : (
+                            <div className="py-2 rounded-xl bg-gray-100 text-gray-400 text-sm text-center">
+                              Not available
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
             </div>
           )}
         </div>
