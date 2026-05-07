@@ -590,20 +590,45 @@ export const appRouter = router({
         testedAt: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        const buffer = Buffer.from(input.base64, "base64");
-        const key = `Lab Reports/${input.productId ?? "general"}/${Date.now()}-${input.filename}`;
-        const { url } = await storagePut(key, buffer, input.contentType);
-        return createLabReport({
-          productId: input.productId,
+        console.log("LAB_REPORT_INPUT:", JSON.stringify({
           category: input.category,
-          variantId: input.variantId,
           name: input.name,
-          fileUrl: url,
-          fileKey: key,
+          filename: input.filename,
+          contentType: input.contentType,
+          base64Length: input.base64?.length,
+          productId: input.productId,
+          variantId: input.variantId,
           batchNumber: input.batchNumber,
           title: input.title,
-          testedAt: input.testedAt ? new Date(input.testedAt) : undefined,
-        });
+          testedAt: input.testedAt,
+        }));
+        try {
+          const buffer = Buffer.from(input.base64, "base64");
+          console.log("LAB_BUFFER_SIZE:", buffer.length);
+
+          const key = `Lab Reports/${input.productId ?? "general"}/${Date.now()}-${input.filename}`;
+          console.log("LAB_R2_KEY:", key);
+
+          const { url } = await storagePut(key, buffer, input.contentType);
+          console.log("LAB_R2_URL:", url);
+
+          const result = await createLabReport({
+            productId: input.productId,
+            category: input.category,
+            variantId: input.variantId,
+            name: input.name,
+            fileUrl: url,
+            fileKey: key,
+            batchNumber: input.batchNumber,
+            title: input.title,
+            testedAt: input.testedAt ? new Date(input.testedAt) : undefined,
+          });
+          console.log("LAB_DB_RESULT:", result);
+          return result;
+        } catch (err) {
+          console.error("LAB_REPORT_ERROR:", err);
+          throw err;
+        }
       }),
     createWithUrl: adminProcedure
       .input(z.object({
