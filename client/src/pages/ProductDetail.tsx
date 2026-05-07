@@ -179,6 +179,13 @@ export default function ProductDetail() {
                   key={displayImg}
                   src={displayImg}
                   alt={selectedVariant ? `${p.name} — ${selectedVariant.name}` : p.name}
+                  crossOrigin="anonymous"
+                  loading="eager"
+                  onError={(e) => {
+                    const t = e.target as HTMLImageElement;
+                    t.onerror = null;
+                    t.src = '/placeholder-product.svg';
+                  }}
                   className="w-full h-full object-cover transition-opacity duration-300"
                 />
               ) : (

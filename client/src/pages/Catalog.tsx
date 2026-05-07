@@ -110,8 +110,8 @@ export default function Catalog() {
               <>
                 <p className="text-sm text-gray-500 mb-5">{products.data.length} products</p>
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-5">
-                  {products.data.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                  {products.data.map((product, i) => (
+                    <ProductCard key={product.id} product={product} index={i} />
                   ))}
                 </div>
               </>

@@ -20,7 +20,7 @@ interface Product {
   cbdContent?: string | null;
 }
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({ product, index }: { product: Product; index?: number }) {
   const { isAuthenticated } = useAuth();
   const { refetch, openCart } = useCart();
 
@@ -92,6 +92,13 @@ export default function ProductCard({ product }: { product: Product }) {
             <img
               src={product.imageUrl}
               alt={product.name}
+              crossOrigin="anonymous"
+              loading={index !== undefined && index < 4 ? "eager" : "lazy"}
+              onError={(e) => {
+                const t = e.target as HTMLImageElement;
+                t.onerror = null;
+                t.src = '/placeholder-product.svg';
+              }}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
