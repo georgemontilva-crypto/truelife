@@ -346,6 +346,7 @@ type FeaturedProduct = {
   price: string;
   compareAtPrice?: string | null;
   imageUrl?: string | null;
+  inventory: number;
   isActive: boolean;
   isFeatured: boolean;
   categoryId: number | null;

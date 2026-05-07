@@ -235,6 +235,14 @@ export const banners = mysqlTable("banners", {
 export type Banner = typeof banners.$inferSelect;
 export type InsertBanner = typeof banners.$inferInsert;
 
+// ─── Site Settings (key-value store for editable text) ───────────────────────
+export const siteSettings = mysqlTable("site_settings", {
+  key: varchar("key", { length: 255 }).primaryKey(),
+  value: text("value"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type SiteSetting = typeof siteSettings.$inferSelect;
+
 // ─── Wishlist (Favoritos) ─────────────────────────────────────────────────────
 export const wishlist = mysqlTable("wishlist", {
   id: int("id").autoincrement().primaryKey(),

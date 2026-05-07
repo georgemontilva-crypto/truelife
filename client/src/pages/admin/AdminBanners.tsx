@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, Plus, ImageIcon, Upload, X } from "lucide-react";
+import { Pencil, Trash2, Plus, ImageIcon, Upload, X, Save } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -71,7 +72,7 @@ const emptyForm = (): BannerForm => ({
 type SlotDef = { slot: string; label: string; desc: string; category: string };
 
 const SITE_IMAGE_SLOTS: SlotDef[] = [
-  { slot: "about_us",             label: "About Us",           desc: "About Us section image (4:3 ratio)",   category: "Sections" },
+  { slot: "about_us",             label: "About Us (Home)",    desc: "About Us section image on homepage (4:3)", category: "Sections" },
   { slot: "trust_shipping",       label: "Free Shipping Icon", desc: "Trust badge icon (square)",            category: "Trust Badges" },
   { slot: "trust_returns",        label: "Easy Returns Icon",  desc: "Trust badge icon (square)",            category: "Trust Badges" },
   { slot: "trust_natural",        label: "100% Natural Icon",  desc: "Trust badge icon (square)",            category: "Trust Badges" },
@@ -83,6 +84,11 @@ const SITE_IMAGE_SLOTS: SlotDef[] = [
   { slot: "press_herb",           label: "Herb",               desc: "Press logo — As Seen In",              category: "Press Logos" },
   { slot: "press_oc_weekly",      label: "OC Weekly",          desc: "Press logo — As Seen In",              category: "Press Logos" },
   { slot: "press_marijuana_daily",label: "Marijuana Daily",    desc: "Press logo — As Seen In",              category: "Press Logos" },
+];
+
+const ABOUT_IMAGE_SLOTS: SlotDef[] = [
+  { slot: "about_hero_bg",     label: "Hero Background",  desc: "Full-width hero background image (16:9 or wider)", category: "About Page" },
+  { slot: "about_story_image", label: "Our Story Image",  desc: "Left column image in the Our Story section (4:3)", category: "About Page" },
 ];
 
 const CATEGORIES = ["Sections", "Trust Badges", "Logos", "Press Logos"];
@@ -459,6 +465,152 @@ function SlotCard({
   );
 }
 
+// ─── About Page Tab ───────────────────────────────────────────────────────────
+
+const ABOUT_TEXT_KEYS = ["about_hero_title", "about_hero_subtitle", "about_story_text"] as const;
+type AboutKey = (typeof ABOUT_TEXT_KEYS)[number];
+
+function AboutPageTab() {
+  const utils = trpc.useUtils();
+  const { data: siteImages = {}, isLoading: imagesLoading } = trpc.banners.siteImages.useQuery();
+  const { data: textSettings, isLoading: textLoading } = trpc.settings.getMany.useQuery({
+    keys: [...ABOUT_TEXT_KEYS],
+  });
+
+  const [form, setForm] = useState<Record<AboutKey, string>>({
+    about_hero_title: "",
+    about_hero_subtitle: "",
+    about_story_text: "",
+  });
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    if (textSettings) {
+      setForm({
+        about_hero_title: textSettings.about_hero_title ?? "",
+        about_hero_subtitle: textSettings.about_hero_subtitle ?? "",
+        about_story_text: textSettings.about_story_text ?? "",
+      });
+    }
+  }, [textSettings]);
+
+  const setMutation = trpc.settings.set.useMutation();
+  const upsertMutation = trpc.banners.upsertSiteImage.useMutation({
+    onSuccess: () => { utils.banners.siteImages.invalidate(); toast.success("Image updated"); },
+    onError: (e) => toast.error(e.message),
+  });
+  const clearMutation = trpc.banners.clearSiteImage.useMutation({
+    onSuccess: () => { utils.banners.siteImages.invalidate(); toast.success("Image cleared"); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleUpload = (slotDef: SlotDef, file: File) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      upsertMutation.mutate({
+        slot: slotDef.slot,
+        imageBase64: result.split(",")[1],
+        imageFilename: file.name,
+        imageContentType: file.type,
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveText = async () => {
+    try {
+      await Promise.all(
+        ABOUT_TEXT_KEYS.map((k) => setMutation.mutateAsync({ key: k, value: form[k] }))
+      );
+      utils.settings.getMany.invalidate();
+      toast.success("About page text saved");
+      setDirty(false);
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to save");
+    }
+  };
+
+  const isPending = upsertMutation.isPending || clearMutation.isPending;
+
+  if (imagesLoading || textLoading) {
+    return <div className="text-center py-12 text-muted-foreground">Loading...</div>;
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Images */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Images</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {ABOUT_IMAGE_SLOTS.map((slotDef) => {
+            const currentUrl = (siteImages as Record<string, string>)[slotDef.slot];
+            return (
+              <SlotCard
+                key={slotDef.slot}
+                slotDef={slotDef}
+                currentUrl={currentUrl}
+                isPending={isPending}
+                onUpload={(file) => handleUpload(slotDef, file)}
+                onClear={() => clearMutation.mutate({ slot: slotDef.slot })}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Text settings */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Text Content</h3>
+        <div className="bg-white border rounded-xl p-6 space-y-5">
+          <div className="space-y-1.5">
+            <Label htmlFor="about_hero_title">Hero Title</Label>
+            <Input
+              id="about_hero_title"
+              placeholder="e.g. Premium Hemp Products"
+              value={form.about_hero_title}
+              onChange={(e) => { setForm((f) => ({ ...f, about_hero_title: e.target.value })); setDirty(true); }}
+            />
+            <p className="text-xs text-muted-foreground">Large headline shown over the hero image.</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="about_hero_subtitle">Hero Subtitle</Label>
+            <Input
+              id="about_hero_subtitle"
+              placeholder="e.g. Pharmaceutical-grade hemp from farm to shelf."
+              value={form.about_hero_subtitle}
+              onChange={(e) => { setForm((f) => ({ ...f, about_hero_subtitle: e.target.value })); setDirty(true); }}
+            />
+            <p className="text-xs text-muted-foreground">Short line below the hero title.</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="about_story_text">Our Story Text</Label>
+            <Textarea
+              id="about_story_text"
+              placeholder="Tell your brand story here..."
+              rows={6}
+              className="resize-none"
+              value={form.about_story_text}
+              onChange={(e) => { setForm((f) => ({ ...f, about_story_text: e.target.value })); setDirty(true); }}
+            />
+            <p className="text-xs text-muted-foreground">Paragraph shown next to the story image. Newlines are preserved.</p>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              onClick={handleSaveText}
+              disabled={setMutation.isPending || !dirty}
+              className="gap-2"
+            >
+              <Save className="w-4 h-4" />
+              {setMutation.isPending ? "Saving..." : "Save Text"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AdminBanners() {
@@ -475,12 +627,16 @@ export default function AdminBanners() {
         <TabsList className="mb-6">
           <TabsTrigger value="hero">Hero Banners</TabsTrigger>
           <TabsTrigger value="site">Site Images</TabsTrigger>
+          <TabsTrigger value="about">About Page</TabsTrigger>
         </TabsList>
         <TabsContent value="hero">
           <HeroBannersTab />
         </TabsContent>
         <TabsContent value="site">
           <SiteImagesTab />
+        </TabsContent>
+        <TabsContent value="about">
+          <AboutPageTab />
         </TabsContent>
       </Tabs>
     </div>

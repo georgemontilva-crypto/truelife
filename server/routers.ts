@@ -49,6 +49,9 @@ import {
   getSiteImages,
   upsertSiteImage,
   deleteSiteImage,
+  getSetting,
+  getSettings,
+  setSetting,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -714,6 +717,21 @@ export const appRouter = router({
       .input(z.object({ slot: z.string().min(1) }))
       .mutation(({ input }) => deleteSiteImage(input.slot)),
   }),
+  // ─── Site Settings ────────────────────────────────────────────────────────────
+  settings: router({
+    get: publicProcedure
+      .input(z.object({ key: z.string() }))
+      .query(({ input }) => getSetting(input.key)),
+
+    getMany: publicProcedure
+      .input(z.object({ keys: z.array(z.string()) }))
+      .query(({ input }) => getSettings(input.keys)),
+
+    set: adminProcedure
+      .input(z.object({ key: z.string().min(1), value: z.string() }))
+      .mutation(({ input }) => setSetting(input.key, input.value)),
+  }),
+
   // ─── Wishlist ─────────────────────────────────────────────────────────────────
   wishlist: router({
     list: protectedProcedure.query(async ({ ctx }) => {

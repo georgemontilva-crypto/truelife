@@ -13,6 +13,7 @@ import {
   productAttributes,
   productVariants,
   products,
+  siteSettings,
   users,
   wishlist,
 } from "../drizzle/schema";
@@ -854,4 +855,54 @@ export async function isInWishlist(userId: number, productId: number) {
   if (!db) return false;
   const result = await db.select().from(wishlist).where(and(eq(wishlist.userId, userId), eq(wishlist.productId, productId))).limit(1);
   return result.length > 0;
+}
+
+// ─── Site Settings ────────────────────────────────────────────────────────────
+
+let _settingsReady = false;
+
+async function ensureSiteSettingsTable() {
+  if (_settingsReady) return;
+  const db = await getDb();
+  if (!db) return;
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS site_settings (
+      \`key\` VARCHAR(255) PRIMARY KEY,
+      \`value\` TEXT,
+      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )
+  `);
+  _settingsReady = true;
+}
+
+export async function getSetting(key: string): Promise<string | null> {
+  const db = await getDb();
+  if (!db) return null;
+  await ensureSiteSettingsTable();
+  const [row] = await db.select().from(siteSettings).where(eq(siteSettings.key, key)).limit(1);
+  return row?.value ?? null;
+}
+
+export async function getSettings(keys: string[]): Promise<Record<string, string | null>> {
+  if (keys.length === 0) return {};
+  const db = await getDb();
+  if (!db) return Object.fromEntries(keys.map((k) => [k, null]));
+  await ensureSiteSettingsTable();
+  const rows = await db.select().from(siteSettings).where(
+    keys.length === 1
+      ? eq(siteSettings.key, keys[0])
+      : sql`${siteSettings.key} IN (${sql.join(keys.map((k) => sql`${k}`), sql`, `)})`
+  );
+  const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  return Object.fromEntries(keys.map((k) => [k, map[k] ?? null]));
+}
+
+export async function setSetting(key: string, value: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await ensureSiteSettingsTable();
+  await db
+    .insert(siteSettings)
+    .values({ key, value })
+    .onDuplicateKeyUpdate({ set: { value, updatedAt: new Date() } });
 }
