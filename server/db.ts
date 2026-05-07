@@ -739,13 +739,13 @@ export async function createLabReport(data: {
     name: data.name,
   };
   if (data.productId != null) values.productId = data.productId;
-  if (data.category != null) values.category = data.category;
+  if (data.category != null && data.category !== '') values.category = data.category;
   if (data.variantId != null) values.variantId = data.variantId;
-  if (data.fileUrl != null) values.fileUrl = data.fileUrl;
-  if (data.fileKey != null) values.fileKey = data.fileKey;
-  if (data.externalUrl != null) values.externalUrl = data.externalUrl;
-  if (data.batchNumber != null) values.batchNumber = data.batchNumber;
-  if (data.title != null) values.title = data.title;
+  if (data.fileUrl != null && data.fileUrl !== '') values.fileUrl = data.fileUrl;
+  if (data.fileKey != null && data.fileKey !== '') values.fileKey = data.fileKey;
+  if (data.externalUrl != null && data.externalUrl !== '') values.externalUrl = data.externalUrl;
+  if (data.batchNumber != null && data.batchNumber !== '') values.batchNumber = data.batchNumber;
+  if (data.title != null && data.title !== '') values.title = data.title;
   if (data.testedAt != null) values.testedAt = data.testedAt;
 
   const [result] = await db.insert(labReports).values(values as any);

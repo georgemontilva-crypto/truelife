@@ -612,15 +612,16 @@ export const appRouter = router({
           const { url } = await storagePut(key, buffer, input.contentType);
           console.log("LAB_R2_URL:", url);
 
+          const clean = (v?: string) => v?.trim() || undefined;
           const result = await createLabReport({
             productId: input.productId,
-            category: input.category,
+            category: clean(input.category),
             variantId: input.variantId,
             name: input.name,
             fileUrl: url,
             fileKey: key,
-            batchNumber: input.batchNumber,
-            title: input.title,
+            batchNumber: clean(input.batchNumber),
+            title: clean(input.title),
             testedAt: input.testedAt ? new Date(input.testedAt) : undefined,
           });
           console.log("LAB_DB_RESULT:", result);
