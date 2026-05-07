@@ -734,18 +734,21 @@ export async function createLabReport(data: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
-  const [result] = await db.insert(labReports).values({
-    productId: data.productId,
-    category: data.category,
-    variantId: data.variantId,
+
+  const values: typeof labReports.$inferInsert = {
     name: data.name,
-    fileUrl: data.fileUrl,
-    fileKey: data.fileKey,
-    externalUrl: data.externalUrl,
-    batchNumber: data.batchNumber,
-    title: data.title,
-    testedAt: data.testedAt,
-  });
+  };
+  if (data.productId !== undefined) values.productId = data.productId;
+  if (data.category !== undefined) values.category = data.category;
+  if (data.variantId !== undefined) values.variantId = data.variantId;
+  if (data.fileUrl !== undefined) values.fileUrl = data.fileUrl;
+  if (data.fileKey !== undefined) values.fileKey = data.fileKey;
+  if (data.externalUrl !== undefined) values.externalUrl = data.externalUrl;
+  if (data.batchNumber !== undefined) values.batchNumber = data.batchNumber;
+  if (data.title !== undefined) values.title = data.title;
+  if (data.testedAt !== undefined) values.testedAt = data.testedAt;
+
+  const [result] = await db.insert(labReports).values(values);
   return { id: (result as any).insertId as number };
 }
 
