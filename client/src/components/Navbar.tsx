@@ -144,6 +144,7 @@ export default function Navbar() {
               )}
             </div>
 
+            {navLink("/about", "About")}
             {navLink("/contact", "Contact")}
             {navLink("/faqs", "FAQs")}
             {navLink("/lab-results", "Lab Results")}
@@ -237,6 +238,9 @@ export default function Navbar() {
               </div>
             )}
 
+            <Link href="/about" className="block text-sm font-medium text-gray-700 py-2 no-underline" onClick={() => setMobileOpen(false)}>
+              About
+            </Link>
             <Link href="/contact" className="block text-sm font-medium text-gray-700 py-2 no-underline" onClick={() => setMobileOpen(false)}>
               Contact
             </Link>
