@@ -3,6 +3,7 @@ import { useParams, useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
+import ProductCard from "@/components/ProductCard";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +40,11 @@ export default function ProductDetail() {
   const variants = trpc.productVariants.list.useQuery({ productId }, { enabled: !!productId });
   const attributes = trpc.productAttributes.list.useQuery({ productId }, { enabled: !!productId });
   const labReports = trpc.labReports.list.useQuery({ productId }, { enabled: !!productId });
+  const categoryId = product.data?.categoryId;
+  const related = trpc.products.list.useQuery(
+    { categoryId },
+    { enabled: !!categoryId, staleTime: 5 * 60 * 1000 }
+  );
 
   // Auto-select first available variant when data loads
   useEffect(() => {
@@ -229,7 +235,7 @@ export default function ProductDetail() {
             </div>
 
             {p.description && (
-              <p className="text-gray-600 leading-relaxed mb-5 text-sm">{p.description}</p>
+              <p className="text-gray-600 leading-relaxed mb-5 text-sm whitespace-pre-line">{p.description}</p>
             )}
 
             {/* Quick specs */}
@@ -538,6 +544,24 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* Related Products */}
+      {(() => {
+        const relatedProducts = (related.data ?? [])
+          .filter((rp) => rp.id !== productId && rp.isActive)
+          .slice(0, 4);
+        if (!relatedProducts.length) return null;
+        return (
+          <div className="container py-10 md:py-14 border-t border-gray-100">
+            <h2 className="text-lg font-bold text-gray-900 mb-6">You May Also Like</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {relatedProducts.map((rp) => (
+                <ProductCard key={rp.id} product={rp as any} />
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       <Footer />
     </div>
