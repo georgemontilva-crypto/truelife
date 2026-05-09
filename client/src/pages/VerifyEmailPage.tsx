@@ -18,7 +18,7 @@ export default function VerifyEmailPage() {
 
   const verify = trpc.auth.verifyEmail.useMutation({
     onSuccess: () => {
-      toast.success("Email verified! Welcome to CHRONIC.");
+      toast.success("Email verified! Welcome to TRUELIFE.");
       utils.auth.me.invalidate();
       navigate("/account");
     },

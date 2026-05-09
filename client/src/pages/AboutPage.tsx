@@ -19,7 +19,7 @@ const SETTING_KEYS = ["about_hero_title", "about_hero_subtitle", "about_story_te
 const DEFAULT_HERO_TITLE    = "Expect the Best. Always.";
 const DEFAULT_HERO_SUBTITLE = "Pharmaceutical-grade hemp from farm to shelf. Every batch verified, every product crafted with care.";
 const DEFAULT_STORY_TEXT    =
-  "All Chronic Hemp items are 100% natural and made in the USA. We only use the finest quality hemp derived THC with zero chemicals, such as fertilizers, herbicides, and pesticides.";
+  "All TrueLife items are 100% natural and made in the USA. We only use the finest quality hemp derived THC with zero chemicals, such as fertilizers, herbicides, and pesticides.";
 
 export default function AboutPage() {
   const { data: siteImages = {} } = trpc.banners.siteImages.useQuery();
@@ -95,7 +95,7 @@ export default function AboutPage() {
                       <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20">
                         <Leaf className="w-8 h-8 text-white" />
                       </div>
-                      <p className="text-white font-bold text-2xl tracking-tight">CHRONIC</p>
+                      <p className="text-white font-bold text-2xl tracking-tight">TRUELIFE</p>
                       <p className="text-white/60 text-sm text-center">Premium Hemp Co.</p>
                     </div>
                   </>
@@ -171,9 +171,9 @@ export default function AboutPage() {
         </div>
         <div className="container grid grid-cols-1 sm:grid-cols-3 gap-5">
           {[
-            { icon: Award, title: "Highest Quality Hemp Products on the Market", desc: "There is no beating the power and taste of Chronic Hemp products. As leaders in the industry, we are always innovating to focus on the natural health benefits for our customers and Wholesale Distributors." },
+            { icon: Award, title: "Highest Quality Hemp Products on the Market", desc: "There is no beating the power and taste of TrueLife products. As leaders in the industry, we are always innovating to focus on the natural health benefits for our customers and Wholesale Distributors." },
             { icon: Star,  title: "30 Day Satisfaction Guarantee",               desc: "Each of our potent products includes a 100% satisfaction guarantee. If you are not happy within 30 days of your purchase, we will gladly refund your money on any unopened product." },
-            { icon: Leaf,  title: "Free Shipping",                               desc: "Pay no shipping fees on all orders. Chronic Hemp ships to all legal locations within the United States." },
+            { icon: Leaf,  title: "Free Shipping",                               desc: "Pay no shipping fees on all orders. TrueLife ships to all legal locations within the United States." },
           ].map(({ icon: Icon, title, desc }) => (
             <div key={title} className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors">
               <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4">

@@ -22,7 +22,7 @@ const FAQS = [
   },
   {
     q: "What is the entourage effect?",
-    a: "Each cannabinoid and terpene has a specific biochemical effect on the body. When the many compounds within the cannabis plant interact with the human body, a synergistic effect results to produce a stronger influence known as the entourage effect. At Chronic Hemp, we focus on this notion with our blends by optimally combining cannabinoids and terpenes to provide sensational effects.",
+    a: "Each cannabinoid and terpene has a specific biochemical effect on the body. When the many compounds within the cannabis plant interact with the human body, a synergistic effect results to produce a stronger influence known as the entourage effect. At TrueLife, we focus on this notion with our blends by optimally combining cannabinoids and terpenes to provide sensational effects.",
   },
   {
     q: "How are your products made?",
@@ -46,7 +46,7 @@ const FAQS = [
   },
   {
     q: "Where can I buy your products?",
-    a: "Chronic Hemp products are located in distributors throughout the USA and placed in retail Smoke Shops. You can also purchase directly through our website.",
+    a: "TrueLife products are located in distributors throughout the USA and placed in retail Smoke Shops. You can also purchase directly through our website.",
   },
 ];
 

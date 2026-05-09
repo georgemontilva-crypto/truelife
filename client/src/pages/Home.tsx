@@ -533,7 +533,7 @@ export default function Home() {
                       <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20">
                         <Leaf className="w-8 h-8 text-white" />
                       </div>
-                      <p className="text-white font-bold text-2xl tracking-tight">CHRONIC</p>
+                      <p className="text-white font-bold text-2xl tracking-tight">TRUELIFE</p>
                       <p className="text-white/60 text-sm text-center">Premium Hemp Co.</p>
                     </div>
                   </>
@@ -561,7 +561,7 @@ export default function Home() {
                 <span className="text-gray-400">Always.</span>
               </h2>
               <p className="text-gray-600 leading-relaxed mb-5 text-base">
-                At Chronic Hemp Co., we believe that quality is non-negotiable. Founded with a passion for clean, effective hemp wellness, we set out to create products that meet the highest pharmaceutical standards — because you deserve nothing less.
+                At TrueLife Co., we believe that quality is non-negotiable. Founded with a passion for clean, effective hemp wellness, we set out to create products that meet the highest pharmaceutical standards — because you deserve nothing less.
               </p>
               <p className="text-gray-600 leading-relaxed mb-8 text-base">
                 Every product in our lineup is crafted from federally compliant, farm-bill-approved hemp. We partner with certified labs to verify potency and purity on every single batch, so you can shop with complete confidence.

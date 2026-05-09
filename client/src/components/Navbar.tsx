@@ -68,7 +68,7 @@ export default function Navbar() {
             {(siteImages as Record<string, string>).logo_main ? (
               <img
                 src={(siteImages as Record<string, string>).logo_main}
-                alt="CHRONIC"
+                alt="TRUELIFE"
                 className="h-8 w-auto object-contain"
               />
             ) : (
@@ -76,7 +76,7 @@ export default function Navbar() {
                 <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
                   <Leaf className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-bold text-lg tracking-tight text-gray-900">CHRONIC</span>
+                <span className="font-bold text-lg tracking-tight text-gray-900">TRUELIFE</span>
               </>
             )}
           </Link>

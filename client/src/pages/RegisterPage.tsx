@@ -81,7 +81,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Create account</h1>
-            <p className="text-gray-500">Join CHRONIC for exclusive access and order tracking</p>
+            <p className="text-gray-500">Join TRUELIFE for exclusive access and order tracking</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

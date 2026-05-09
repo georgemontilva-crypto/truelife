@@ -41,13 +41,13 @@ export default function Footer() {
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               {imgs.logo_footer ? (
-                <img src={imgs.logo_footer} alt="CHRONIC" className="h-7 w-auto object-contain" />
+                <img src={imgs.logo_footer} alt="TRUELIFE" className="h-7 w-auto object-contain" />
               ) : (
                 <>
                   <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
                     <Leaf className="w-3.5 h-3.5 text-white" />
                   </div>
-                  <span className="font-bold text-base tracking-tight text-gray-900">CHRONIC</span>
+                  <span className="font-bold text-base tracking-tight text-gray-900">TRUELIFE</span>
                 </>
               )}
             </div>
@@ -96,7 +96,7 @@ export default function Footer() {
             <span className="font-semibold text-gray-500">FDA Disclosure:</span> This product is not for use by or sale to persons under the age of 21 depending on the laws of your governing state or territory. This product should be used only as directed on the label. It should not be used if you are pregnant or nursing. Consult with a physician before use, especially if you have a medical condition or use prescription medications. A doctor's advice should be sought before using any of these products. All trademarks and copyrights are property of their respective owners and are not affiliated with nor do they endorse this product. These statements have not been evaluated by the FDA. These products are not intended to diagnose, treat, cure or prevent any disease. By using this site you agree to follow the Privacy Policy and all Terms &amp; Conditions printed on this site. Void Where Prohibited By Law.
           </p>
           <p className="text-xs text-gray-400 mt-4">
-            © {new Date().getFullYear()} Chronic Hemp Co. All rights reserved.
+            © {new Date().getFullYear()} TrueLife Co. All rights reserved.
           </p>
         </div>
       </div>

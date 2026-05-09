@@ -30,7 +30,7 @@ async function sendEmail(payload: EmailPayload): Promise<boolean> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM || "CHRONIC <noreply@chronic.store>",
+        from: process.env.EMAIL_FROM || "TRUELIFE <noreply@chronic.store>",
         to: payload.to,
         subject: payload.subject,
         html: payload.html,
@@ -56,7 +56,7 @@ export async function sendVerificationEmail(
 ): Promise<boolean> {
   return sendEmail({
     to: email,
-    subject: "Verify your CHRONIC account",
+    subject: "Verify your TRUELIFE account",
     html: `
       <!DOCTYPE html>
       <html>
@@ -64,7 +64,7 @@ export async function sendVerificationEmail(
       <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f9f9f9; margin: 0; padding: 40px 20px;">
         <div style="max-width: 480px; margin: 0 auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
           <div style="background: #111; padding: 32px; text-align: center;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; letter-spacing: 4px; font-weight: 900;">CHRONIC</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 28px; letter-spacing: 4px; font-weight: 900;">TRUELIFE</h1>
             <p style="color: #888; margin: 4px 0 0; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">Expect the Best</p>
           </div>
           <div style="padding: 40px 32px;">
@@ -76,11 +76,11 @@ export async function sendVerificationEmail(
               <span style="font-size: 40px; font-weight: 900; letter-spacing: 10px; color: #111; font-family: monospace;">${code}</span>
             </div>
             <p style="color: #999; font-size: 13px; margin: 0; line-height: 1.6;">
-              If you didn't create an account with CHRONIC, you can safely ignore this email.
+              If you didn't create an account with TRUELIFE, you can safely ignore this email.
             </p>
           </div>
           <div style="background: #f5f5f5; padding: 20px 32px; text-align: center;">
-            <p style="color: #aaa; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} CHRONIC. All rights reserved.</p>
+            <p style="color: #aaa; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} TRUELIFE. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -96,7 +96,7 @@ export async function sendPasswordResetEmail(
 ): Promise<boolean> {
   return sendEmail({
     to: email,
-    subject: "Reset your CHRONIC password",
+    subject: "Reset your TRUELIFE password",
     html: `
       <!DOCTYPE html>
       <html>
@@ -104,7 +104,7 @@ export async function sendPasswordResetEmail(
       <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f9f9f9; margin: 0; padding: 40px 20px;">
         <div style="max-width: 480px; margin: 0 auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
           <div style="background: #111; padding: 32px; text-align: center;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; letter-spacing: 4px; font-weight: 900;">CHRONIC</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 28px; letter-spacing: 4px; font-weight: 900;">TRUELIFE</h1>
           </div>
           <div style="padding: 40px 32px;">
             <h2 style="color: #111; margin: 0 0 8px; font-size: 22px;">Reset your password</h2>
@@ -119,7 +119,7 @@ export async function sendPasswordResetEmail(
             </p>
           </div>
           <div style="background: #f5f5f5; padding: 20px 32px; text-align: center;">
-            <p style="color: #aaa; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} CHRONIC. All rights reserved.</p>
+            <p style="color: #aaa; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} TRUELIFE. All rights reserved.</p>
           </div>
         </div>
       </body>
