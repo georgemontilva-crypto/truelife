@@ -459,6 +459,10 @@ function ProductRangeSection({ siteImages }: { siteImages: Record<string, string
                     <p className="text-white font-bold text-2xl tracking-tight">TRUELIFE</p>
                     <p className="text-white/60 text-sm text-center">Premium Hemp Co.</p>
                   </div>
+                  {/* Placeholder label */}
+                  <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/20">
+                    📷 Product Range Photo — upload in Site Editor → Product Range
+                  </div>
                 </>
               )}
             </div>
