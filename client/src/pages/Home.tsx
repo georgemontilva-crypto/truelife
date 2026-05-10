@@ -488,7 +488,7 @@ function ServicesSection() {
   );
 
   return (
-    <section className="py-16 md:py-24 bg-white">
+    <section className="py-16 md:py-24" style={{ backgroundColor: "#f1f7f0" }}>
       <div className="container">
         {/* Header */}
         <div className="text-center mb-14">
