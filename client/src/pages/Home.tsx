@@ -445,8 +445,8 @@ function ProductRangeSection({ siteImages }: { siteImages: Record<string, string
           {/* Image */}
           <div className="relative order-2 lg:order-1">
             <div className="relative rounded-3xl overflow-hidden aspect-[4/3]">
-              {siteImages.about_us ? (
-                <img src={siteImages.about_us} alt="About Us" className="absolute inset-0 w-full h-full object-cover" />
+              {siteImages.pr_section_image ? (
+                <img src={siteImages.pr_section_image} alt="Product Range" className="absolute inset-0 w-full h-full object-cover" />
               ) : (
                 <>
                   <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-950 flex items-center justify-center">

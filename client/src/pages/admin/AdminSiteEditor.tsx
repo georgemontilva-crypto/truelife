@@ -291,9 +291,9 @@ function ProductRangeSection({ imgs, imgOps }: { imgs: Record<string, string>; i
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Section Image (optional)</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Section Image</p>
         <div className="max-w-xs">
-          <SlotCard slot="about_us" label="Left Side Photo" desc="Photo shown next to the text (4:3)" currentUrl={imgs.about_us} isPending={imgOps.isPending} onUpload={(f) => imgOps.upload("about_us", f)} onClear={() => imgOps.clear("about_us")} />
+          <SlotCard slot="pr_section_image" label="Left Side Photo" desc="Photo shown next to the text (4:3)" currentUrl={imgs.pr_section_image} isPending={imgOps.isPending} onUpload={(f) => imgOps.upload("pr_section_image", f)} onClear={() => imgOps.clear("pr_section_image")} />
         </div>
       </div>
 
