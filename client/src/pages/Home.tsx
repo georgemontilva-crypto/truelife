@@ -433,6 +433,127 @@ function FeaturedProductsCarousel({ products }: { products: FeaturedProduct[] })
   );
 }
 
+// ─── Services Section ─────────────────────────────────────────────────────────
+
+const DEFAULT_SERVICES = [
+  {
+    key: "service_1",
+    defaultTitle: "Elevated Therapeutics",
+    defaultDesc: "Explore our premium cannabis-based medical solutions, designed for optimal effectiveness and well-being, backed by rigorous lab testing.",
+    defaultLink: "/catalog",
+  },
+  {
+    key: "service_2",
+    defaultTitle: "Essence of the Leaf",
+    defaultDesc: "Experience the purity of our handpicked cannabis leaves, preserving natural properties for a safe and enriching experience.",
+    defaultLink: "/catalog",
+  },
+  {
+    key: "service_3",
+    defaultTitle: "Pure & Natural Edibles",
+    defaultDesc: "Our edibles, made with 100% natural ingredients, offer a pure and enjoyable experience, from chocolates to infusions.",
+    defaultLink: "/catalog",
+  },
+  {
+    key: "service_4",
+    defaultTitle: "Premium Buds",
+    defaultDesc: "Our sustainably grown, pesticide-free cannabis flowers deliver rich aromas, unique flavors, and consistent potency.",
+    defaultLink: "/catalog",
+  },
+  {
+    key: "service_5",
+    defaultTitle: "Nature's Apothecary",
+    defaultDesc: "Discover our extracts and apothecary formulas, crafted to enhance cannabis compounds for relaxation, pain relief, and well-being.",
+    defaultLink: "/catalog",
+  },
+  {
+    key: "service_6",
+    defaultTitle: "Your Safety, Our Priority",
+    defaultDesc: "We ensure legal compliance and product safety through rigorous quality control at every stage, providing you with a trusted experience.",
+    defaultLink: "/catalog",
+  },
+];
+
+const SERVICE_TEXT_KEYS = [
+  "services_section_title",
+  "services_section_subtitle",
+  ...DEFAULT_SERVICES.flatMap((s) => [`${s.key}_title`, `${s.key}_desc`, `${s.key}_link`]),
+] as const;
+
+function ServicesSection() {
+  const { data: siteImages = {} } = trpc.banners.siteImages.useQuery();
+  const { data: textSettings } = trpc.settings.getMany.useQuery(
+    { keys: [...SERVICE_TEXT_KEYS] },
+    { retry: false }
+  );
+
+  const t = (key: string, fallback: string) =>
+    (textSettings as Record<string, string | null> | undefined)?.[key] || fallback;
+
+  const sectionTitle = t("services_section_title", "Our Best Services");
+  const sectionSubtitle = t(
+    "services_section_subtitle",
+    "TruLife provides expert support for your cannabis business, including guidance, testing, legal advice, strategy, marketing, and insurance."
+  );
+
+  return (
+    <section className="py-16 md:py-24 bg-white">
+      <div className="container">
+        {/* Header */}
+        <div className="text-center mb-14">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{sectionTitle}</h2>
+          <p className="text-gray-500 mt-3 max-w-2xl mx-auto text-base leading-relaxed">{sectionSubtitle}</p>
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {DEFAULT_SERVICES.map((service, index) => {
+            const imgUrl = (siteImages as Record<string, string>)[`${service.key}_icon`];
+            const title = t(`${service.key}_title`, service.defaultTitle);
+            const desc = t(`${service.key}_desc`, service.defaultDesc);
+            const link = t(`${service.key}_link`, service.defaultLink);
+            const isHighlighted = index === 2; // 3rd card highlighted like in the design
+
+            return (
+              <div
+                key={service.key}
+                className={`group relative rounded-2xl p-8 flex flex-col gap-4 transition-all duration-300 ${
+                  isHighlighted
+                    ? "bg-gray-100 border border-gray-200 shadow-md"
+                    : "bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md"
+                }`}
+              >
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                  {imgUrl ? (
+                    <img src={imgUrl} alt={title} className="w-full h-full object-contain p-2" />
+                  ) : (
+                    <Leaf className="w-8 h-8 text-emerald-600" />
+                  )}
+                </div>
+
+                {/* Text */}
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+                </div>
+
+                {/* Link */}
+                <Link href={link || "/catalog"}>
+                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-900 underline underline-offset-4 hover:text-emerald-700 transition-colors">
+                    Read More
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Main Home Component ──────────────────────────────────────────────────────
 export default function Home() {
   const categories = trpc.categories.list.useQuery();
@@ -606,6 +727,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Services */}
+      <ServicesSection />
 
       {/* Testimonials */}
       <section className="bg-gray-50 py-16 md:py-20">

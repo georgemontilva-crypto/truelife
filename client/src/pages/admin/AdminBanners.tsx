@@ -73,6 +73,12 @@ type SlotDef = { slot: string; label: string; desc: string; category: string };
 
 const SITE_IMAGE_SLOTS: SlotDef[] = [
   { slot: "about_us",             label: "About Us (Home)",    desc: "About Us section image on homepage (4:3)", category: "Sections" },
+  { slot: "service_1_icon",       label: "Service 1 Icon",     desc: "Icon for first service card (square)",  category: "Services" },
+  { slot: "service_2_icon",       label: "Service 2 Icon",     desc: "Icon for second service card (square)", category: "Services" },
+  { slot: "service_3_icon",       label: "Service 3 Icon",     desc: "Icon for third service card (square)",  category: "Services" },
+  { slot: "service_4_icon",       label: "Service 4 Icon",     desc: "Icon for fourth service card (square)", category: "Services" },
+  { slot: "service_5_icon",       label: "Service 5 Icon",     desc: "Icon for fifth service card (square)",  category: "Services" },
+  { slot: "service_6_icon",       label: "Service 6 Icon",     desc: "Icon for sixth service card (square)",  category: "Services" },
   { slot: "trust_shipping",       label: "Free Shipping Icon", desc: "Trust badge icon (square)",            category: "Trust Badges" },
   { slot: "trust_returns",        label: "Easy Returns Icon",  desc: "Trust badge icon (square)",            category: "Trust Badges" },
   { slot: "trust_natural",        label: "100% Natural Icon",  desc: "Trust badge icon (square)",            category: "Trust Badges" },
@@ -91,7 +97,7 @@ const ABOUT_IMAGE_SLOTS: SlotDef[] = [
   { slot: "about_story_image", label: "Our Story Image",  desc: "Left column image in the Our Story section (4:3)", category: "About Page" },
 ];
 
-const CATEGORIES = ["Sections", "Trust Badges", "Logos", "Press Logos"];
+const CATEGORIES = ["Sections", "Services", "Trust Badges", "Logos", "Press Logos"];
 
 // ─── Hero Banners tab ─────────────────────────────────────────────────────────
 
@@ -465,6 +471,187 @@ function SlotCard({
   );
 }
 
+// ─── Services Tab ─────────────────────────────────────────────────────────────
+
+const SERVICE_KEYS = ["service_1", "service_2", "service_3", "service_4", "service_5", "service_6"] as const;
+type ServiceKey = (typeof SERVICE_KEYS)[number];
+
+const SERVICE_DEFAULTS: Record<ServiceKey, { title: string; desc: string; link: string }> = {
+  service_1: { title: "Elevated Therapeutics", desc: "Explore our premium cannabis-based medical solutions, designed for optimal effectiveness and well-being, backed by rigorous lab testing.", link: "/catalog" },
+  service_2: { title: "Essence of the Leaf", desc: "Experience the purity of our handpicked cannabis leaves, preserving natural properties for a safe and enriching experience.", link: "/catalog" },
+  service_3: { title: "Pure & Natural Edibles", desc: "Our edibles, made with 100% natural ingredients, offer a pure and enjoyable experience, from chocolates to infusions.", link: "/catalog" },
+  service_4: { title: "Premium Buds", desc: "Our sustainably grown, pesticide-free cannabis flowers deliver rich aromas, unique flavors, and consistent potency.", link: "/catalog" },
+  service_5: { title: "Nature's Apothecary", desc: "Discover our extracts and apothecary formulas, crafted to enhance cannabis compounds for relaxation, pain relief, and well-being.", link: "/catalog" },
+  service_6: { title: "Your Safety, Our Priority", desc: "We ensure legal compliance and product safety through rigorous quality control at every stage, providing you with a trusted experience.", link: "/catalog" },
+};
+
+const ALL_SERVICE_TEXT_KEYS = [
+  "services_section_title",
+  "services_section_subtitle",
+  ...SERVICE_KEYS.flatMap((k) => [`${k}_title`, `${k}_desc`, `${k}_link`]),
+] as const;
+
+type ServiceTextField = (typeof ALL_SERVICE_TEXT_KEYS)[number];
+
+function ServicesTab() {
+  const utils = trpc.useUtils();
+  const { data: siteImages = {}, isLoading: imagesLoading } = trpc.banners.siteImages.useQuery();
+  const { data: textSettings, isLoading: textLoading } = trpc.settings.getMany.useQuery(
+    { keys: [...ALL_SERVICE_TEXT_KEYS] },
+    { retry: false }
+  );
+
+  const [form, setForm] = useState<Record<string, string>>({});
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    if (textSettings) {
+      const init: Record<string, string> = {
+        services_section_title: textSettings.services_section_title ?? "",
+        services_section_subtitle: textSettings.services_section_subtitle ?? "",
+      };
+      SERVICE_KEYS.forEach((k) => {
+        init[`${k}_title`] = (textSettings as Record<string, string | null>)[`${k}_title`] ?? "";
+        init[`${k}_desc`] = (textSettings as Record<string, string | null>)[`${k}_desc`] ?? "";
+        init[`${k}_link`] = (textSettings as Record<string, string | null>)[`${k}_link`] ?? "";
+      });
+      setForm(init);
+    }
+  }, [textSettings]);
+
+  const setMutation = trpc.settings.set.useMutation();
+  const upsertMutation = trpc.banners.upsertSiteImage.useMutation({
+    onSuccess: () => { utils.banners.siteImages.invalidate(); toast.success("Icon updated"); },
+    onError: (e) => toast.error(e.message),
+  });
+  const clearMutation = trpc.banners.clearSiteImage.useMutation({
+    onSuccess: () => { utils.banners.siteImages.invalidate(); toast.success("Icon cleared"); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleUpload = (slot: string, file: File) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      upsertMutation.mutate({ slot, imageBase64: result.split(",")[1], imageFilename: file.name, imageContentType: file.type });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = async () => {
+    try {
+      await Promise.all(
+        Object.entries(form)
+          .filter(([, v]) => v !== undefined)
+          .map(([k, v]) => setMutation.mutateAsync({ key: k, value: v }))
+      );
+      utils.settings.getMany.invalidate();
+      toast.success("Services section saved");
+      setDirty(false);
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to save");
+    }
+  };
+
+  const isPending = upsertMutation.isPending || clearMutation.isPending;
+
+  if (imagesLoading || textLoading) {
+    return <div className="text-center py-12 text-muted-foreground">Loading...</div>;
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Section header texts */}
+      <div className="bg-white border rounded-xl p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Section Header</h3>
+        <div className="space-y-1.5">
+          <Label>Section Title</Label>
+          <Input
+            placeholder="Our Best Services"
+            value={form.services_section_title ?? ""}
+            onChange={(e) => { setForm((f) => ({ ...f, services_section_title: e.target.value })); setDirty(true); }}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Section Subtitle</Label>
+          <Textarea
+            placeholder="TruLife provides expert support..."
+            rows={2}
+            className="resize-none"
+            value={form.services_section_subtitle ?? ""}
+            onChange={(e) => { setForm((f) => ({ ...f, services_section_subtitle: e.target.value })); setDirty(true); }}
+          />
+        </div>
+      </div>
+
+      {/* Individual service cards */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Service Cards</h3>
+        {SERVICE_KEYS.map((key, index) => {
+          const defaults = SERVICE_DEFAULTS[key];
+          const iconSlot = `${key}_icon`;
+          const currentIcon = (siteImages as Record<string, string>)[iconSlot];
+          return (
+            <div key={key} className="bg-white border rounded-xl p-6 space-y-4">
+              <div className="flex items-start gap-4">
+                {/* Icon slot */}
+                <div className="shrink-0">
+                  <p className="text-xs font-semibold text-gray-500 mb-2">Icon</p>
+                  <SlotCard
+                    slotDef={{ slot: iconSlot, label: `Service ${index + 1} Icon`, desc: "Square icon image", category: "Services" }}
+                    currentUrl={currentIcon}
+                    isPending={isPending}
+                    onUpload={(file) => handleUpload(iconSlot, file)}
+                    onClear={() => clearMutation.mutate({ slot: iconSlot })}
+                  />
+                </div>
+                {/* Text fields */}
+                <div className="flex-1 space-y-3">
+                  <p className="text-sm font-semibold text-gray-800">Service {index + 1}</p>
+                  <div className="space-y-1.5">
+                    <Label>Title</Label>
+                    <Input
+                      placeholder={defaults.title}
+                      value={form[`${key}_title`] ?? ""}
+                      onChange={(e) => { setForm((f) => ({ ...f, [`${key}_title`]: e.target.value })); setDirty(true); }}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Description</Label>
+                    <Textarea
+                      placeholder={defaults.desc}
+                      rows={2}
+                      className="resize-none"
+                      value={form[`${key}_desc`] ?? ""}
+                      onChange={(e) => { setForm((f) => ({ ...f, [`${key}_desc`]: e.target.value })); setDirty(true); }}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Link URL</Label>
+                    <Input
+                      placeholder={defaults.link}
+                      value={form[`${key}_link`] ?? ""}
+                      onChange={(e) => { setForm((f) => ({ ...f, [`${key}_link`]: e.target.value })); setDirty(true); }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Save button */}
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={setMutation.isPending || !dirty} className="gap-2">
+          <Save className="w-4 h-4" />
+          {setMutation.isPending ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ─── About Page Tab ───────────────────────────────────────────────────────────
 
 const ABOUT_TEXT_KEYS = ["about_hero_title", "about_hero_subtitle", "about_story_text"] as const;
@@ -630,6 +817,7 @@ export default function AdminBanners() {
         <TabsList className="mb-6">
           <TabsTrigger value="hero">Hero Banners</TabsTrigger>
           <TabsTrigger value="site">Site Images</TabsTrigger>
+          <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="about">About Page</TabsTrigger>
         </TabsList>
         <TabsContent value="hero">
@@ -637,6 +825,9 @@ export default function AdminBanners() {
         </TabsContent>
         <TabsContent value="site">
           <SiteImagesTab />
+        </TabsContent>
+        <TabsContent value="services">
+          <ServicesTab />
         </TabsContent>
         <TabsContent value="about">
           <AboutPageTab />
