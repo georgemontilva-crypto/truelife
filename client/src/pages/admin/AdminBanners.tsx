@@ -81,6 +81,11 @@ type SlotDef = { slot: string; label: string; desc: string; category: string };
 
 const SITE_IMAGE_SLOTS: SlotDef[] = [
   { slot: "about_us",             label: "About Us (Home)",    desc: "About Us section image on homepage (4:3)", category: "Sections" },
+  { slot: "pr_background",        label: "Product Range BG",   desc: "Background image for Product Range section", category: "Sections" },
+  { slot: "pr_1_icon",            label: "Product 1 Icon",     desc: "Icon for first product (circle)",   category: "Product Range" },
+  { slot: "pr_2_icon",            label: "Product 2 Icon",     desc: "Icon for second product (circle)",  category: "Product Range" },
+  { slot: "pr_3_icon",            label: "Product 3 Icon",     desc: "Icon for third product (circle)",   category: "Product Range" },
+  { slot: "pr_4_icon",            label: "Product 4 Icon",     desc: "Icon for fourth product (circle)",  category: "Product Range" },
   { slot: "service_1_icon",       label: "Service 1 Icon",     desc: "Icon for first service card (square)",  category: "Services" },
   { slot: "service_2_icon",       label: "Service 2 Icon",     desc: "Icon for second service card (square)", category: "Services" },
   { slot: "service_3_icon",       label: "Service 3 Icon",     desc: "Icon for third service card (square)",  category: "Services" },
@@ -105,7 +110,7 @@ const ABOUT_IMAGE_SLOTS: SlotDef[] = [
   { slot: "about_story_image", label: "Our Story Image",  desc: "Left column image in the Our Story section (4:3)", category: "About Page" },
 ];
 
-const CATEGORIES = ["Sections", "Services", "Trust Badges", "Logos", "Press Logos"];
+const CATEGORIES = ["Sections", "Product Range", "Services", "Trust Badges", "Logos", "Press Logos"];
 
 // ─── Hero Banners tab ─────────────────────────────────────────────────────────
 
@@ -539,6 +544,150 @@ function SlotCard({
   );
 }
 
+// ─── Product Range Tab ────────────────────────────────────────────────────────
+
+const PR_ADMIN_KEYS = ["pr_1", "pr_2", "pr_3", "pr_4"] as const;
+type PrAdminKey = typeof PR_ADMIN_KEYS[number];
+const PR_ADMIN_DEFAULTS: Record<PrAdminKey, { title: string; desc: string }> = {
+  pr_1: { title: "Flower and Pre-rolls", desc: "Carefully selected and prepared for an optimal experience." },
+  pr_2: { title: "Trim", desc: "Ideal for those who want to make the most of the plant in extractions or customized preparations." },
+  pr_3: { title: "Gummies", desc: "Edibles infused with precise doses, perfect for discreet and long-lasting consumption." },
+  pr_4: { title: "Cartridges (Carts) and Disposables", desc: "Convenient, ready-to-use vaping solutions that combine ease of use with potent effects." },
+};
+const ALL_PR_TEXT_KEYS = [
+  "pr_section_title", "pr_section_subtitle",
+  ...PR_ADMIN_KEYS.flatMap((k) => [`${k}_title`, `${k}_desc`]),
+] as const;
+
+function ProductRangeTab() {
+  const utils = trpc.useUtils();
+  const { data: siteImages = {}, isLoading: imagesLoading } = trpc.banners.siteImages.useQuery();
+  const { data: textSettings, isLoading: textLoading } = trpc.settings.getMany.useQuery(
+    { keys: [...ALL_PR_TEXT_KEYS] }, { retry: false }
+  );
+  const [form, setForm] = useState<Record<string, string>>({});
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    if (textSettings) {
+      const init: Record<string, string> = {
+        pr_section_title: textSettings.pr_section_title ?? "",
+        pr_section_subtitle: textSettings.pr_section_subtitle ?? "",
+      };
+      PR_ADMIN_KEYS.forEach((k) => {
+        init[`${k}_title`] = (textSettings as Record<string, string | null>)[`${k}_title`] ?? "";
+        init[`${k}_desc`] = (textSettings as Record<string, string | null>)[`${k}_desc`] ?? "";
+      });
+      setForm(init);
+    }
+  }, [textSettings]);
+
+  const setMutation = trpc.settings.set.useMutation();
+  const upsertMutation = trpc.banners.upsertSiteImage.useMutation({
+    onSuccess: () => { utils.banners.siteImages.invalidate(); toast.success("Icon updated"); },
+    onError: (e) => toast.error(e.message),
+  });
+  const clearMutation = trpc.banners.clearSiteImage.useMutation({
+    onSuccess: () => { utils.banners.siteImages.invalidate(); toast.success("Icon cleared"); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleUpload = (slot: string, file: File) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      upsertMutation.mutate({ slot, imageBase64: result.split(",")[1], imageFilename: file.name, imageContentType: file.type });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = async () => {
+    try {
+      await Promise.all(Object.entries(form).map(([k, v]) => setMutation.mutateAsync({ key: k, value: v })));
+      utils.settings.getMany.invalidate();
+      toast.success("Product Range section saved");
+      setDirty(false);
+    } catch (e: any) { toast.error(e.message ?? "Failed to save"); }
+  };
+
+  const isPending = upsertMutation.isPending || clearMutation.isPending;
+  if (imagesLoading || textLoading) return <div className="text-center py-12 text-muted-foreground">Loading...</div>;
+
+  return (
+    <div className="space-y-8">
+      {/* Section header */}
+      <div className="bg-white border rounded-xl p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Section Header</h3>
+        <div className="space-y-1.5">
+          <Label>Title</Label>
+          <Input placeholder="Our Product Range" value={form.pr_section_title ?? ""} onChange={(e) => { setForm((f) => ({ ...f, pr_section_title: e.target.value })); setDirty(true); }} />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Subtitle</Label>
+          <Textarea placeholder="Premium THCa, THCp..." rows={2} className="resize-none" value={form.pr_section_subtitle ?? ""} onChange={(e) => { setForm((f) => ({ ...f, pr_section_subtitle: e.target.value })); setDirty(true); }} />
+        </div>
+      </div>
+
+      {/* Background image */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Background Image (optional)</h3>
+        <div className="max-w-sm">
+          <SlotCard
+            slotDef={{ slot: "pr_background", label: "Background Image", desc: "Full-width background (16:9)", category: "Product Range" }}
+            currentUrl={(siteImages as Record<string, string>)["pr_background"]}
+            isPending={isPending}
+            onUpload={(file) => handleUpload("pr_background", file)}
+            onClear={() => clearMutation.mutate({ slot: "pr_background" })}
+          />
+        </div>
+      </div>
+
+      {/* Product items */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Products</h3>
+        {PR_ADMIN_KEYS.map((key, index) => {
+          const iconSlot = `${key}_icon`;
+          const currentIcon = (siteImages as Record<string, string>)[iconSlot];
+          return (
+            <div key={key} className="bg-white border rounded-xl p-6">
+              <div className="flex items-start gap-4">
+                <div className="shrink-0">
+                  <p className="text-xs font-semibold text-gray-500 mb-2">Icon</p>
+                  <SlotCard
+                    slotDef={{ slot: iconSlot, label: `Product ${index + 1}`, desc: "Circle icon", category: "Product Range" }}
+                    currentUrl={currentIcon}
+                    isPending={isPending}
+                    onUpload={(file) => handleUpload(iconSlot, file)}
+                    onClear={() => clearMutation.mutate({ slot: iconSlot })}
+                  />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <p className="text-sm font-semibold text-gray-800">Product {index + 1}</p>
+                  <div className="space-y-1.5">
+                    <Label>Title</Label>
+                    <Input placeholder={PR_ADMIN_DEFAULTS[key].title} value={form[`${key}_title`] ?? ""} onChange={(e) => { setForm((f) => ({ ...f, [`${key}_title`]: e.target.value })); setDirty(true); }} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Description</Label>
+                    <Textarea placeholder={PR_ADMIN_DEFAULTS[key].desc} rows={2} className="resize-none" value={form[`${key}_desc`] ?? ""} onChange={(e) => { setForm((f) => ({ ...f, [`${key}_desc`]: e.target.value })); setDirty(true); }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={setMutation.isPending || !dirty} className="gap-2">
+          <Save className="w-4 h-4" />
+          {setMutation.isPending ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Services Tab ─────────────────────────────────────────────────────────────
 
 const SERVICE_KEYS = ["service_1", "service_2", "service_3", "service_4", "service_5", "service_6"] as const;
@@ -885,21 +1034,15 @@ export default function AdminBanners() {
         <TabsList className="mb-6">
           <TabsTrigger value="hero">Hero Banners</TabsTrigger>
           <TabsTrigger value="site">Site Images</TabsTrigger>
+          <TabsTrigger value="product-range">Product Range</TabsTrigger>
           <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="about">About Page</TabsTrigger>
         </TabsList>
-        <TabsContent value="hero">
-          <HeroBannersTab />
-        </TabsContent>
-        <TabsContent value="site">
-          <SiteImagesTab />
-        </TabsContent>
-        <TabsContent value="services">
-          <ServicesTab />
-        </TabsContent>
-        <TabsContent value="about">
-          <AboutPageTab />
-        </TabsContent>
+        <TabsContent value="hero"><HeroBannersTab /></TabsContent>
+        <TabsContent value="site"><SiteImagesTab /></TabsContent>
+        <TabsContent value="product-range"><ProductRangeTab /></TabsContent>
+        <TabsContent value="services"><ServicesTab /></TabsContent>
+        <TabsContent value="about"><AboutPageTab /></TabsContent>
       </Tabs>
     </div>
   );

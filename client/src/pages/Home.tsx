@@ -435,6 +435,86 @@ function FeaturedProductsCarousel({ products }: { products: FeaturedProduct[] })
   );
 }
 
+// ─── Product Range Section ────────────────────────────────────────────────────
+
+const PR_KEYS = ["pr_1", "pr_2", "pr_3", "pr_4"] as const;
+type PrKey = typeof PR_KEYS[number];
+
+const PR_TEXT_KEYS = [
+  "pr_section_title",
+  "pr_section_subtitle",
+  ...PR_KEYS.flatMap((k) => [`${k}_title`, `${k}_desc`]),
+] as const;
+
+const PR_DEFAULTS: Record<PrKey, { title: string; desc: string }> = {
+  pr_1: { title: "Flower and Pre-rolls", desc: "Carefully selected and prepared for an optimal experience." },
+  pr_2: { title: "Trim", desc: "Ideal for those who want to make the most of the plant in extractions or customized preparations." },
+  pr_3: { title: "Gummies", desc: "Edibles infused with precise doses, perfect for discreet and long-lasting consumption." },
+  pr_4: { title: "Cartridges (Carts) and Disposables", desc: "Convenient, ready-to-use vaping solutions that combine ease of use with potent effects." },
+};
+
+function ProductRangeSection({ siteImages }: { siteImages: Record<string, string> }) {
+  const { data: textSettings } = trpc.settings.getMany.useQuery(
+    { keys: [...PR_TEXT_KEYS] },
+    { retry: false }
+  );
+
+  const t = (key: string, fallback: string) =>
+    (textSettings as Record<string, string | null> | undefined)?.[key] || fallback;
+
+  const bgImg = siteImages["pr_background"];
+
+  return (
+    <section className="py-20 md:py-28 bg-white relative overflow-hidden" id="about">
+      {/* Background image with overlay */}
+      {bgImg && (
+        <>
+          <img src={bgImg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-white/85" />
+        </>
+      )}
+
+      <div className="relative container">
+        {/* Header */}
+        <div className="text-center mb-14">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+            {t("pr_section_title", "Our Product Range")}
+          </h2>
+          <p className="text-gray-500 max-w-2xl mx-auto text-base leading-relaxed">
+            {t("pr_section_subtitle", "Premium THCa, THCp, D8, HHC, HHCp, CBD, and CBG – available in flower, pre-rolls, trim, gummies, carts, and disposables.")}
+          </p>
+        </div>
+
+        {/* 2x2 grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-10">
+          {PR_KEYS.map((key) => {
+            const iconUrl = siteImages[`${key}_icon`];
+            const title = t(`${key}_title`, PR_DEFAULTS[key].title);
+            const desc = t(`${key}_desc`, PR_DEFAULTS[key].desc);
+            return (
+              <div key={key} className="flex items-start gap-5">
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-full border-2 border-emerald-200 bg-white flex items-center justify-center shrink-0 overflow-hidden">
+                  {iconUrl ? (
+                    <img src={iconUrl} alt={title} className="w-full h-full object-contain p-2" />
+                  ) : (
+                    <Leaf className="w-7 h-7 text-emerald-600" />
+                  )}
+                </div>
+                {/* Text */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">{title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Services Section ─────────────────────────────────────────────────────────
 
 const DEFAULT_SERVICES = [
@@ -634,100 +714,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* About Us */}
-      <section className="py-20 md:py-28 bg-white" id="about">
-        <div className="container">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            {/* Image */}
-            <div className="relative order-2 lg:order-1">
-              <div className="relative rounded-3xl overflow-hidden aspect-[4/3]">
-                {(siteImages as Record<string, string>).about_us ? (
-                  <img
-                    src={(siteImages as Record<string, string>).about_us}
-                    alt="About Us"
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                ) : (
-                  <>
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-emerald-950 flex items-center justify-center">
-                      <Leaf className="w-32 h-32 text-white/10" />
-                    </div>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-8">
-                      <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20">
-                        <Leaf className="w-8 h-8 text-white" />
-                      </div>
-                      <p className="text-white font-bold text-2xl tracking-tight">TRUELIFE</p>
-                      <p className="text-white/60 text-sm text-center">Premium Hemp Co.</p>
-                    </div>
-                  </>
-                )}
-              </div>
-              {/* Floating stat card */}
-              <div className="absolute -bottom-6 -right-4 md:-right-8 bg-white rounded-2xl shadow-xl border border-gray-100 px-6 py-4 flex items-center gap-4">
-                <div className="w-12 h-12 bg-gray-950 rounded-xl flex items-center justify-center shrink-0">
-                  <FlaskConical className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">100%</p>
-                  <p className="text-xs text-gray-500">Lab Verified</p>
-                </div>
-              </div>
-            </div>
-            {/* Text */}
-            <div className="order-1 lg:order-2">
-              <div className="inline-flex items-center gap-2 bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6 border border-gray-200">
-                <Leaf className="w-3.5 h-3.5" />
-                Our Story
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6">
-                Expect the Best.<br />
-                <span className="text-gray-400">Always.</span>
-              </h2>
-              <p className="text-gray-600 leading-relaxed mb-5 text-base">
-                At TrueLife Co., we believe that quality is non-negotiable. Founded with a passion for clean, effective hemp wellness, we set out to create products that meet the highest pharmaceutical standards — because you deserve nothing less.
-              </p>
-              <p className="text-gray-600 leading-relaxed mb-8 text-base">
-                Every product in our lineup is crafted from federally compliant, farm-bill-approved hemp. We partner with certified labs to verify potency and purity on every single batch, so you can shop with complete confidence.
-              </p>
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                {[
-                  { value: "500+", label: "Happy Customers" },
-                  { value: "100%", label: "Lab Verified" },
-                ].map(({ value, label }) => (
-                  <div key={label} className="text-center p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                    <p className="text-2xl font-bold text-gray-900">{value}</p>
-                    <p className="text-xs text-gray-500 mt-1">{label}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-2 gap-3 mb-8">
-                {[
-                  { icon: FlaskConical, title: "Pharmaceutical Grade", desc: "GMP-compliant manufacturing." },
-                  { icon: Shield, title: "Federally Compliant", desc: "2018 Farm Bill approved." },
-                  { icon: Award, title: "Third-Party Tested", desc: "COAs available for every batch." },
-                  { icon: Users, title: "Customer First", desc: "30-day returns & free shipping." },
-                ].map(({ icon: Icon, title, desc }) => (
-                  <div key={title} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                      <Icon className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{title}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Link href="/catalog">
-                <Button className="h-12 px-8 bg-gray-900 hover:bg-black text-white rounded-xl font-semibold">
-                  Explore Our Products
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Product Range */}
+      <ProductRangeSection siteImages={siteImages as Record<string, string>} />
 
       {/* Services */}
       <ServicesSection />
