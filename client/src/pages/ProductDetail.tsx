@@ -198,9 +198,6 @@ export default function ProductDetail() {
           {/* Details */}
           <div>
             <div className="mb-5">
-              <p className="text-xs font-semibold text-gray-900 uppercase tracking-widest mb-2">
-                Hemp Derived · ≤0.3% Δ9THC
-              </p>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-3">{p.name}</h1>
 
               {/* Price */}

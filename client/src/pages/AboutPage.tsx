@@ -127,11 +127,10 @@ export default function AboutPage() {
                 {storyText}
               </div>
 
-              <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="grid grid-cols-2 gap-4 mb-8">
                 {[
                   { value: "500+", label: "Happy Customers" },
                   { value: "100%", label: "Lab Verified" },
-                  { value: "≤0.3%", label: "Δ9THC" },
                 ].map(({ value, label }) => (
                   <div key={label} className="text-center p-4 bg-gray-50 rounded-2xl border border-gray-100">
                     <p className="text-2xl font-bold text-gray-900">{value}</p>

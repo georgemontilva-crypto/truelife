@@ -82,12 +82,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div>
-            <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wider mb-4">Legal</h4>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              Products on this site contain a value of 0.3% or less Δ9THC (or no more than 0.3% Δ9THC).
-            </p>
-          </div>
         </div>
 
         {/* FDA Disclosure */}

@@ -41,7 +41,6 @@ export default function AgeGate() {
 
         <p className="text-xs text-gray-400 mt-6 leading-relaxed">
           By entering, you confirm you are of legal age and agree to our Terms of Service and Privacy Policy.
-          Products on this site contain ≤0.3% Δ9THC.
         </p>
       </div>
     </div>

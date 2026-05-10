@@ -64,7 +64,10 @@ export async function storagePut(
     })
   );
 
-  return { key, url: `/manus-storage/${key}` };
+  const publicBase = process.env.R2_PUBLIC_URL?.replace(/\/$/, "");
+  const url = publicBase ? `${publicBase}/${key}` : `/manus-storage/${key}`;
+
+  return { key, url };
 }
 
 export async function storageGetSignedUrl(relKey: string): Promise<string> {
