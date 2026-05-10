@@ -132,7 +132,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
           <p className="text-xs text-gray-900 font-medium mb-1 uppercase tracking-wide">
             {product.thcContent ? `THC: ${product.thcContent}` : "Hemp Derived"}
           </p>
-          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-2 group-hover:text-gray-900 transition-colors">
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-2 group-hover:text-gray-900 transition-colors min-h-[2.5rem]">
             {product.name}
           </h3>
 
