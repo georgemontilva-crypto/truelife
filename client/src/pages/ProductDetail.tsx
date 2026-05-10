@@ -146,7 +146,7 @@ export default function ProductDetail() {
   const STRAIN_WEIGHT_RE = /^(.+?)\s+-\s+(.+)$/;
   const isLayered = activeVariants.length > 0 && activeVariants.every((v) => STRAIN_WEIGHT_RE.test(v.name));
   const strains = isLayered
-    ? [...new Map(activeVariants.map((v) => [v.name.match(STRAIN_WEIGHT_RE)![1].trim(), v])).keys()]
+    ? Array.from(new Map(activeVariants.map((v) => [v.name.match(STRAIN_WEIGHT_RE)![1].trim(), v])).keys())
     : [];
   const strainFirstVariant = selectedStrain
     ? activeVariants.find((v) => v.name.match(STRAIN_WEIGHT_RE)?.[1]?.trim() === selectedStrain) ?? null
@@ -509,7 +509,7 @@ export default function ProductDetail() {
                     {filteredLabReports.map((report) => (
                       <a
                         key={report.id}
-                        href={report.fileUrl}
+                        href={report.fileUrl ?? "#"}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors group"

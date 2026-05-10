@@ -268,10 +268,10 @@ export async function createProduct(data: {
     categoryId: data.categoryId,
     name: data.name,
     slug: data.slug,
-    price: data.price,
+    price: String(data.price),
   };
   if (data.description !== undefined) values.description = data.description;
-  if (data.compareAtPrice !== undefined) values.compareAtPrice = data.compareAtPrice;
+  if (data.compareAtPrice !== undefined) values.compareAtPrice = String(data.compareAtPrice);
   if (data.imageUrl !== undefined) values.imageUrl = data.imageUrl;
   if (data.imageKey !== undefined) values.imageKey = data.imageKey;
   if (data.inventory !== undefined) values.inventory = data.inventory;
@@ -695,6 +695,8 @@ export async function getLabReports(productId: number) {
       name: labReports.reportName,
       fileUrl: labReports.fileUrl,
       fileKey: labReports.fileKey,
+      batchNumber: labReports.batchNumber,
+      testedAt: labReports.testedAt,
       createdAt: labReports.createdAt,
     })
     .from(labReports)
@@ -718,6 +720,8 @@ export async function getAllLabReports() {
       name: labReports.reportName,
       fileUrl: labReports.fileUrl,
       fileKey: labReports.fileKey,
+      batchNumber: labReports.batchNumber,
+      testedAt: labReports.testedAt,
       createdAt: labReports.createdAt,
     })
     .from(labReports)
@@ -730,16 +734,26 @@ export async function createLabReport(data: {
   name: string;
   fileUrl?: string;
   fileKey?: string;
+  productId?: number;
+  variantId?: number;
+  batchNumber?: string;
+  testedAt?: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
 
-  const pool = (db as any).session?.client ?? (db as any).client;
-  const [result] = await pool.execute(
-    "INSERT INTO lab_reports (reportName, category, fileUrl, fileKey) VALUES (?, ?, ?, ?)",
-    [data.name, data.category ?? null, data.fileUrl ?? null, data.fileKey ?? null]
-  );
+  const values: typeof labReports.$inferInsert = {
+    reportName: data.name,
+  };
+  if (data.category !== undefined) values.category = data.category;
+  if (data.fileUrl !== undefined) values.fileUrl = data.fileUrl;
+  if (data.fileKey !== undefined) values.fileKey = data.fileKey;
+  if (data.productId !== undefined) values.productId = data.productId;
+  if (data.variantId !== undefined) values.variantId = data.variantId;
+  if (data.batchNumber !== undefined) values.batchNumber = data.batchNumber;
+  if (data.testedAt !== undefined) values.testedAt = new Date(data.testedAt);
 
+  const [result] = await db.insert(labReports).values(values);
   return { id: (result as any).insertId as number };
 }
 

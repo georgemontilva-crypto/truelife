@@ -104,7 +104,7 @@ export default function AdminLabReports() {
   });
 
   const existingCategories = useMemo(
-    () => [...new Set(allReports.map((r) => r.category).filter(Boolean))] as string[],
+    () => Array.from(new Set(allReports.map((r) => r.category).filter(Boolean))) as string[],
     [allReports]
   );
 
@@ -115,7 +115,7 @@ export default function AdminLabReports() {
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(r);
     });
-    return [...groups.entries()].sort(([a], [b]) => {
+    return Array.from(groups.entries()).sort(([a], [b]) => {
       if (a === "Uncategorized") return 1;
       if (b === "Uncategorized") return -1;
       return a.localeCompare(b);
@@ -285,7 +285,7 @@ export default function AdminLabReports() {
         </div>
       ) : (
         <div className="space-y-4">
-          {groupedReports.map(([catName, reports]) => {
+          {groupedReports.map(([catName, reports]: [string, typeof allReports]) => {
             const isClosed = closedSections.has(catName);
             return (
               <div key={catName} className="bg-white border border-gray-100 rounded-2xl overflow-hidden">

@@ -58,6 +58,7 @@ export default function LabReportsEditor({ productId }: { productId: number }) {
         productId,
         variantId: form.variantId,
         name: form.name,
+        category: "general",
         batchNumber: form.batchNumber || undefined,
         testedAt: form.testedAt || undefined,
         filename: file.name,

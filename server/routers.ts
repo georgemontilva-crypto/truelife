@@ -618,6 +618,10 @@ export const appRouter = router({
             name: input.name,
             fileUrl: url,
             fileKey: key,
+            productId: input.productId,
+            variantId: input.variantId,
+            batchNumber: input.batchNumber,
+            testedAt: input.testedAt,
           });
           console.log("LAB_DB_RESULT:", result);
           return result;
@@ -641,6 +645,10 @@ export const appRouter = router({
         category: input.category,
         name: input.name,
         fileUrl: input.externalUrl,
+        productId: input.productId,
+        variantId: input.variantId,
+        batchNumber: input.batchNumber,
+        testedAt: input.testedAt,
       })),
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
