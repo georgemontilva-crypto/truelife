@@ -1020,6 +1020,117 @@ function AboutPageTab() {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
+// ─── Theme Tab ────────────────────────────────────────────────────────────────
+
+const THEME_COLOR_DEFS = [
+  { key: "theme_dark_bg",       label: "Featured Products Background",  desc: "Dark section behind featured products carousel", default: "#030712" },
+  { key: "theme_navbar_bg",     label: "Navbar Top Bar",                desc: "Background of the announcement bar at the top",   default: "#111827" },
+  { key: "theme_primary",       label: "Primary Color (Buttons)",       desc: "Main CTA buttons and interactive elements",       default: "#111827" },
+  { key: "theme_accent",        label: "Accent Color (Highlights)",     desc: "Used for highlights, icons, and accents",         default: "#059669" },
+] as const;
+
+function ThemeTab() {
+  const utils = trpc.useUtils();
+  const { data: settings, isLoading } = trpc.settings.getMany.useQuery(
+    { keys: THEME_COLOR_DEFS.map((c) => c.key) },
+    { retry: false }
+  );
+  const [colors, setColors] = useState<Record<string, string>>({});
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    if (settings) {
+      const init: Record<string, string> = {};
+      THEME_COLOR_DEFS.forEach(({ key, default: def }) => {
+        init[key] = (settings as Record<string, string | null>)[key] ?? def;
+      });
+      setColors(init);
+    }
+  }, [settings]);
+
+  const setMutation = trpc.settings.set.useMutation();
+
+  const handleSave = async () => {
+    try {
+      await Promise.all(Object.entries(colors).map(([k, v]) => setMutation.mutateAsync({ key: k, value: v })));
+      utils.settings.getMany.invalidate();
+      // Apply immediately to the current page
+      const root = document.documentElement;
+      if (colors.theme_dark_bg)    root.style.setProperty("--theme-dark-bg",   colors.theme_dark_bg);
+      if (colors.theme_primary)    root.style.setProperty("--theme-primary",   colors.theme_primary);
+      if (colors.theme_accent)     root.style.setProperty("--theme-accent",    colors.theme_accent);
+      if (colors.theme_navbar_bg)  root.style.setProperty("--theme-navbar-bg", colors.theme_navbar_bg);
+      toast.success("Theme saved — changes are live");
+      setDirty(false);
+    } catch (e: any) { toast.error(e.message ?? "Failed to save"); }
+  };
+
+  const handleReset = () => {
+    const defaults: Record<string, string> = {};
+    THEME_COLOR_DEFS.forEach(({ key, default: def }) => { defaults[key] = def; });
+    setColors(defaults);
+    setDirty(true);
+  };
+
+  if (isLoading) return <div className="text-center py-12 text-muted-foreground">Loading...</div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white border rounded-xl p-6 space-y-6">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Site Colors</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {THEME_COLOR_DEFS.map(({ key, label, desc, default: def }) => (
+            <div key={key} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold text-gray-800">{label}</Label>
+                <button
+                  type="button"
+                  onClick={() => { setColors((c) => ({ ...c, [key]: def })); setDirty(true); }}
+                  className="text-xs text-gray-400 hover:text-gray-700 underline"
+                >
+                  Reset
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground">{desc}</p>
+              <div className="flex items-center gap-3">
+                <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-gray-200 shrink-0 cursor-pointer">
+                  <input
+                    type="color"
+                    value={colors[key] ?? def}
+                    onChange={(e) => { setColors((c) => ({ ...c, [key]: e.target.value })); setDirty(true); }}
+                    className="absolute inset-0 w-[150%] h-[150%] -top-2 -left-2 cursor-pointer opacity-0"
+                  />
+                  <div className="w-full h-full rounded-lg" style={{ backgroundColor: colors[key] ?? def }} />
+                </div>
+                <Input
+                  value={colors[key] ?? def}
+                  onChange={(e) => { setColors((c) => ({ ...c, [key]: e.target.value })); setDirty(true); }}
+                  className="font-mono text-sm h-9"
+                  placeholder={def}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={handleReset}
+          className="text-sm text-gray-500 hover:text-gray-900 underline"
+        >
+          Reset all to defaults
+        </button>
+        <Button onClick={handleSave} disabled={setMutation.isPending || !dirty} className="gap-2">
+          <Save className="w-4 h-4" />
+          {setMutation.isPending ? "Saving..." : "Save & Apply"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminBanners() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -1037,12 +1148,14 @@ export default function AdminBanners() {
           <TabsTrigger value="product-range">Product Range</TabsTrigger>
           <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="about">About Page</TabsTrigger>
+          <TabsTrigger value="theme">🎨 Theme</TabsTrigger>
         </TabsList>
         <TabsContent value="hero"><HeroBannersTab /></TabsContent>
         <TabsContent value="site"><SiteImagesTab /></TabsContent>
         <TabsContent value="product-range"><ProductRangeTab /></TabsContent>
         <TabsContent value="services"><ServicesTab /></TabsContent>
         <TabsContent value="about"><AboutPageTab /></TabsContent>
+        <TabsContent value="theme"><ThemeTab /></TabsContent>
       </Tabs>
     </div>
   );

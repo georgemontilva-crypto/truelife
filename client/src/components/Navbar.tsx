@@ -59,7 +59,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
       {/* Announcement bar */}
-      <div className="bg-gray-900 text-white text-xs text-center py-2 px-3 font-medium tracking-wide">
+      <div className="theme-navbar-bg text-white text-xs text-center py-2 px-3 font-medium tracking-wide">
         FREE SHIPPING on orders over $50 · 30-Day Returns · Secure Checkout
       </div>
 

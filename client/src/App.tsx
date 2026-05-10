@@ -3,10 +3,29 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { useEffect } from "react";
 import { Route, Switch, useLocation } from "wouter";
+import { trpc } from "@/lib/trpc";
 
 function ScrollToTop() {
   const [location] = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [location]);
+  return null;
+}
+
+// ─── Theme Injector ───────────────────────────────────────────────────────────
+const THEME_KEYS = ["theme_dark_bg", "theme_primary_color", "theme_accent_color", "theme_navbar_bg"] as const;
+
+function ThemeInjector() {
+  const { data: settings } = trpc.settings.getMany.useQuery({ keys: [...THEME_KEYS] }, { retry: false, staleTime: 60_000 });
+
+  useEffect(() => {
+    if (!settings) return;
+    const root = document.documentElement;
+    if (settings.theme_dark_bg)     root.style.setProperty("--theme-dark-bg",     settings.theme_dark_bg);
+    if (settings.theme_primary_color) root.style.setProperty("--theme-primary",   settings.theme_primary_color);
+    if (settings.theme_accent_color)  root.style.setProperty("--theme-accent",    settings.theme_accent_color);
+    if (settings.theme_navbar_bg)   root.style.setProperty("--theme-navbar-bg",   settings.theme_navbar_bg);
+  }, [settings]);
+
   return null;
 }
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -84,6 +103,7 @@ function App() {
         <AgeGateProvider>
           <CartProvider>
             <TooltipProvider>
+              <ThemeInjector />
               <Toaster position="top-right" />
               <AgeGate />
               <div className="min-h-screen overflow-x-hidden">

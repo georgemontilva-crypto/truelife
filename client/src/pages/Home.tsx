@@ -684,7 +684,7 @@ export default function Home() {
       </section>
 
       {/* Featured Products */}
-      <section className="bg-gray-950 py-16 md:py-20">
+      <section className="theme-dark-bg py-16 md:py-20">
         <div className="container">
           <div className="flex items-center justify-between mb-10">
             <div>

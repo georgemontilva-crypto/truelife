@@ -116,6 +116,27 @@
 }
 
 @layer base {
+  :root {
+    --theme-dark-bg: #030712;
+    --theme-primary: #111827;
+    --theme-accent: #059669;
+    --theme-navbar-bg: #111827;
+  }
+
+  /* Apply theme variables to key elements */
+  .theme-dark-bg    { background-color: var(--theme-dark-bg) !important; }
+  .theme-primary-bg { background-color: var(--theme-primary) !important; }
+  .theme-accent-bg  { background-color: var(--theme-accent)  !important; }
+  .theme-navbar-bg  { background-color: var(--theme-navbar-bg) !important; }
+  .theme-primary-btn {
+    background-color: var(--theme-primary) !important;
+    border-color: var(--theme-primary) !important;
+  }
+  .theme-primary-btn:hover {
+    filter: brightness(1.15) !important;
+  }
+}
+
   * {
     @apply border-border outline-ring/50;
   }
