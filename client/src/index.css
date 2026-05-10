@@ -128,12 +128,15 @@
   .theme-primary-bg { background-color: var(--theme-primary) !important; }
   .theme-accent-bg  { background-color: var(--theme-accent)  !important; }
   .theme-navbar-bg  { background-color: var(--theme-navbar-bg) !important; }
-  .theme-primary-btn {
-    background-color: var(--theme-primary) !important;
-    border-color: var(--theme-primary) !important;
+
+  /* Make gray-900/950 buttons respect theme primary color */
+  .bg-gray-900, .hover\:bg-gray-900:hover,
+  .bg-gray-950, .hover\:bg-black:hover {
+    background-color: var(--theme-primary, #111827) !important;
   }
-  .theme-primary-btn:hover {
-    filter: brightness(1.15) !important;
+  /* Add to cart / icon buttons */
+  button.bg-gray-900, a .bg-gray-900 {
+    background-color: var(--theme-primary, #111827) !important;
   }
 }
 

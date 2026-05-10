@@ -12,7 +12,7 @@ function ScrollToTop() {
 }
 
 // ─── Theme Injector ───────────────────────────────────────────────────────────
-const THEME_KEYS = ["theme_dark_bg", "theme_primary_color", "theme_accent_color", "theme_navbar_bg"] as const;
+const THEME_KEYS = ["theme_dark_bg", "theme_primary", "theme_accent", "theme_navbar_bg"] as const;
 
 function ThemeInjector() {
   const { data: settings } = trpc.settings.getMany.useQuery({ keys: [...THEME_KEYS] }, { retry: false, staleTime: 60_000 });
@@ -20,10 +20,19 @@ function ThemeInjector() {
   useEffect(() => {
     if (!settings) return;
     const root = document.documentElement;
-    if (settings.theme_dark_bg)     root.style.setProperty("--theme-dark-bg",     settings.theme_dark_bg);
-    if (settings.theme_primary_color) root.style.setProperty("--theme-primary",   settings.theme_primary_color);
-    if (settings.theme_accent_color)  root.style.setProperty("--theme-accent",    settings.theme_accent_color);
-    if (settings.theme_navbar_bg)   root.style.setProperty("--theme-navbar-bg",   settings.theme_navbar_bg);
+    if (settings.theme_dark_bg)    root.style.setProperty("--theme-dark-bg",   settings.theme_dark_bg);
+    if (settings.theme_primary)    root.style.setProperty("--theme-primary",   settings.theme_primary);
+    if (settings.theme_accent)     root.style.setProperty("--theme-accent",    settings.theme_accent);
+    if (settings.theme_navbar_bg)  root.style.setProperty("--theme-navbar-bg", settings.theme_navbar_bg);
+    // Also override Tailwind/shadcn gray-900 and primary so hardcoded buttons pick it up
+    if (settings.theme_primary) {
+      root.style.setProperty("--color-gray-900", settings.theme_primary);
+      root.style.setProperty("--color-gray-950", settings.theme_primary);
+      root.style.setProperty("--primary", settings.theme_primary);
+    }
+    if (settings.theme_dark_bg) {
+      root.style.setProperty("--color-gray-950", settings.theme_dark_bg);
+    }
   }, [settings]);
 
   return null;

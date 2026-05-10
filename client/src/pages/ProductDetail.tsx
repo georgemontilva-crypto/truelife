@@ -171,7 +171,7 @@ export default function ProductDetail() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16">
           {/* Image — switches to variant image when one is selected */}
-          <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl md:rounded-3xl overflow-hidden">
+          <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl md:rounded-3xl overflow-hidden border border-gray-200 ring-1 ring-gray-100 shadow-sm">
             {(() => {
               const displayImg = selectedVariant?.imageUrl ?? strainFirstVariant?.imageUrl ?? p.imageUrl;
               return displayImg ? (
