@@ -19,6 +19,8 @@ export default function Navbar() {
   const categories = trpc.categories.list.useQuery();
   const allProducts = trpc.products.list.useQuery();
   const { data: siteImages = {} } = trpc.banners.siteImages.useQuery();
+  const { data: logoSizeSetting } = trpc.settings.get.useQuery({ key: "logo_navbar_size" }, { retry: false });
+  const logoHeight = parseInt(logoSizeSetting ?? "32") || 32;
 
   const isAdmin = user?.role === "admin";
 
@@ -69,7 +71,8 @@ export default function Navbar() {
               <img
                 src={(siteImages as Record<string, string>).logo_main}
                 alt="TRUELIFE"
-                className="h-8 w-auto object-contain"
+                style={{ height: `${logoHeight}px` }}
+                className="w-auto object-contain"
               />
             ) : (
               <>

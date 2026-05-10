@@ -13,6 +13,8 @@ const PRESS_SLOTS = [
 export default function Footer() {
   const { data: siteImages = {} } = trpc.banners.siteImages.useQuery();
   const imgs = siteImages as Record<string, string>;
+  const { data: logoSizeSetting } = trpc.settings.get.useQuery({ key: "logo_footer_size" }, { retry: false });
+  const logoHeight = parseInt(logoSizeSetting ?? "28") || 28;
 
   return (
     <footer className="bg-gray-50 border-t border-gray-100 mt-20">
@@ -41,7 +43,7 @@ export default function Footer() {
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               {imgs.logo_footer ? (
-                <img src={imgs.logo_footer} alt="TRUELIFE" className="h-7 w-auto object-contain" />
+                <img src={imgs.logo_footer} alt="TRUELIFE" style={{ height: `${logoHeight}px` }} className="w-auto object-contain" />
               ) : (
                 <>
                   <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">

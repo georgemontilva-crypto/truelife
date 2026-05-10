@@ -355,6 +355,22 @@ function HeroBannersTab() {
 function SiteImagesTab() {
   const utils = trpc.useUtils();
   const { data: siteImages = {}, isLoading } = trpc.banners.siteImages.useQuery();
+  const { data: logoSizes } = trpc.settings.getMany.useQuery({ keys: ["logo_navbar_size", "logo_footer_size"] }, { retry: false });
+
+  const [navbarSize, setNavbarSize] = useState(32);
+  const [footerSize, setFooterSize] = useState(28);
+
+  useEffect(() => {
+    if (logoSizes) {
+      setNavbarSize(parseInt(logoSizes.logo_navbar_size ?? "32") || 32);
+      setFooterSize(parseInt(logoSizes.logo_footer_size ?? "28") || 28);
+    }
+  }, [logoSizes]);
+
+  const setMutation = trpc.settings.set.useMutation({
+    onSuccess: () => { utils.settings.getMany.invalidate(); toast.success("Size saved"); },
+    onError: (e) => toast.error(e.message),
+  });
 
   const upsertMutation = trpc.banners.upsertSiteImage.useMutation({
     onSuccess: () => { utils.banners.siteImages.invalidate(); toast.success("Image updated"); },
@@ -383,6 +399,48 @@ function SiteImagesTab() {
 
   return (
     <div className="space-y-8">
+      {/* Logo size controls */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Logo Size</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Navbar logo size */}
+          <div className="bg-white border rounded-xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-semibold text-gray-800">Navbar Logo Height</Label>
+              <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{navbarSize}px</span>
+            </div>
+            <input
+              type="range" min={16} max={80} step={2}
+              value={navbarSize}
+              onChange={(e) => setNavbarSize(parseInt(e.target.value))}
+              onMouseUp={() => setMutation.mutate({ key: "logo_navbar_size", value: String(navbarSize) })}
+              onTouchEnd={() => setMutation.mutate({ key: "logo_navbar_size", value: String(navbarSize) })}
+              className="w-full accent-gray-900"
+            />
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>16px</span><span>80px</span>
+            </div>
+          </div>
+          {/* Footer logo size */}
+          <div className="bg-white border rounded-xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-semibold text-gray-800">Footer Logo Height</Label>
+              <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{footerSize}px</span>
+            </div>
+            <input
+              type="range" min={16} max={80} step={2}
+              value={footerSize}
+              onChange={(e) => setFooterSize(parseInt(e.target.value))}
+              onMouseUp={() => setMutation.mutate({ key: "logo_footer_size", value: String(footerSize) })}
+              onTouchEnd={() => setMutation.mutate({ key: "logo_footer_size", value: String(footerSize) })}
+              className="w-full accent-gray-900"
+            />
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>16px</span><span>80px</span>
+            </div>
+          </div>
+        </div>
+      </div>
       {CATEGORIES.map((category) => {
         const slots = SITE_IMAGE_SLOTS.filter((s) => s.category === category);
         return (
