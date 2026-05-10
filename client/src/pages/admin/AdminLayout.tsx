@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
-  LayoutDashboard, Package, Tag, ShoppingBag, Users, FlaskConical, ArrowLeft, LogOut, Menu, X, ImagePlay,
+  LayoutDashboard, Package, Tag, ShoppingBag, Users, FlaskConical, ArrowLeft, LogOut, Menu, X, ImagePlay, Paintbrush,
 } from "lucide-react";
 import { getLoginUrl } from "@/const";
 
@@ -11,7 +11,8 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: Tag },
-  { href: "/admin/banners", label: "Banners", icon: ImagePlay },
+  { href: "/admin/banners", label: "Hero Banners", icon: ImagePlay },
+  { href: "/admin/site-editor", label: "Site Editor", icon: Paintbrush },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/lab-reports", label: "Lab Reports", icon: FlaskConical },

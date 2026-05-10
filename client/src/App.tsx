@@ -63,6 +63,7 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminBanners from "./pages/admin/AdminBanners";
 import AdminLabReports from "./pages/admin/AdminLabReports";
+import AdminSiteEditor from "./pages/admin/AdminSiteEditor";
 import LabResultsPage from "./pages/LabResultsPage";
 import ContactPage from "./pages/ContactPage";
 import FAQsPage from "./pages/FAQsPage";
@@ -98,6 +99,7 @@ function Router() {
       <Route path="/admin/orders" component={() => <AdminLayout><AdminOrders /></AdminLayout>} />
       <Route path="/admin/users" component={() => <AdminLayout><AdminUsers /></AdminLayout>} />
       <Route path="/admin/lab-reports" component={() => <AdminLayout><AdminLabReports /></AdminLayout>} />
+      <Route path="/admin/site-editor" component={() => <AdminLayout><AdminSiteEditor /></AdminLayout>} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
