@@ -667,15 +667,36 @@ export const appRouter = router({
           linkText: z.string().optional(),
           sortOrder: z.number().optional(),
           isActive: z.boolean().optional(),
-          imageBase64: z.string(),
-          imageFilename: z.string(),
+          mediaType: z.enum(["image", "video"]).optional(),
+          imageBase64: z.string().optional(),
+          imageFilename: z.string().optional(),
           imageContentType: z.string().optional(),
+          videoBase64: z.string().optional(),
+          videoFilename: z.string().optional(),
+          videoContentType: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
-        const buffer = Buffer.from(input.imageBase64, "base64");
-        const key = `Banners/${Date.now()}-${input.imageFilename}`;
-        const { url } = await storagePut(key, buffer, input.imageContentType || "image/jpeg");
+        const mediaType = input.mediaType ?? "image";
+        let imageUrl: string | undefined;
+        let imageKey: string | undefined;
+        let videoUrl: string | undefined;
+        let videoKey: string | undefined;
+
+        if (mediaType === "video" && input.videoBase64 && input.videoFilename) {
+          const buffer = Buffer.from(input.videoBase64, "base64");
+          const key = `Banners/${Date.now()}-${input.videoFilename}`;
+          const result = await storagePut(key, buffer, input.videoContentType || "video/mp4");
+          videoUrl = result.url;
+          videoKey = key;
+        } else if (input.imageBase64 && input.imageFilename) {
+          const buffer = Buffer.from(input.imageBase64, "base64");
+          const key = `Banners/${Date.now()}-${input.imageFilename}`;
+          const result = await storagePut(key, buffer, input.imageContentType || "image/jpeg");
+          imageUrl = result.url;
+          imageKey = key;
+        }
+
         return createBanner({
           title: input.title,
           subtitle: input.subtitle,
@@ -683,8 +704,11 @@ export const appRouter = router({
           linkText: input.linkText,
           sortOrder: input.sortOrder,
           isActive: input.isActive ?? true,
-          imageUrl: url,
-          imageKey: key,
+          mediaType,
+          imageUrl,
+          imageKey,
+          videoUrl,
+          videoKey,
         });
       }),
     update: adminProcedure
@@ -697,23 +721,42 @@ export const appRouter = router({
           linkText: z.string().optional(),
           sortOrder: z.number().optional(),
           isActive: z.boolean().optional(),
+          mediaType: z.enum(["image", "video"]).optional(),
           imageBase64: z.string().optional(),
           imageFilename: z.string().optional(),
           imageContentType: z.string().optional(),
+          videoBase64: z.string().optional(),
+          videoFilename: z.string().optional(),
+          videoContentType: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
-        const { id, imageBase64, imageFilename, imageContentType, ...rest } = input;
+        const { id, imageBase64, imageFilename, imageContentType, videoBase64, videoFilename, videoContentType, mediaType, ...rest } = input;
         let imageUrl: string | undefined;
         let imageKey: string | undefined;
-        if (imageBase64 && imageFilename) {
+        let videoUrl: string | undefined;
+        let videoKey: string | undefined;
+
+        if (mediaType === "video" && videoBase64 && videoFilename) {
+          const buffer = Buffer.from(videoBase64, "base64");
+          const key = `Banners/${Date.now()}-${videoFilename}`;
+          const result = await storagePut(key, buffer, videoContentType || "video/mp4");
+          videoUrl = result.url;
+          videoKey = key;
+        } else if (imageBase64 && imageFilename) {
           const buffer = Buffer.from(imageBase64, "base64");
           const key = `Banners/${Date.now()}-${imageFilename}`;
           const result = await storagePut(key, buffer, imageContentType || "image/jpeg");
           imageUrl = result.url;
           imageKey = key;
         }
-        return updateBanner(id, { ...rest, ...(imageUrl ? { imageUrl, imageKey } : {}) });
+
+        return updateBanner(id, {
+          ...rest,
+          ...(mediaType ? { mediaType } : {}),
+          ...(imageUrl ? { imageUrl, imageKey } : {}),
+          ...(videoUrl ? { videoUrl, videoKey } : {}),
+        });
       }),
     delete: adminProcedure
       .input(z.object({ id: z.number() }))

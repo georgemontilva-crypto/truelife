@@ -148,7 +148,7 @@ export async function getSiteImages(): Promise<Record<string, string>> {
   const rows = await db.select({ slot: banners.slot, imageUrl: banners.imageUrl })
     .from(banners)
     .where(isNotNull(banners.slot));
-  return Object.fromEntries(rows.map((r) => [r.slot!, r.imageUrl]));
+  return Object.fromEntries(rows.filter((r) => r.imageUrl).map((r) => [r.slot!, r.imageUrl!]));
 }
 
 export async function upsertSiteImage(slot: string, imageUrl: string, imageKey?: string) {
@@ -177,8 +177,11 @@ export async function getBannerById(id: number) {
   return result[0];
 }
 export async function createBanner(data: {
-  imageUrl: string;
+  mediaType?: string;
+  imageUrl?: string;
   imageKey?: string;
+  videoUrl?: string;
+  videoKey?: string;
   title?: string;
   subtitle?: string;
   linkUrl?: string;
@@ -188,12 +191,27 @@ export async function createBanner(data: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
-  const result = await db.insert(banners).values(data);
+  const result = await db.insert(banners).values({
+    ...data,
+    mediaType: data.mediaType ?? "image",
+  });
   return result[0];
 }
 export async function updateBanner(
   id: number,
-  data: Partial<{ title: string; subtitle: string; imageUrl: string; imageKey: string; linkUrl: string; linkText: string; sortOrder: number; isActive: boolean }>
+  data: Partial<{
+    mediaType: string;
+    title: string;
+    subtitle: string;
+    imageUrl: string;
+    imageKey: string;
+    videoUrl: string;
+    videoKey: string;
+    linkUrl: string;
+    linkText: string;
+    sortOrder: number;
+    isActive: boolean;
+  }>
 ) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");

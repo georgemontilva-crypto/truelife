@@ -48,9 +48,13 @@ type BannerForm = {
   linkText: string;
   sortOrder: number;
   isActive: boolean;
+  mediaType: "image" | "video";
   imageBase64: string;
   imageFilename: string;
   imageContentType: string;
+  videoBase64: string;
+  videoFilename: string;
+  videoContentType: string;
   previewUrl: string;
 };
 
@@ -61,9 +65,13 @@ const emptyForm = (): BannerForm => ({
   linkText: "",
   sortOrder: 0,
   isActive: true,
+  mediaType: "image",
   imageBase64: "",
   imageFilename: "",
   imageContentType: "",
+  videoBase64: "",
+  videoFilename: "",
+  videoContentType: "",
   previewUrl: "",
 });
 
@@ -135,13 +143,12 @@ function HeroBannersTab() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       const result = ev.target?.result as string;
-      setForm((f) => ({
-        ...f,
-        imageBase64: result.split(",")[1],
-        imageFilename: file.name,
-        imageContentType: file.type,
-        previewUrl: result,
-      }));
+      const isVideo = file.type.startsWith("video/");
+      if (isVideo) {
+        setForm((f) => ({ ...f, mediaType: "video", videoBase64: result.split(",")[1], videoFilename: file.name, videoContentType: file.type, previewUrl: result }));
+      } else {
+        setForm((f) => ({ ...f, mediaType: "image", imageBase64: result.split(",")[1], imageFilename: file.name, imageContentType: file.type, previewUrl: result }));
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -149,6 +156,7 @@ function HeroBannersTab() {
   const openCreate = () => { setEditingId(null); setForm(emptyForm()); setDialogOpen(true); };
   const openEdit = (banner: Banner) => {
     setEditingId(banner.id);
+    const b = banner as any;
     setForm({
       title: banner.title ?? "",
       subtitle: banner.subtitle ?? "",
@@ -156,42 +164,37 @@ function HeroBannersTab() {
       linkText: banner.linkText ?? "",
       sortOrder: banner.sortOrder,
       isActive: banner.isActive,
+      mediaType: b.mediaType ?? "image",
       imageBase64: "", imageFilename: "", imageContentType: "",
-      previewUrl: banner.imageUrl,
+      videoBase64: "", videoFilename: "", videoContentType: "",
+      previewUrl: b.mediaType === "video" ? (b.videoUrl ?? "") : (banner.imageUrl ?? ""),
     });
     setDialogOpen(true);
   };
 
   const handleSubmit = () => {
-    if (!editingId && !form.imageBase64) { toast.error("Please select an image"); return; }
+    const hasMedia = form.mediaType === "video" ? !!form.videoBase64 : !!form.imageBase64;
+    if (!editingId && !hasMedia) { toast.error("Please select an image or video"); return; }
     if (editingId) {
       const payload: Parameters<typeof updateMutation.mutate>[0] = {
-        id: editingId,
-        title: form.title || undefined,
-        subtitle: form.subtitle || undefined,
-        linkUrl: form.linkUrl || undefined,
-        linkText: form.linkText || undefined,
-        sortOrder: form.sortOrder,
-        isActive: form.isActive,
+        id: editingId, mediaType: form.mediaType,
+        title: form.title || undefined, subtitle: form.subtitle || undefined,
+        linkUrl: form.linkUrl || undefined, linkText: form.linkText || undefined,
+        sortOrder: form.sortOrder, isActive: form.isActive,
       };
-      if (form.imageBase64) {
-        payload.imageBase64 = form.imageBase64;
-        payload.imageFilename = form.imageFilename;
-        payload.imageContentType = form.imageContentType;
+      if (form.mediaType === "video" && form.videoBase64) {
+        payload.videoBase64 = form.videoBase64; payload.videoFilename = form.videoFilename; payload.videoContentType = form.videoContentType;
+      } else if (form.imageBase64) {
+        payload.imageBase64 = form.imageBase64; payload.imageFilename = form.imageFilename; payload.imageContentType = form.imageContentType;
       }
       updateMutation.mutate(payload);
     } else {
-      createMutation.mutate({
-        title: form.title || undefined,
-        subtitle: form.subtitle || undefined,
-        linkUrl: form.linkUrl || undefined,
-        linkText: form.linkText || undefined,
-        sortOrder: form.sortOrder,
-        isActive: form.isActive,
-        imageBase64: form.imageBase64,
-        imageFilename: form.imageFilename,
-        imageContentType: form.imageContentType || undefined,
-      });
+      const base = { mediaType: form.mediaType, title: form.title || undefined, subtitle: form.subtitle || undefined, linkUrl: form.linkUrl || undefined, linkText: form.linkText || undefined, sortOrder: form.sortOrder, isActive: form.isActive };
+      if (form.mediaType === "video") {
+        createMutation.mutate({ ...base, videoBase64: form.videoBase64, videoFilename: form.videoFilename, videoContentType: form.videoContentType || undefined });
+      } else {
+        createMutation.mutate({ ...base, imageBase64: form.imageBase64, imageFilename: form.imageFilename, imageContentType: form.imageContentType || undefined });
+      }
     }
   };
 
@@ -231,11 +234,16 @@ function HeroBannersTab() {
                 <TableRow key={banner.id}>
                   <TableCell>
                     <div className="w-20 h-12 rounded overflow-hidden bg-muted">
-                      <img src={banner.imageUrl} alt={banner.title ?? "Banner"} className="w-full h-full object-cover" />
+                      {(banner as any).mediaType === "video"
+                        ? <video src={(banner as any).videoUrl} className="w-full h-full object-cover" muted />
+                        : <img src={banner.imageUrl ?? ""} alt={banner.title ?? "Banner"} className="w-full h-full object-cover" />}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <p className="font-medium text-sm">{banner.title || <span className="text-muted-foreground italic">No title</span>}</p>
+                    <div className="flex items-center gap-2">
+                      {(banner as any).mediaType === "video" && <Badge variant="secondary" className="text-xs">Video</Badge>}
+                      <p className="font-medium text-sm">{banner.title || <span className="text-muted-foreground italic">No title</span>}</p>
+                    </div>
                     {banner.subtitle && <p className="text-xs text-muted-foreground truncate max-w-xs">{banner.subtitle}</p>}
                   </TableCell>
                   <TableCell>
@@ -274,18 +282,20 @@ function HeroBannersTab() {
           <DialogHeader><DialogTitle>{editingId ? "Edit Banner" : "Add Banner"}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>Banner Image {!editingId && <span className="text-destructive">*</span>}</Label>
+              <Label>Media {!editingId && <span className="text-destructive">*</span>}</Label>
               {form.previewUrl && (
                 <div className="w-full h-36 rounded-lg overflow-hidden bg-muted mb-2">
-                  <img src={form.previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                  {form.mediaType === "video"
+                    ? <video src={form.previewUrl} className="w-full h-full object-cover" muted controls />
+                    : <img src={form.previewUrl} alt="Preview" className="w-full h-full object-cover" />}
                 </div>
               )}
               <div className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-foreground/40 transition-colors" onClick={() => fileRef.current?.click()}>
                 <ImageIcon className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">{form.imageFilename || (editingId ? "Click to replace image" : "Click to upload image")}</p>
-                <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP recommended (1920×600px)</p>
+                <p className="text-sm text-muted-foreground">{form.imageFilename || form.videoFilename || (editingId ? "Click to replace media" : "Click to upload image or video")}</p>
+                <p className="text-xs text-muted-foreground mt-1">Images: JPG, PNG, WebP (1920×600px) · Videos: MP4, WebM</p>
               </div>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+              <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={handleFileChange} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1 col-span-2">

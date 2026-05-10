@@ -120,14 +120,25 @@ function HeroBannerSlider() {
               key={banner.id}
               className="relative flex-none w-full h-[480px] md:h-[600px] lg:h-[680px]"
             >
-              <img
-                src={banner.imageUrl}
-                alt={banner.title ?? "Banner"}
-                className="absolute inset-0 w-full h-full object-cover"
-                loading={index === 0 ? "eager" : "lazy"}
-                fetchPriority={index === 0 ? "high" : "low"}
-                decoding={index === 0 ? "sync" : "async"}
-              />
+              {banner.mediaType === "video" && banner.videoUrl ? (
+                <video
+                  src={banner.videoUrl}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              ) : (
+                <img
+                  src={banner.imageUrl ?? ""}
+                  alt={banner.title ?? "Banner"}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  loading={index === 0 ? "eager" : "lazy"}
+                  fetchPriority={index === 0 ? "high" : "low"}
+                  decoding={index === 0 ? "sync" : "async"}
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/10" />
               <div className="relative h-full flex items-center">
                 <div className="container">
